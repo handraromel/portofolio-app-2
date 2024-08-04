@@ -4,6 +4,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import current_app, url_for
 
+
 class EmailService:
     def __init__(self):
         self.sender_email = os.environ.get('EMAIL_USER')
@@ -12,12 +13,6 @@ class EmailService:
         self.email_port = int(os.environ.get('EMAIL_PORT'))
 
     def send_email(self, receiver_email, subject, text_content, html_content):
-        if current_app.config['DEBUG']:
-            print(f"Would send email to {receiver_email}")
-            print(f"Subject: {subject}")
-            print(f"Content: {text_content}")
-            return True
-        
         message = MIMEMultipart("alternative")
         message["Subject"] = subject
         message["From"] = self.sender_email
@@ -32,18 +27,21 @@ class EmailService:
             with smtplib.SMTP(self.email_service, self.email_port) as server:
                 server.starttls()
                 server.login(self.sender_email, self.sender_password)
-                server.sendmail(self.sender_email, receiver_email, message.as_string())
+                server.sendmail(self.sender_email,
+                                receiver_email, message.as_string())
             return True
         except Exception as e:
             current_app.logger.error(f"Failed to send email: {str(e)}")
             return False
 
+
 def send_activation_email(user):
     email_service = EmailService()
-    activation_link = url_for('auth.activate_account', token=user.verification_token, _external=True)
-    
+    activation_link = url_for('auth.activate_account',
+                              token=user.verification_token, _external=True)
+
     subject = "Activate Your Account"
-    
+
     text_content = f"""
     Hello {user.username},
     
@@ -52,7 +50,7 @@ def send_activation_email(user):
     
     If you did not create an account, please ignore this email.
     """
-    
+
     html_content = f"""
     <html>
     <body>

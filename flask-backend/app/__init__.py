@@ -9,9 +9,10 @@ db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
 
+
 def create_app():
     app = Flask(__name__)
-    
+
     env = os.environ.get('FLASK_ENV', 'default')
     app.config.from_object(config[env])
 
@@ -20,12 +21,19 @@ def create_app():
     jwt.init_app(app)
     app.config['JWT_TOKEN_LOCATION'] = ['headers', 'cookies']
 
-    from app.routes import auth, recipe, meal_plan, utils
-    app.register_blueprint(auth.bp)
-    app.register_blueprint(recipe.bp)
-    app.register_blueprint(meal_plan.bp)
-    app.register_blueprint(utils.bp)
+    @app.after_request
+    def add_security_headers(response):
+        if app.config.get('SECURE_HEADERS'):
+            for header, value in app.config['SECURE_HEADERS'].items():
+                response.headers[header] = value
+        return response
+
+    with app.app_context():
+        from app import models
+        from app.routes import auth, recipe, meal_plan, utils
+        app.register_blueprint(auth.bp)
+        app.register_blueprint(recipe.bp)
+        app.register_blueprint(meal_plan.bp)
+        app.register_blueprint(utils.bp)
 
     return app
-
-from app import models

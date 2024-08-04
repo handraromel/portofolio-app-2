@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 8cf05bfcd4e2
+Revision ID: d57c77c89c79
 Revises: 
-Create Date: 2024-08-01 19:55:27.105546
+Create Date: 2024-08-04 12:51:18.098952
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '8cf05bfcd4e2'
+revision = 'd57c77c89c79'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -27,12 +27,12 @@ def upgrade():
     op.create_table('users',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('username', sa.String(length=64), nullable=False),
-    sa.Column('password', sa.String(length=128), nullable=False),
+    sa.Column('password', sa.String(length=256), nullable=False),
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('first_name', sa.String(length=64), nullable=True),
     sa.Column('last_name', sa.String(length=64), nullable=True),
     sa.Column('role', sa.Enum('superadmin', 'admin', 'user', name='user_roles'), nullable=False),
-    sa.Column('is_active', sa.Integer(), nullable=True),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('verification_token', sa.String(length=128), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),

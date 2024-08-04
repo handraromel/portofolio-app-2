@@ -1,3 +1,5 @@
+from app import db
+
 from .user import User
 from .recipe import Recipe, RecipeIngredient
 from .ingredient import Ingredient

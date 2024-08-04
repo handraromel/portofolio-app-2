@@ -1,5 +1,6 @@
 from flask import current_app
 
+
 def get_routes():
     routes = []
     for rule in current_app.url_map.iter_rules():

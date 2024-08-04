@@ -9,6 +9,7 @@ if __name__ == "__main__":
         with app.app_context():
             print("Available routes:")
             for route in get_routes():
-                print(f"{route['route']} [{route['methods']}] - {route['endpoint']}")
-    
+                print(
+                    f"{route['route']} [{route['methods']}] - {route['endpoint']}")
+
     app.run(host="0.0.0.0", port=8000)
