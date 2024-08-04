@@ -1,7 +1,7 @@
 from flask import Blueprint
 from app.controllers import auth
 
-bp = Blueprint('auth', __name__, url_prefix='/user/auth')
+bp = Blueprint('auth', __name__, url_prefix='/auth/user')
 
 bp.route('/register', methods=['POST'])(auth.register)
 bp.route('/login', methods=['POST'])(auth.login)

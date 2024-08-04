@@ -30,8 +30,9 @@ def create_app():
 
     with app.app_context():
         from app import models
-        from app.routes import auth, recipe, meal_plan, utils
+        from app.routes import auth, user, recipe, meal_plan, utils
         app.register_blueprint(auth.bp)
+        app.register_blueprint(user.bp)
         app.register_blueprint(recipe.bp)
         app.register_blueprint(meal_plan.bp)
         app.register_blueprint(utils.bp)

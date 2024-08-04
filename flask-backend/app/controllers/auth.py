@@ -4,7 +4,7 @@ from flask_jwt_extended import (
     get_jwt_identity, unset_jwt_cookies, set_access_cookies, set_refresh_cookies
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.models.user import User
+from app.models.user import User, UserRole
 from app import db
 from app.utils.email_service import send_activation_email, send_forgot_password_email
 from app.schemas.auth_schemas import RegisterSchema, LoginSchema, ForgotPasswordSchema
@@ -41,9 +41,7 @@ def register():
         username=data['username'],
         email=data['email'],
         password=hashed_password,
-        first_name=data.get('first_name'),
-        last_name=data.get('last_name'),
-        role='user',
+        role=UserRole.user,
         is_active=False,
         verification_token=verification_token
     )
