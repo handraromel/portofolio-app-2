@@ -1,4 +1,4 @@
-from flask import jsonify, request, current_app
+from flask import jsonify, request
 from flask_jwt_extended import (
     create_access_token, create_refresh_token, jwt_required,
     get_jwt_identity, unset_jwt_cookies, set_access_cookies, set_refresh_cookies
@@ -6,13 +6,15 @@ from flask_jwt_extended import (
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models.user import User
 from app import db
-from app.utils.email_service import send_activation_email
-from app.schemas.auth_schemas import RegisterSchema, LoginSchema
+from app.utils.email_service import send_activation_email, send_forgot_password_email
+from app.schemas.auth_schemas import RegisterSchema, LoginSchema, ForgotPasswordSchema
 from app.utils.decorators import handle_validation_error
+from app.utils.random_chars import generate_random_password
 import uuid
 
 register_schema = RegisterSchema()
 login_schema = LoginSchema()
+forgot_password_schema = ForgotPasswordSchema()
 
 
 def create_tokens(user_id):
@@ -57,7 +59,6 @@ def register():
 
 @handle_validation_error
 def login():
-    current_app.logger.debug("Login function called")
     data = login_schema.load(request.json)
 
     user = User.query.filter_by(username=data['username']).first()
@@ -68,7 +69,7 @@ def login():
 
         access_token, refresh_token = create_tokens(user.id)
 
-        resp = jsonify({'login': True})
+        resp = jsonify({"login": True, "msg": "You're now logged in"})
         set_tokens_cookies(resp, access_token, refresh_token)
 
         return resp, 200
@@ -99,27 +100,30 @@ def refresh():
     return resp, 200
 
 
-# @jwt_required()
-# def logout():
-#     resp = jsonify({'logout': True})
-#     unset_jwt_cookies(resp)
-#     return resp, 200
-
 @jwt_required()
 def logout():
-    current_app.logger.debug("Logout function called")
-    current_app.logger.debug(f"Request headers: {request.headers}")
-    resp = jsonify({'logout': True})
+    resp = jsonify({"logout": True, "msg": "You're currently logged out"})
     unset_jwt_cookies(resp)
-    current_app.logger.debug("JWT cookies unset")
     return resp, 200
 
 
-def get_current_user():
-    return User.query.get(get_jwt_identity())
+@handle_validation_error
+def forgot_password():
+    data = forgot_password_schema.load(request.json)
 
+    user = User.query.filter_by(email=data['email']).first()
+    if not user:
+        return jsonify({"msg": "No user found with that email address"}), 404
 
-@jwt_required()
-def protected():
-    current_user = get_current_user()
-    return jsonify(logged_in_as=current_user.username), 200
+    if not user.is_active:
+        return jsonify({"msg": "Account is not activated. Look for your activation email or contact the app administrator."}), 401
+
+    new_password = generate_random_password()
+
+    user.password = generate_password_hash(new_password)
+    db.session.commit()
+
+    if send_forgot_password_email(user, new_password):
+        return jsonify({"msg": "New password has been sent to your email"}), 200
+    else:
+        return jsonify({"msg": "Failed to send email. Please try again later."}), 500

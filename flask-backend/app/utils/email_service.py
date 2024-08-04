@@ -35,8 +35,33 @@ class EmailService:
             return False
 
 
+email_service = EmailService()
+
+
+def send_forgot_password_email(user, new_password):
+    subject = "Your New Password"
+
+    text_content = f"""
+    Hello {user.username},
+    
+    Please use the following password to log into your account:
+    {new_password}
+    """
+
+    html_content = f"""
+    <html>
+    <body>
+        <p>Hello {user.username},</p>
+        <p>Please use the following password to log into your account:</p>
+        <p>{new_password}</p>
+    </body>
+    </html>
+    """
+
+    return email_service.send_email(user.email, subject, text_content, html_content)
+
+
 def send_activation_email(user):
-    email_service = EmailService()
     activation_link = url_for('auth.activate_account',
                               token=user.verification_token, _external=True)
 

@@ -16,3 +16,7 @@ class LoginSchema(Schema):
         required=True, validate=validate.Length(min=3, max=20))
     password = fields.Str(
         required=True, validate=validate.Length(min=8, max=20))
+
+
+class ForgotPasswordSchema(Schema):
+    email = fields.Email(required=True)
