@@ -1,4 +1,3 @@
-// src/components/Auth/Register.tsx
 import React from "react";
 import { Formik, Form, Field } from "formik";
 import FieldInput from "components/Inputs/FieldInput";
