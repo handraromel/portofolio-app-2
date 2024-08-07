@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Header from "layouts/Main/Header";
 import Navigation from "layouts/Main/Navigation";
 import Footer from "layouts/Main/Footer";
+import Container from "layouts/Main/Container";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -13,14 +14,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-50">
       <Navigation isOpen={isMenuOpen} />
 
       <div className="flex flex-1 flex-col lg:ml-72">
         <Header isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
 
         <main className="flex-grow p-6">
-          <div className="max-w-7xl mx-auto">{children}</div>
+          <div className="mx-auto h-full max-w-7xl">
+            <Container>{children}</Container>
+          </div>
         </main>
         <Footer />
       </div>

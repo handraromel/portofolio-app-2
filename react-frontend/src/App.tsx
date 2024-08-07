@@ -1,14 +1,7 @@
-import MainLayout from "layouts";
+import AppRouter from "./routes/AppRouter";
 
 function App() {
-  return (
-    <MainLayout>
-      <div className="App">
-        <h1 className="text-2xl font-bold mb-4">Welcome to Savory Script</h1>
-        <p>Your content goes here.</p>
-      </div>
-    </MainLayout>
-  );
+  return <AppRouter />;
 }
 
 export default App;

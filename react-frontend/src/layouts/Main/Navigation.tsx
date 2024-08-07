@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 
 interface NavigationProps {
@@ -13,7 +14,7 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { id: "dashboard", label: "Dashboard", href: "/dashboard" },
+  { id: "dashboard", label: "Dashboard", href: "/" },
   {
     id: "recipes",
     label: "Recipes",
@@ -39,12 +40,12 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen }) => {
         <li key={item.id}>
           <button
             onClick={() => toggleSubMenu(item.id)}
-            className="w-full text-left flex items-center justify-between py-2 px-4 rounded hover:bg-indigo-600 hover:text-white transition duration-200"
+            className="flex w-full items-center justify-between rounded px-4 py-2 text-left transition duration-200 hover:bg-indigo-600 hover:text-white"
           >
             {item.label}
             <ChevronDownIcon
-              className={`w-5 h-5 transition-transform duration-200 ${
-                openSubMenus[item.id] ? "transform rotate-180" : ""
+              className={`h-5 w-5 transition-transform duration-200 ${
+                openSubMenus[item.id] ? "rotate-180 transform" : ""
               }`}
             />
           </button>
@@ -63,24 +64,24 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen }) => {
 
     return (
       <li key={item.id}>
-        <a
-          href={item.href}
-          className="block py-2 px-4 rounded hover:bg-indigo-600 hover:text-white transition duration-200"
+        <Link
+          to={item.href || "#"}
+          className="block rounded px-4 py-2 transition duration-200 hover:bg-indigo-600 hover:text-white"
         >
           {item.label}
-        </a>
+        </Link>
       </li>
     );
   };
 
   return (
     <nav
-      className={`bg-slate-800 text-slate-200 w-72 h-full fixed top-0 left-0 overflow-y-auto transition-transform duration-300 ease-in-out transform ${
+      className={`fixed left-0 top-0 h-full w-72 transform overflow-y-auto bg-slate-800 text-slate-200 transition-transform duration-300 ease-in-out ${
         isOpen ? "translate-x-0" : "-translate-x-full"
-      } lg:translate-x-0 pt-16 lg:pt-0 shadow-xl`}
+      } pt-16 shadow-xl lg:translate-x-0 lg:pt-0`}
     >
       <div className="p-6">
-        <h2 className="text-2xl mb-6 text-indigo-600 font-extrabold">
+        <h2 className="mb-6 text-2xl font-extrabold text-indigo-600">
           Savory Script
         </h2>
         <ul className="space-y-2">
