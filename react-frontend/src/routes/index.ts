@@ -7,10 +7,14 @@ const NotFound = lazy(() => import("components/Pages/NotFound"));
 
 export const routes: Route[] = [
   {
-    path: "/",
+    path: "/dashboard",
     element: Dashboard,
+    protected: true,
   },
-  ...authRoutes,
+  ...authRoutes.map((route) => ({
+    ...route,
+    allowedRoles: route.allowedRoles || ["superadmin", "admin", "user"],
+  })),
 ];
 
 export { NotFound };

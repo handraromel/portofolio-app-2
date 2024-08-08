@@ -1,9 +1,10 @@
 from flask import jsonify, request
 from flask_jwt_extended import jwt_required
+from app import db
 from app.models.user import User, UserRole
 from app.schemas.user_schemas import UpdateProfileSchema, UpdatePasswordSchema, UpdateRoleSchema
 from app.utils.decorators import superadmin_required, admin_required, handle_validation_error
-from app import db
+from app.utils.user_to_dict import user_to_dict
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_, and_
 from datetime import datetime
@@ -137,16 +138,3 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
     return jsonify({"msg": "User deleted successfully"}), 200
-
-
-def user_to_dict(user):
-    return {
-        'username': user.username,
-        'email': user.email,
-        'first_name': user.first_name,
-        'last_name': user.last_name,
-        'role': user.role.value,
-        'is_active': user.is_active,
-        'created_at': user.created_at.isoformat(),
-        'updated_at': user.updated_at.isoformat()
-    }

@@ -10,6 +10,7 @@ from app.utils.email_service import send_activation_email, send_forgot_password_
 from app.schemas.auth_schemas import RegisterSchema, LoginSchema, ForgotPasswordSchema
 from app.utils.decorators import handle_validation_error
 from app.utils.random_chars import generate_random_password
+from app.utils.user_to_dict import user_to_dict
 import uuid
 
 register_schema = RegisterSchema()
@@ -67,7 +68,8 @@ def login():
 
         access_token, refresh_token = create_tokens(user.id)
 
-        resp = jsonify({"login": True, "msg": "You're now logged in"})
+        resp = jsonify(
+            {"login": True, "msg": "You're now logged in", "user": user_to_dict(user)})
         set_tokens_cookies(resp, access_token, refresh_token)
 
         return resp, 200

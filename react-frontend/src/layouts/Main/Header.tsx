@@ -1,4 +1,7 @@
 import React from "react";
+import { useAppDispatch } from "hooks/store";
+import { logout } from "store/actions/authActions";
+import { useNavigate } from "react-router-dom";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import {
   UserCircleIcon,
@@ -14,15 +17,26 @@ interface HeaderProps {
 interface MenuItem {
   id: string;
   label: string;
-  href: string;
+  href?: string;
+  onClick?: () => void;
 }
 
-const menuItems: MenuItem[] = [
-  { id: "profile", label: "User Profile", href: "/profile" },
-  { id: "logout", label: "Logout", href: "/logout" },
-];
-
 const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    const isLogout = await dispatch(logout());
+    if (isLogout) {
+      navigate("/");
+    }
+  };
+
+  const menuItems: MenuItem[] = [
+    { id: "profile", label: "User Profile", href: "/profile" },
+    { id: "logout", label: "Logout", onClick: handleLogout },
+  ];
+
   return (
     <header className="sticky top-0 bg-slate-900 text-slate-200 shadow-md transition-all duration-300">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,12 +64,21 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
               <ul className="m-2">
                 {menuItems.map((item) => (
                   <li key={item.id}>
-                    <a
-                      href={item.href}
-                      className="block rounded px-4 py-2 text-sm text-slate-700 transition-all duration-200 hover:bg-indigo-500 hover:text-white"
-                    >
-                      {item.label}
-                    </a>
+                    {item.href ? (
+                      <a
+                        href={item.href}
+                        className="block rounded px-4 py-2 text-sm text-slate-700 transition-all duration-200 hover:bg-indigo-500 hover:text-white"
+                      >
+                        {item.label}
+                      </a>
+                    ) : (
+                      <button
+                        onClick={item.onClick}
+                        className="block w-full rounded px-4 py-2 text-left text-sm text-slate-700 transition-all duration-200 hover:bg-indigo-500 hover:text-white"
+                      >
+                        {item.label}
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>

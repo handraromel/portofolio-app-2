@@ -1,22 +1,30 @@
 import React from "react";
 import { Formik, Form, Field } from "formik";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "hooks/store";
+import { register } from "store/actions/authActions";
 import FieldInput from "components/Inputs/FieldInput";
 import Button from "components/Common/Button";
 import { registerSchema } from "utils/validationSchemas";
 
 const Register: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const { isLoading, error } = useAppSelector((state) => state.auth);
+
   const FormInitialValues = {
-    name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
   };
-  const handleSubmit = async (values: any, { setSubmitting }: any) => {
-    // Implement registration logic here
-    console.log("Registration attempt with:", values);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setSubmitting(false);
+
+  const handleSubmit = async (values: typeof FormInitialValues) => {
+    const result = await dispatch(register(values));
+    if (register.fulfilled.match(result)) {
+      navigate("/login");
+    }
   };
 
   return (
@@ -24,26 +32,27 @@ const Register: React.FC = () => {
       <h3 className="mt-2 text-center text-xl text-gray-600">
         Create your account
       </h3>
+      {error && <p className="text-red-500">{error}</p>}
       <Formik
         initialValues={FormInitialValues}
         validationSchema={registerSchema}
         onSubmit={handleSubmit}
       >
-        {({ errors, touched, isSubmitting, isValid, dirty }) => (
+        {({ errors, touched, isValid, dirty }) => (
           <Form className="mt-8 space-y-12">
-            <div className="space-y-3 rounded-md shadow-sm">
+            <div className="space-y-3">
               <Field
                 as={FieldInput}
-                id="name"
-                name="name"
+                id="username"
+                name="username"
                 type="text"
-                label="Full Name"
-                placeholder="Full Name"
-                error={touched.name && errors.name}
+                label="Username (will be used for login after your account is activated)"
+                placeholder="Username"
+                error={touched.username && errors.username}
               />
               <Field
                 as={FieldInput}
-                id="email-address"
+                id="email"
                 name="email"
                 type="text"
                 label="Email address"
@@ -74,10 +83,10 @@ const Register: React.FC = () => {
               <Button
                 type="submit"
                 buttonText="Create Account"
-                loadingState={isSubmitting}
-                disabled={!(isValid && dirty) || isSubmitting}
+                loadingState={isLoading}
+                disabled={!(isValid && dirty) || isLoading}
                 bgColor={
-                  !(isValid && dirty) || isSubmitting ? "secondary" : "primary"
+                  !(isValid && dirty) || isLoading ? "secondary" : "primary"
                 }
               />
             </div>

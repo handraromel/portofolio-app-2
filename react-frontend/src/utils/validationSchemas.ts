@@ -3,7 +3,9 @@ import * as Yup from "yup";
 const passwordRules = /^(?=.*\d)(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[a-z]).{8,}$/;
 
 export const loginSchema = Yup.object().shape({
-  email: Yup.string().email("Invalid email").required("Email is required"),
+  username: Yup.string()
+    .required("Username is required")
+    .min(3, "Name should at least more than 2 characters"),
   password: Yup.string()
     .matches(passwordRules, {
       message:
@@ -13,7 +15,7 @@ export const loginSchema = Yup.object().shape({
 });
 
 export const registerSchema = Yup.object().shape({
-  name: Yup.string()
+  username: Yup.string()
     .required("Name is required")
     .min(3, "Name should at least more than 2 characters"),
   email: Yup.string().email("Invalid email").required("Email is required"),

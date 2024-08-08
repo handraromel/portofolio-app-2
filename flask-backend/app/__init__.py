@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 from config import config
 import os
 
@@ -20,6 +21,8 @@ def create_app():
     migrate.init_app(app, db)
     jwt.init_app(app)
     app.config['JWT_TOKEN_LOCATION'] = ['headers', 'cookies']
+
+    CORS(app, supports_credentials=True)
 
     @app.after_request
     def add_security_headers(response):
