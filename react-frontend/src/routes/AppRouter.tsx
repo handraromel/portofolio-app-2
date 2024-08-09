@@ -5,7 +5,7 @@ import {
   Route as ReactRoute,
   Navigate,
 } from "react-router-dom";
-import { useAppSelector } from "hooks/store";
+import { useAppSelector } from "hooks/useStore";
 import { routes } from ".";
 import { Route } from "./types";
 import MainLayout from "layouts";

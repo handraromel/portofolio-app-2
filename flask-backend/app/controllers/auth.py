@@ -56,7 +56,6 @@ def register():
         return jsonify({"msg": "User created successfully, but failed to send activation email. Please contact support."}), 201
 
 
-@handle_validation_error
 def login():
     data = login_schema.load(request.json)
 
@@ -66,11 +65,18 @@ def login():
         if not user.is_active:
             return jsonify({"msg": "Account is not activated. Please check your email for the activation link."}), 401
 
-        access_token, refresh_token = create_tokens(user.id)
+        access_token = create_access_token(identity=user.id)
+        refresh_token = create_refresh_token(identity=user.id)
 
-        resp = jsonify(
-            {"login": True, "msg": "You're now logged in", "user": user_to_dict(user)})
-        set_tokens_cookies(resp, access_token, refresh_token)
+        resp = jsonify({
+            "login": True,
+            "msg": "You're now logged in",
+            "user": user_to_dict(user),
+            "tokens": {
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+            }
+        })
 
         return resp, 200
 

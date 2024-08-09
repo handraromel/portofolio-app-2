@@ -1,5 +1,5 @@
 import React from "react";
-import { useAppDispatch } from "hooks/store";
+import { useAppDispatch } from "hooks/useStore";
 import { logout } from "store/actions/authActions";
 import { useNavigate } from "react-router-dom";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";

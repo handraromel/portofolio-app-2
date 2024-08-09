@@ -1,7 +1,7 @@
 import React from "react";
 import { Formik, Form, Field } from "formik";
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "hooks/store";
+import { useAppDispatch, useAppSelector } from "hooks/useStore";
 import { register } from "store/actions/authActions";
 import FieldInput from "components/Inputs/FieldInput";
 import Button from "components/Common/Button";
