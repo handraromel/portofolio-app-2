@@ -28,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
   const handleLogout = async () => {
     const isLogout = await dispatch(logout());
     if (isLogout) {
-      navigate("/");
+      navigate("/login");
     }
   };
 

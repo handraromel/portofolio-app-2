@@ -1,7 +1,7 @@
-from flask import jsonify, request
+from flask import jsonify, request, make_response
 from flask_jwt_extended import (
     create_access_token, create_refresh_token, jwt_required,
-    get_jwt_identity, unset_jwt_cookies, set_access_cookies, set_refresh_cookies
+    get_jwt_identity, unset_jwt_cookies, set_access_cookies, set_refresh_cookies, get_csrf_token
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models.user import User, UserRole
@@ -56,6 +56,7 @@ def register():
         return jsonify({"msg": "User created successfully, but failed to send activation email. Please contact support."}), 201
 
 
+@handle_validation_error
 def login():
     data = login_schema.load(request.json)
 
@@ -68,15 +69,14 @@ def login():
         access_token = create_access_token(identity=user.id)
         refresh_token = create_refresh_token(identity=user.id)
 
-        resp = jsonify({
+        resp = make_response(jsonify({
             "login": True,
             "msg": "You're now logged in",
-            "user": user_to_dict(user),
-            "tokens": {
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-            }
-        })
+            "user": user_to_dict(user)
+        }))
+
+        set_access_cookies(resp, access_token)
+        set_refresh_cookies(resp, refresh_token)
 
         return resp, 200
 
@@ -108,8 +108,25 @@ def refresh():
 
 @jwt_required()
 def logout():
-    resp = jsonify({"logout": True, "msg": "You're currently logged out"})
+    resp = make_response(
+        jsonify({"logout": True, "msg": "You're currently logged out"}))
     unset_jwt_cookies(resp)
+    resp.delete_cookie('csrf_access_token')
+    resp.delete_cookie('csrf_refresh_token')
+    return resp, 200
+
+
+@jwt_required(refresh=True)
+def refresh():
+    identity = get_jwt_identity()
+    access_token = create_access_token(identity=identity)
+
+    resp = make_response(jsonify({'refresh': True}))
+    set_access_cookies(resp, access_token)
+
+    resp.set_cookie('csrf_access_token', get_csrf_token(
+        access_token), httponly=False, samesite='Strict')
+
     return resp, 200
 
 

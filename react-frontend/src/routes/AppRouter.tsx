@@ -17,15 +17,17 @@ const ProtectedRoute: React.FC<{
   layout: React.ComponentType<{ children: React.ReactNode }>;
   allowedRoles: string[];
 }> = ({ element: Element, layout: Layout, allowedRoles }) => {
-  const user = JSON.parse(localStorage.getItem("authUser") || "null");
+  const user = useAppSelector((state) => state.auth.user);
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+
+  console.log(user);
+  console.log(isAuthenticated);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
   if (!checkRole(user, allowedRoles)) {
-    console.log(user);
     return <Navigate to="/unauthorized" replace />;
   }
 

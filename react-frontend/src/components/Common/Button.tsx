@@ -71,8 +71,8 @@ const Button: React.FC<ButtonProps> = ({
     >
       {loadingState ? (
         <>
-          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-b-transparent"></div>
-          processing
+          <span className="mr-1">processing</span>
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-b-transparent"></span>
         </>
       ) : (
         buttonText

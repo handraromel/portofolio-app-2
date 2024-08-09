@@ -15,6 +15,7 @@ def create_app():
     app = Flask(__name__)
 
     env = os.environ.get('FLASK_ENV', 'default')
+    origins = os.environ.get('ORIGINS_URL')
     app.config.from_object(config[env])
 
     db.init_app(app)
@@ -22,7 +23,7 @@ def create_app():
     jwt.init_app(app)
     app.config['JWT_TOKEN_LOCATION'] = ['headers', 'cookies']
 
-    CORS(app, supports_credentials=True)
+    CORS(app, supports_credentials=True, origins=origins)
 
     @app.after_request
     def add_security_headers(response):

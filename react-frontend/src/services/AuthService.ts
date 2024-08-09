@@ -16,13 +16,10 @@ const authPrefix = "/auth/user";
 const AuthService = {
   register: (data: RegisterData) => api.post(`${authPrefix}/register`, data),
   login: (data: LoginData) => api.post(`${authPrefix}/login`, data),
-  logout: (csrfToken: string | undefined) =>
-    api.post(`${authPrefix}/logout`, null, {
-      headers: {
-        "X-CSRF-TOKEN": csrfToken,
-      },
-    }),
-  refresh: () => api.post(`${authPrefix}/refresh`),
+  logout: () =>
+    api.post(`${authPrefix}/logout`, null, { withCredentials: true }),
+  refresh: () =>
+    api.post(`${authPrefix}/refresh`, null, { withCredentials: true }),
   forgotPassword: (email: string) =>
     api.post(`${authPrefix}/forgot-password`, { email }),
   activateAccount: (token: string) =>

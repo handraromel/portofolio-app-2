@@ -1,7 +1,10 @@
-import AppRouter from "./routes/AppRouter";
+import React from "react";
+import AppRouter from "routes/AppRouter";
+import { useAuthCheck } from "hooks/useAuthCheck";
 
-function App() {
+const App: React.FC = () => {
+  useAuthCheck();
   return <AppRouter />;
-}
+};
 
 export default App;

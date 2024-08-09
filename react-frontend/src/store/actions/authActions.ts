@@ -38,11 +38,25 @@ export const logout = createAsyncThunk(
   "auth/logout",
   async (_, { rejectWithValue }) => {
     try {
-      const csrfToken = Cookies.get("csrf_access_token");
-      await AuthService.logout(csrfToken);
-      localStorage.removeItem("csrf_access_token");
+      await AuthService.logout();
+      Cookies.remove("csrf_access_token");
+      Cookies.remove("csrf_refresh_token");
     } catch (error) {
       return rejectWithValue("Logout failed");
+    }
+  },
+);
+
+export const refreshToken = createAsyncThunk(
+  "auth/refreshToken",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await AuthService.refresh();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "Token refresh failed",
+      );
     }
   },
 );
