@@ -65,7 +65,7 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             echo "SSH connection test successful"
-            cd /home/opc/portofolio-app-2/
+            cd /home/opc/savory-script/
             git pull origin master
 
             # Create backend .env file
@@ -107,6 +107,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            cd /home/opc/portofolio-app-2/
+            cd /home/opc/savory-script/
             docker compose ps
             docker compose logs --tail=50

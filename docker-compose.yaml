@@ -12,7 +12,7 @@ services:
     depends_on:
       - db
     networks:
-      - portofolio_app_2_network
+      - savory_script_network
 
   frontend:
     build:
@@ -23,7 +23,7 @@ services:
     env_file:
       - ./react-frontend/.env
     networks:
-      - portofolio_app_2_network
+      - savory_script_network
 
   db:
     image: postgres:13
@@ -34,11 +34,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - portofolio_app_2_network
+      - savory_script_network
 
 volumes:
   postgres_data:
 
 networks:
-  portofolio_app_2_network:
+  savory_script_network:
     driver: bridge
