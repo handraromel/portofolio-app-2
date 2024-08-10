@@ -63,8 +63,14 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          envs: DB_NAME,DB_USER,DB_PASSWORD
           script: |
             echo "SSH connection test successful"
+
+            export DB_NAME=${{ secrets.DB_NAME }}
+            export DB_USER=${{ secrets.DB_USER }}
+            export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+
             cd /home/opc/savory-script/
             git pull origin master
 
@@ -92,9 +98,19 @@ jobs:
             docker compose pull
             docker compose up -d --build
 
+            # Check if containers are running
+            if ! docker compose ps | grep -q "Up"; then
+              echo "Error: Some containers failed to start"
+              docker compose logs
+              exit 1
+            fi
+
             # Wait for database to be ready
             echo "Waiting for database to be ready..."
-            docker compose exec db sh -c 'while ! pg_isready -h "localhost" -p "5432" > /dev/null 2>&1; do sleep 1; done'
+            until docker compose exec db pg_isready -h db -p 5432; do
+              echo "Database is unavailable - sleeping"
+              sleep 1
+            done
 
             # Run migrations
             docker compose exec backend sh -c 'flask db upgrade'
