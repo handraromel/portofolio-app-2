@@ -65,7 +65,7 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             cd /home/opc/savory-script/
-            git pull origin main
+            git pull origin master
 
             # Create backend .env file
             cat << EOF > flask-backend/.env
