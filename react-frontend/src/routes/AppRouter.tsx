@@ -20,9 +20,6 @@ const ProtectedRoute: React.FC<{
   const user = useAppSelector((state) => state.auth.user);
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
-  console.log(user);
-  console.log(isAuthenticated);
-
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
