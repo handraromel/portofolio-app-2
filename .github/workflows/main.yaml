@@ -56,18 +56,6 @@ jobs:
           docker compose build
           docker compose push
 
-      - name: Check SSH connection
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script: |
-            echo "SSH connection test successful"
-            whoami
-            pwd
-
       - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:
@@ -76,7 +64,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            cd /home/opc/savory-script/
+            echo "SSH connection test successful"
+            cd /home/opc/portofolio-app-2/
             git pull origin master
 
             # Create backend .env file
@@ -118,6 +107,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            cd /home/opc/savory-script/
+            cd /home/opc/portofolio-app-2/
             docker compose ps
             docker compose logs --tail=50
