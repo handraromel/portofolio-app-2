@@ -56,6 +56,18 @@ jobs:
           docker compose build
           docker compose push
 
+      - name: Check SSH connection
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            echo "SSH connection test successful"
+            whoami
+            pwd
+
       - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:
