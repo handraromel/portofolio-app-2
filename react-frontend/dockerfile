@@ -1,23 +1,16 @@
 FROM node:20 AS build
 
-RUN curl -fsSL https://get.pnpm.io/install.sh | SHELL="$(which bash)" bash -
-
-ENV PATH="/root/.local/share/pnpm:$PATH"
-
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
-
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-
 RUN pnpm run build
 
-# Production stage
 FROM nginx:alpine
 
-COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=build /app/build /usr/share/nginx/html/savoryscript
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
