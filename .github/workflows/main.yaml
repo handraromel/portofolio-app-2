@@ -64,7 +64,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            cd /home/opc/savory-script
+            cd /home/opc/savory-script/
             git pull origin main
 
             # Create backend .env file
@@ -106,6 +106,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            cd /path/to/your/project/on/server
+            cd /home/opc/savory-script/
             docker compose ps
             docker compose logs --tail=50
