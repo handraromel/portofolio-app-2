@@ -19,7 +19,7 @@ services:
       context: ./react-frontend
       dockerfile: Dockerfile
     ports:
-      - "5000:80"
+      - "5000:5000"
     networks:
       - savory_script_network
 
