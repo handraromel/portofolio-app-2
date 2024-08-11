@@ -18,6 +18,8 @@ services:
     build:
       context: ./react-frontend
       dockerfile: Dockerfile
+    volumes:
+      - ./react-frontend/build:/app/savory-script/build
     ports:
       - "5000:5000"
     networks:

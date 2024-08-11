@@ -14,6 +14,10 @@ COPY . .
 
 RUN pnpm run build
 
+RUN mkdir -p /app/savory-script/build
+
+RUN cp -r build/* /app/savory-script/build/
+
 RUN npm install -g serve
 
 EXPOSE 5000
