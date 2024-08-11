@@ -35,10 +35,18 @@ def create_app():
     with app.app_context():
         from app import models
         from app.routes import auth, user, recipe, meal_plan, utils
-        app.register_blueprint(auth.bp)
-        app.register_blueprint(user.bp)
-        app.register_blueprint(recipe.bp)
-        app.register_blueprint(meal_plan.bp)
-        app.register_blueprint(utils.bp)
+
+        url_prefix = '/api/v1'
+        auth_prefix = url_prefix + '/auth/user'
+        user_prefix = url_prefix + '/manage/user'
+        recipe_prefix = url_prefix + '/manage/recipe'
+        meal_plan_prefix = url_prefix + '/manage/meal-plan'
+        utils_prefix = url_prefix + '/utils/routes'
+
+        app.register_blueprint(auth.bp, url_prefix=auth_prefix)
+        app.register_blueprint(user.bp, url_prefix=user_prefix)
+        app.register_blueprint(recipe.bp, url_prefix=recipe_prefix)
+        app.register_blueprint(meal_plan.bp, url_prefix=meal_plan_prefix)
+        app.register_blueprint(utils.bp, url_prefix=utils_prefix)
 
     return app

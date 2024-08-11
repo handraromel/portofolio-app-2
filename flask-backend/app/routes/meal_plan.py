@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-bp = Blueprint('recipe', __name__, url_prefix='/recipes')
+bp = Blueprint('recipe', __name__)
 
 # Add your recipe routes here
 

@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-bp = Blueprint('meal_plan', __name__, url_prefix='/meal-plans')
+bp = Blueprint('meal_plan', __name__)
 
 # Add your meal plan routes here
 

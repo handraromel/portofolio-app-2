@@ -1,7 +1,7 @@
 from flask import Blueprint
 from app.controllers import user
 
-bp = Blueprint('user', __name__, url_prefix='/manage/user')
+bp = Blueprint('user', __name__)
 
 bp.route('/all', methods=['GET'])(user.get_all_users)
 bp.route('/<uuid:user_id>/update', methods=['PUT'])(user.update_user)
