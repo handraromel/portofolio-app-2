@@ -41,7 +41,7 @@ def create_app():
         user_prefix = url_prefix + '/manage/user'
         recipe_prefix = url_prefix + '/manage/recipe'
         meal_plan_prefix = url_prefix + '/manage/meal-plan'
-        utils_prefix = url_prefix + '/utils/routes'
+        utils_prefix = url_prefix + '/utils'
 
         app.register_blueprint(auth.bp, url_prefix=auth_prefix)
         app.register_blueprint(user.bp, url_prefix=user_prefix)
