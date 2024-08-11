@@ -39,7 +39,7 @@ const AppRouter: React.FC = () => {
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
   return (
-    <Router>
+    <Router basename="/savoryscript">
       <Suspense
         fallback={
           <div className="flex min-h-screen items-center justify-center bg-gray-50">

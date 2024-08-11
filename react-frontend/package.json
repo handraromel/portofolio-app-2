@@ -2,7 +2,7 @@
   "name": "react-frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://handraromel.website/savoryscript",
+  "homepage": "/savoryscript",
   "dependencies": {
     "@headlessui/react": "^2.1.2",
     "@heroicons/react": "^2.1.5",
