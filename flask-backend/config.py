@@ -15,6 +15,8 @@ class Config:
     JWT_CSRF_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE']
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
 
+    PUBLIC_URL = os.environ.get('PUBLIC_URL', 'http://localhost:5001')
+
     EMAIL_USER = os.environ.get('EMAIL_USER')
     EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD')
     EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
@@ -31,6 +33,8 @@ class DevelopmentConfig(Config):
     DEBUG = True
     JWT_COOKIE_SECURE = False
     SESSION_COOKIE_SECURE = False
+
+    PUBLIC_URL = os.environ.get('PUBLIC_URL', 'http://localhost:5001')
 
 
 class ProductionConfig(Config):
@@ -50,6 +54,9 @@ class ProductionConfig(Config):
         'X-Frame-Options': 'SAMEORIGIN',
         'X-XSS-Protection': '1; mode=block',
     }
+
+    PUBLIC_URL = os.environ.get(
+        'PUBLIC_URL', 'https://savoryscript.handraromel.website')
 
 
 config = {

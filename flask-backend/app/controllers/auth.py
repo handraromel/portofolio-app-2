@@ -116,18 +116,18 @@ def logout():
     return resp, 200
 
 
-@jwt_required(refresh=True)
-def refresh():
-    identity = get_jwt_identity()
-    access_token = create_access_token(identity=identity)
+# @jwt_required(refresh=True)
+# def refresh():
+#     identity = get_jwt_identity()
+#     access_token = create_access_token(identity=identity)
 
-    resp = make_response(jsonify({'refresh': True}))
-    set_access_cookies(resp, access_token)
+#     resp = make_response(jsonify({'refresh': True}))
+#     set_access_cookies(resp, access_token)
 
-    resp.set_cookie('csrf_access_token', get_csrf_token(
-        access_token), httponly=False, samesite='Strict')
+#     resp.set_cookie('csrf_access_token', get_csrf_token(
+#         access_token), httponly=False, samesite='Strict')
 
-    return resp, 200
+#     return resp, 200
 
 
 @handle_validation_error

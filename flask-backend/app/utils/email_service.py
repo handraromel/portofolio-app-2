@@ -3,6 +3,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import current_app, url_for
+from urllib.parse import urljoin
 
 
 class EmailService:
@@ -62,8 +63,11 @@ def send_forgot_password_email(user, new_password):
 
 
 def send_activation_email(user):
-    activation_link = url_for('auth.activate_account',
-                              token=user.verification_token, _external=True)
+    public_url = current_app.config.get('PUBLIC_URL', 'http://localhost:5001')
+
+    activation_path = url_for('auth.activate_account',
+                              token=user.verification_token)
+    activation_link = urljoin(public_url, activation_path)
 
     subject = "Activate Your Account"
 
