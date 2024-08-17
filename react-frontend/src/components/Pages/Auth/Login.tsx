@@ -28,9 +28,9 @@ const Login: React.FC = () => {
           type: "success",
         }),
       );
-      window.history.replaceState({}, document.title);
+      navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state, dispatch]);
+  }, [location.state, dispatch, navigate, location.pathname]);
 
   useEffect(() => {
     if (message) {

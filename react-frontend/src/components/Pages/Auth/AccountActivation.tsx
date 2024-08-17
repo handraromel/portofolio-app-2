@@ -37,6 +37,7 @@ const AccountActivation: React.FC = () => {
         setTimeout(() => {
           dispatch(clearActivationState());
           navigate("/login", {
+            replace: true,
             state: {
               message: "Account activated successfully. Please log in.",
             },

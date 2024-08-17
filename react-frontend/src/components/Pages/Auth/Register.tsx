@@ -46,6 +46,7 @@ const Register: React.FC = () => {
     const result = await dispatch(register(submitData));
     if (register.fulfilled.match(result)) {
       navigate("/login", {
+        replace: true,
         state: {
           message:
             "Registration successful. Please check your email to activate your account.",
