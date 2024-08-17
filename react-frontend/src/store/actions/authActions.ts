@@ -1,5 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import AuthService, { LoginData, RegisterData } from "services/AuthService";
+import { AuthState } from "routes/types";
+import { isApiError } from "utils/apiError";
 import Cookies from "js-cookie";
 
 export const login = createAsyncThunk(
@@ -14,9 +16,13 @@ export const login = createAsyncThunk(
         return rejectWithValue(fetched.msg);
       }
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "Login failed",
-      );
+      if (isApiError(error) && error.response?.data?.msg) {
+        return rejectWithValue(error.response.data.msg);
+      } else if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      } else {
+        return rejectWithValue("Login failed");
+      }
     }
   },
 );
@@ -25,11 +31,16 @@ export const register = createAsyncThunk(
   "auth/register",
   async (registerData: RegisterData, { rejectWithValue }) => {
     try {
-      await AuthService.register(registerData);
+      const response = await AuthService.register(registerData);
+      return response.data.msg;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "Registration failed",
-      );
+      if (isApiError(error) && error.response?.data?.msg) {
+        return rejectWithValue(error.response.data.msg);
+      } else if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      } else {
+        return rejectWithValue("Registration failed");
+      }
     }
   },
 );
@@ -54,9 +65,39 @@ export const refreshToken = createAsyncThunk(
       const response = await AuthService.refresh();
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "Token refresh failed",
-      );
+      if (isApiError(error) && error.response?.data?.msg) {
+        return rejectWithValue(error.response.data.msg);
+      } else if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      } else {
+        return rejectWithValue("Token refresh failed");
+      }
     }
+  },
+);
+
+export const activateAccount = createAsyncThunk(
+  "auth/activateAccount",
+  async (token: string, { rejectWithValue }) => {
+    try {
+      const response = await AuthService.activateAccount(token);
+      return response.data;
+    } catch (error) {
+      if (isApiError(error) && error.response?.data?.msg) {
+        return rejectWithValue(error.response.data.msg);
+      } else if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      } else {
+        return rejectWithValue("Activation failed");
+      }
+    }
+  },
+  {
+    condition: (token, { getState }) => {
+      const { auth } = getState() as { auth: AuthState };
+      if (auth.isLoading) {
+        return false;
+      }
+    },
   },
 );

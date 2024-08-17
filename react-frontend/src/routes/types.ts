@@ -18,11 +18,21 @@ export interface User {
   updated_at: string;
 }
 
+export interface MessageState {
+  text: string;
+  type: "success" | "error" | "warning";
+}
+
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  error: string | null;
+  message: MessageState | null;
   csrfAccessToken: string | null;
   csrfRefreshToken: string | null;
+  activationProgress: number;
+}
+
+export interface AuthLayoutProps {
+  children: React.ReactNode;
 }

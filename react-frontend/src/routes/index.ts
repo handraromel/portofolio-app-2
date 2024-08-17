@@ -10,6 +10,7 @@ export const routes: Route[] = [
     path: "/dashboard",
     element: Dashboard,
     protected: true,
+    allowedRoles: ["superadmin", "admin", "user"],
   },
   ...authRoutes.map((route) => ({
     ...route,

@@ -11,7 +11,7 @@ export interface LoginData {
   password: string;
 }
 
-const authPrefix = "/auth/user";
+const authPrefix = "/api/v1/auth/user";
 
 const AuthService = {
   register: (data: RegisterData) => api.post(`${authPrefix}/register`, data),

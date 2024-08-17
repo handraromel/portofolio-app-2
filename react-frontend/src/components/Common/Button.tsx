@@ -64,7 +64,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      className={`disabled flex items-center justify-center rounded-sm px-5 py-1.5 font-semibold tracking-wider outline outline-2 outline-offset-2 transition duration-300 ease-in-out hover:drop-shadow-lg ${themeClasses} ${fixedWidth ? "w-[150px]" : "w-auto"} ${getTextSize} ${uppercase ? "uppercase" : ""} `}
+      className={`flex items-center justify-center rounded-sm px-5 py-1.5 font-semibold tracking-wider outline outline-2 outline-offset-2 transition duration-300 ease-in-out hover:drop-shadow-lg ${themeClasses} ${fixedWidth ? "w-[150px]" : "w-auto"} ${getTextSize} ${uppercase ? "uppercase" : ""} `}
       disabled={disabled || loadingState}
       type={type}
       onClick={handleClick}
@@ -72,7 +72,7 @@ const Button: React.FC<ButtonProps> = ({
       {loadingState ? (
         <>
           <span className="mr-1">processing</span>
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-b-transparent"></span>
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-sky-400 border-b-transparent"></span>
         </>
       ) : (
         buttonText

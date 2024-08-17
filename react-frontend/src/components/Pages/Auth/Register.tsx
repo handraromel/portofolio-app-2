@@ -1,17 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Formik, Form, Field } from "formik";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "hooks/useStore";
+import { clearMessage } from "store/slices/authSlice";
 import { register } from "store/actions/authActions";
 import FieldInput from "components/Inputs/FieldInput";
-import Button from "components/Common/Button";
+import { Button, Message } from "components/Common";
 import { registerSchema } from "utils/validationSchemas";
+
+type RegisterSubmitData = {
+  username: string;
+  email: string;
+  password: string;
+};
 
 const Register: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { isLoading, error } = useAppSelector((state) => state.auth);
+  const { isLoading, message } = useAppSelector((state) => state.auth);
 
   const FormInitialValues = {
     username: "",
@@ -20,26 +27,50 @@ const Register: React.FC = () => {
     confirmPassword: "",
   };
 
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        dispatch(clearMessage());
+      }, 5200);
+      return () => clearTimeout(timer);
+    }
+  }, [message, dispatch]);
+
   const handleSubmit = async (values: typeof FormInitialValues) => {
-    const result = await dispatch(register(values));
+    const submitData: RegisterSubmitData = {
+      username: values.username,
+      email: values.email,
+      password: values.password,
+    };
+
+    const result = await dispatch(register(submitData));
     if (register.fulfilled.match(result)) {
-      navigate("/login");
+      navigate("/login", {
+        state: {
+          message:
+            "Registration successful. Please check your email to activate your account.",
+        },
+      });
     }
   };
 
   return (
     <div>
-      <h3 className="mt-2 text-center text-xl text-gray-600">
+      <h3 className="mb-5 mt-2 text-center text-xl text-gray-600">
         Create your account
       </h3>
-      {error && <p className="text-red-500">{error}</p>}
+
+      <div className="mb-5">
+        {message && <Message message={message.text} type={message.type} />}
+      </div>
+
       <Formik
         initialValues={FormInitialValues}
         validationSchema={registerSchema}
         onSubmit={handleSubmit}
       >
         {({ errors, touched, isValid, dirty }) => (
-          <Form className="mt-8 space-y-12">
+          <Form className="space-y-12">
             <div className="space-y-3">
               <Field
                 as={FieldInput}
