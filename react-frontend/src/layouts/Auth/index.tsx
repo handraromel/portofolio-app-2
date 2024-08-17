@@ -10,9 +10,9 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   const dispatch = useAppDispatch();
   const isLoginPage = location.pathname === "/login";
 
-  useEffect(() => {
-    dispatch(clearMessage());
-  }, [location.pathname, dispatch]);
+  // useEffect(() => {
+  //   dispatch(clearMessage());
+  // }, [location.pathname, dispatch]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
