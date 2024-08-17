@@ -1,18 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useLocation, Link } from "react-router-dom";
-import { useAppDispatch } from "hooks/useStore";
-import { clearMessage } from "store/slices/authSlice";
 import { Card } from "components/Common";
 import { AuthLayoutProps } from "routes/types";
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   const location = useLocation();
-  const dispatch = useAppDispatch();
   const isLoginPage = location.pathname === "/login";
-
-  // useEffect(() => {
-  //   dispatch(clearMessage());
-  // }, [location.pathname, dispatch]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
