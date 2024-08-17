@@ -16,7 +16,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-lg px-12">
+      <Card className="w-[320px] max-w-lg px-6 sm:w-full sm:px-12">
         <h2 className="text-center text-3xl font-extrabold text-gray-900">
           Savory Script
         </h2>
