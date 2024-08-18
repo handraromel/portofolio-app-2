@@ -50,7 +50,7 @@ const ForgotPassword: React.FC = () => {
 
   return (
     <div className="relative">
-      <div className="absolute -right-9 -top-14 opacity-50 drop-shadow transition-all duration-300 hover:opacity-100">
+      <div className="absolute -right-9 -top-14 opacity-50 drop-shadow transition-all duration-300 hover:opacity-100 max-sm:-right-4">
         <button className="outline-none" onClick={() => navigate("/login")}>
           <XMarkIcon className="h-6 w-6" />
         </button>
