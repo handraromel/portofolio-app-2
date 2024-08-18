@@ -7,6 +7,9 @@ const Login = lazy(() => import("components/Pages/Auth/Login"));
 const AccountActivation = lazy(
   () => import("components/Pages/Auth/AccountActivation"),
 );
+const ForgotPassword = lazy(
+  () => import("components/Pages/Auth/ForgotPassword"),
+);
 
 export const routes: Route[] = [
   {
@@ -22,6 +25,11 @@ export const routes: Route[] = [
   {
     path: "/activate-account/:token",
     element: AccountActivation,
+    layout: AuthLayout,
+  },
+  {
+    path: "/forgot-password",
+    element: ForgotPassword,
     layout: AuthLayout,
   },
 ];

@@ -1,5 +1,9 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import AuthService, { LoginData, RegisterData } from "services/AuthService";
+import AuthService, {
+  LoginData,
+  RegisterData,
+  ForgotPasswordData,
+} from "services/AuthService";
 import { AuthState } from "routes/types";
 import { isApiError } from "utils/apiError";
 import Cookies from "js-cookie";
@@ -99,5 +103,23 @@ export const activateAccount = createAsyncThunk(
         return false;
       }
     },
+  },
+);
+
+export const forgotPassword = createAsyncThunk(
+  "auth/forgotPassword",
+  async (email: ForgotPasswordData, { rejectWithValue }) => {
+    try {
+      const response = await AuthService.forgotPassword(email);
+      return response.data;
+    } catch (error) {
+      if (isApiError(error) && error.response?.data?.msg) {
+        return rejectWithValue(error.response.data.msg);
+      } else if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      } else {
+        return rejectWithValue("Token refresh failed");
+      }
+    }
   },
 );

@@ -9,7 +9,7 @@ import { useAppSelector } from "hooks/useStore";
 import { routes } from ".";
 import { Route } from "./types";
 import MainLayout from "layouts";
-import NotFound from "components/Pages/NotFound";
+import { NotFound, LoadingScreen } from "components/Pages";
 import { checkRole } from "./middleware";
 
 const ProtectedRoute: React.FC<{
@@ -40,13 +40,7 @@ const AppRouter: React.FC = () => {
 
   return (
     <Router>
-      <Suspense
-        fallback={
-          <div className="flex min-h-screen items-center justify-center bg-gray-50">
-            Loading The App...
-          </div>
-        }
-      >
+      <Suspense fallback={<LoadingScreen />}>
         <Routes>
           <ReactRoute
             path="/"

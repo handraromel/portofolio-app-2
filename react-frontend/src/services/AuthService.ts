@@ -11,6 +11,10 @@ export interface LoginData {
   password: string;
 }
 
+export interface ForgotPasswordData {
+  email: string;
+}
+
 const authPrefix = "/auth/user";
 
 const AuthService = {
@@ -20,8 +24,8 @@ const AuthService = {
     api.post(`${authPrefix}/logout`, null, { withCredentials: true }),
   refresh: () =>
     api.post(`${authPrefix}/refresh`, null, { withCredentials: true }),
-  forgotPassword: (email: string) =>
-    api.post(`${authPrefix}/forgot-password`, { email }),
+  forgotPassword: (data: ForgotPasswordData) =>
+    api.post(`${authPrefix}/forgot-password`, data),
   activateAccount: (token: string) =>
     api.get(`${authPrefix}/activate/${token}`),
 };

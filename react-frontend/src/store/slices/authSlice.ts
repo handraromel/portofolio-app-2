@@ -6,6 +6,7 @@ import {
   logout,
   refreshToken,
   activateAccount,
+  forgotPassword,
 } from "store/actions/authActions";
 
 const initialState: AuthState = {
@@ -101,7 +102,7 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.message = null;
       })
-      .addCase(activateAccount.fulfilled, (state, action) => {
+      .addCase(activateAccount.fulfilled, (state) => {
         state.isLoading = false;
         state.message = {
           text: "Account activated successfully. Please log in.",
@@ -109,6 +110,24 @@ const authSlice = createSlice({
         };
       })
       .addCase(activateAccount.rejected, (state, action) => {
+        state.isLoading = false;
+        state.message = {
+          text: action.payload as string,
+          type: "error",
+        };
+      })
+      .addCase(forgotPassword.pending, (state) => {
+        state.isLoading = true;
+        state.message = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.isLoading = false;
+        // state.message = {
+        //   text: "Your new password already sent to you email.",
+        //   type: "success",
+        // };
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
         state.isLoading = false;
         state.message = {
           text: action.payload as string,
