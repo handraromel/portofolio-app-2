@@ -92,12 +92,6 @@ jobs:
             REACT_APP_EDITOR_KEY=${{ secrets.REACT_APP_EDITOR_KEY }}
             REACT_APP_API_BASE_URL=${{ secrets.REACT_APP_API_BASE_URL }}
             PORT=5000
-
-            TEST_HOST=${{ secrets.SSH_HOST }}
-            TEST_SSH_USERNAME=${{ secrets.SSH_USERNAME }}
-            TEST_SSH_PRIVATE_KEY=${{ secrets.SSH_PRIVATE_KEY }}
-            TEST_SSH_PASSPHRASE=${{ secrets.SSH_PASSPHRASE }}
-
             EOF
 
             # Pull and start containers
