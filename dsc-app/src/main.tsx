@@ -5,7 +5,7 @@ import { PrimeReactProvider } from "primereact/api";
 import store from "@/store/config";
 import App from "./App";
 import "@/assets/styles/index.css";
-import "primereact/resources/themes/mdc-dark-indigo/theme.css";
+import "primereact/resources/themes/mdc-light-indigo/theme.css";
 import "primereact/resources/primereact.min.css";
 
 const root = ReactDOM.createRoot(
