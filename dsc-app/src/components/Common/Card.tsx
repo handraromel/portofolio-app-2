@@ -15,7 +15,7 @@ const Card: React.FC<CardProps> = ({
 
   return (
     <div
-      className={`rounded-lg bg-white p-6 shadow-md ${heightClass} ${className}`}
+      className={`rounded-lg bg-gray-200 p-6 text-slate-900 shadow-md ${heightClass} ${className}`}
     >
       {children}
     </div>
