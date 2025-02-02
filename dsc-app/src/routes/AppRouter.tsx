@@ -9,7 +9,7 @@ import { useAppSelector } from "@/hooks/useStore";
 import { routes } from ".";
 import { Route } from "./types";
 import MainLayout from "@/layouts";
-import { NotFound, LoadingScreen } from "@/components/Pages";
+import { NotFound, BadGateway, LoadingScreen } from "@/components/Pages";
 import { checkRole } from "./middleware";
 
 const ProtectedRoute: React.FC<{
@@ -85,6 +85,7 @@ const AppRouter: React.FC = () => {
               />
             );
           })}
+          <ReactRoute path="/502" element={<BadGateway />} />
           <ReactRoute path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

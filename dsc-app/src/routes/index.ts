@@ -4,6 +4,7 @@ import { Route } from "./types";
 
 const Dashboard = lazy(() => import("@/components/Pages/Dashboard"));
 const NotFound = lazy(() => import("@/components/Pages/NotFound"));
+const BadGateway = lazy(() => import("@/components/Pages/BadGateway"));
 
 export const routes: Route[] = [
   {
@@ -18,4 +19,4 @@ export const routes: Route[] = [
   })),
 ];
 
-export { NotFound };
+export { NotFound, BadGateway };
