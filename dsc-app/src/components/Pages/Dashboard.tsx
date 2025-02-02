@@ -7,7 +7,9 @@ const Dashboard: React.FC = () => {
   return (
     <Card fullHeight>
       <div className="flex h-full flex-col items-center justify-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Savory Script</h1>
+        <h1 className="mb-4 text-4xl font-bold">
+          Welcome to Cheppy 182 - Daily Sales Control{" "}
+        </h1>
         <h2 className="mb-4 text-xl">Our awesome journey starts here.</h2>
         {currentUser && (
           <div className="text-center">
