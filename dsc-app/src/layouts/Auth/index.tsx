@@ -11,7 +11,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600">
       <Card className="w-[350px] max-w-lg px-6 sm:w-full sm:px-12">
         <h2 className="text-center text-3xl font-extrabold text-gray-900">
-          Savory Script
+          Daily Sales Control
         </h2>
         {children}
         {isLoginPage && (

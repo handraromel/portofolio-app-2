@@ -82,7 +82,7 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen }) => {
     >
       <div className="p-6">
         <h2 className="mb-6 text-2xl font-extrabold text-indigo-600">
-          Savory Script
+          Daily Sales Control
         </h2>
         <ul className="space-y-2">
           {menuItems.map((item) => renderMenuItem(item))}

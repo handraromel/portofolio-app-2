@@ -56,7 +56,7 @@ class ProductionConfig(Config):
     }
 
     PUBLIC_URL = os.environ.get(
-        'PUBLIC_URL', 'https://savoryscript.handraromel.website')
+        'PUBLIC_URL', 'https://cheppy-dsc.biz.id')
 
 
 config = {
