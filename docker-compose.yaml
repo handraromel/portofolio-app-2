@@ -23,10 +23,10 @@ services:
 
   db:
     image: postgres:13
-    environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    # environment:
+    #   - POSTGRES_DB=${DB_NAME}
+    #   - POSTGRES_USER=${DB_USER}
+    #   - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
