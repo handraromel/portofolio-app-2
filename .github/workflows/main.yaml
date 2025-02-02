@@ -30,8 +30,8 @@ jobs:
           EMAIL_SERVICE: ${{ secrets.EMAIL_SERVICE }}
           ORIGINS_URL: ${{ secrets.ORIGINS_URL }}
           FLASK_ENV: ${{ secrets.FLASK_ENV }}
-          REACT_APP_EDITOR_KEY: ${{ secrets.REACT_APP_EDITOR_KEY }}
-          REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL }}
+          VITE_REACT_APP_EDITOR_KEY: ${{ secrets.VITE_REACT_APP_EDITOR_KEY }}
+          VITE_REACT_APP_API_BASE_URL: ${{ secrets.VITE_REACT_APP_API_BASE_URL }}
         run: |
           # Create backend .env file
           cat << EOF > flask-backend/.env
@@ -47,9 +47,9 @@ jobs:
           EOF
 
           # Create frontend .env file
-          cat << EOF > react-frontend/.env
-          REACT_APP_EDITOR_KEY=$REACT_APP_EDITOR_KEY
-          REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
+          cat << EOF > dsc-app/.env
+          VITE_REACT_APP_EDITOR_KEY=$VITE_REACT_APP_EDITOR_KEY
+          VITE_REACT_APP_API_BASE_URL=$VITE_REACT_APP_API_BASE_URL
           PORT=5000
           EOF
 
@@ -71,7 +71,7 @@ jobs:
             export DB_USER=${{ secrets.DB_USER }}
             export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
 
-            cd /home/opc/savory-script/
+            cd /home/opc/mds-dsc/
             git pull origin master
 
             # Create backend .env file
@@ -88,9 +88,9 @@ jobs:
             EOF
 
             # Create frontend .env file
-            cat << EOF > react-frontend/.env
-            REACT_APP_EDITOR_KEY=${{ secrets.REACT_APP_EDITOR_KEY }}
-            REACT_APP_API_BASE_URL=${{ secrets.REACT_APP_API_BASE_URL }}
+            cat << EOF > dsc-app/.env
+            VITE_REACT_APP_EDITOR_KEY=${{ secrets.VITE_REACT_APP_EDITOR_KEY }}
+            VITE_REACT_APP_API_BASE_URL=${{ secrets.VITE_REACT_APP_API_BASE_URL }}
             PORT=5000
             EOF
 
@@ -123,6 +123,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            cd /home/opc/savory-script/
+            cd /home/opc/mds-dsc/
             docker compose ps
             docker compose logs --tail=50

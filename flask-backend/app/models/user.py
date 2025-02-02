@@ -28,10 +28,5 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.now(
         timezone.utc), onupdate=datetime.now(timezone.utc))
 
-    recipes = db.relationship('Recipe', back_populates='user', lazy='dynamic')
-    reviews = db.relationship('Review', back_populates='user', lazy='dynamic')
-    meal_plans = db.relationship(
-        'MealPlan', back_populates='user', lazy='dynamic')
-
     def __repr__(self):
         return f'<User {self.username}>'

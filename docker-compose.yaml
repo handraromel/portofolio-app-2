@@ -12,16 +12,16 @@ services:
     depends_on:
       - db
     networks:
-      - savory_script_network
+      - dsc_app_network
 
   frontend:
     build:
-      context: ./react-frontend
+      context: ./dsc-app
       dockerfile: Dockerfile
     ports:
       - "5000:5000"
     networks:
-      - savory_script_network
+      - dsc_app_network
 
   db:
     image: postgres:13
@@ -32,7 +32,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - savory_script_network
+      - dsc_app_network
     ports:
       - "5432:5432"
 
@@ -41,5 +41,5 @@ volumes:
     external: true
 
 networks:
-  savory_script_network:
+  dsc_app_network:
     driver: bridge
