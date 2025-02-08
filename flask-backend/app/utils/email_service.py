@@ -63,7 +63,7 @@ def send_forgot_password_email(user, new_password):
 
 
 def send_activation_email(user):
-    origins_url = os.environ.get('ORIGINS_URL')
+    origins_url = os.environ.get('PUBLIC_URL')
 
     activation_link = f"{origins_url}/activate-account/{user.verification_token}"
 

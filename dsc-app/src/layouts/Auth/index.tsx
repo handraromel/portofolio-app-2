@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation, Link } from "react-router-dom";
-import { Card } from "@/components/Common";
 import { AuthLayoutProps } from "@/routes/types";
+import { Card } from "primereact/card";
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   const location = useLocation();

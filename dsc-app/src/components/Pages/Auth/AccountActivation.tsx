@@ -6,7 +6,8 @@ import {
   setActivationProgress,
   clearActivationState,
 } from "@/store/slices/authSlice";
-import { Message, Button } from "@/components/Common";
+import { Message } from "@/components/Common";
+import { Button } from "primereact/button";
 
 const AccountActivation: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -67,7 +68,9 @@ const AccountActivation: React.FC = () => {
         <Message message={message.text} type="error" useTransition={false} />
         <Button
           type="button"
-          buttonText="Return to Login"
+          label="Go to Login"
+          size="small"
+          rounded
           onClick={() => {
             dispatch(clearActivationState());
             navigate("/login");

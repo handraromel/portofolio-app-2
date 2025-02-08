@@ -5,7 +5,8 @@ import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
 import { clearMessage } from "@/store/slices/authSlice";
 import { forgotPassword } from "@/store/actions/authActions";
 import FieldInput from "@/components/Inputs/FieldInput";
-import { Button, Message } from "@/components/Common";
+import { Message } from "@/components/Common";
+import { Button } from "primereact/button";
 import { forgotPasswordSchema } from "@/utils/validationSchemas";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 
@@ -86,12 +87,11 @@ const ForgotPassword: React.FC = () => {
             <div className="flex justify-center pb-2">
               <Button
                 type="submit"
-                buttonText="submit"
-                loadingState={isLoading}
+                label="Submit"
+                size="small"
+                rounded
+                loading={isLoading}
                 disabled={!(isValid && dirty) || isLoading}
-                bgColor={
-                  !(isValid && dirty) || isLoading ? "secondary" : "primary"
-                }
               />
             </div>
           </Form>

@@ -5,7 +5,8 @@ import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
 import { clearMessage } from "@/store/slices/authSlice";
 import { register } from "@/store/actions/authActions";
 import FieldInput from "@/components/Inputs/FieldInput";
-import { Button, Message } from "@/components/Common";
+import { Message } from "@/components/Common";
+import { Button } from "primereact/button";
 import { registerSchema } from "@/utils/validationSchemas";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 
@@ -105,6 +106,7 @@ const Register: React.FC = () => {
                 type="password"
                 label="Password"
                 placeholder="Password"
+                passwordFeedback
                 error={touched.password && errors.password}
               />
               <Field
@@ -121,12 +123,11 @@ const Register: React.FC = () => {
             <div className="flex justify-center pb-2">
               <Button
                 type="submit"
-                buttonText="Create Account"
-                loadingState={isLoading}
+                label="Create Account"
+                size="small"
+                rounded
+                loading={isLoading}
                 disabled={!(isValid && dirty) || isLoading}
-                bgColor={
-                  !(isValid && dirty) || isLoading ? "secondary" : "primary"
-                }
               />
             </div>
           </Form>

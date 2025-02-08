@@ -46,7 +46,7 @@ jobs:
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
           EMAIL_SERVICE: ${{ secrets.EMAIL_SERVICE }}
-          ORIGINS_URL: ${{ secrets.ORIGINS_URL }}
+          PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
           FLASK_ENV: ${{ secrets.FLASK_ENV }}
           VITE_REACT_APP_EDITOR_KEY: ${{ secrets.VITE_REACT_APP_EDITOR_KEY }}
           VITE_REACT_APP_API_BASE_URL: ${{ secrets.VITE_REACT_APP_API_BASE_URL }}
@@ -61,7 +61,7 @@ jobs:
           EMAIL_PASSWORD=$EMAIL_PASSWORD
           EMAIL_PORT=$EMAIL_PORT
           EMAIL_SERVICE=$EMAIL_SERVICE
-          ORIGINS_URL=$ORIGINS_URL
+          PUBLIC_URL=$PUBLIC_URL
           FLASK_ENV=$FLASK_ENV
           EOF
 
@@ -102,7 +102,7 @@ jobs:
             EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
             EMAIL_PORT=${{ secrets.EMAIL_PORT }}
             EMAIL_SERVICE=${{ secrets.EMAIL_SERVICE }}
-            ORIGINS_URL=${{ secrets.ORIGINS_URL }}
+            PUBLIC_URL=${{ secrets.PUBLIC_URL }}
             FLASK_ENV=${{ secrets.FLASK_ENV }}
             EOF
 

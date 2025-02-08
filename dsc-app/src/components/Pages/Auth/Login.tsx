@@ -5,7 +5,8 @@ import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
 import { clearMessage, setMessage } from "@/store/slices/authSlice";
 import { login } from "@/store/actions/authActions";
 import FieldInput from "@/components/Inputs/FieldInput";
-import { Button, Message } from "@/components/Common";
+import { Message } from "@/components/Common";
+import { Button } from "primereact/button";
 import { loginSchema } from "@/utils/validationSchemas";
 
 const Login: React.FC = () => {
@@ -89,13 +90,12 @@ const Login: React.FC = () => {
             <div className="flex justify-center pb-2">
               <Button
                 type="submit"
-                buttonText="Sign in"
-                loadingState={isLoading}
+                label="Sign in"
+                className="w-32"
+                size="small"
+                loading={isLoading}
+                rounded
                 disabled={!(isValid && dirty) || isLoading}
-                bgColor={
-                  !(isValid && dirty) || isLoading ? "secondary" : "primary"
-                }
-                fixedWidth
               />
             </div>
           </Form>

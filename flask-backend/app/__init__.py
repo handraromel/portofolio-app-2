@@ -15,7 +15,7 @@ def create_app():
     app = Flask(__name__)
 
     env = os.environ.get('FLASK_ENV', 'default')
-    origins = os.environ.get('ORIGINS_URL')
+    origins = os.environ.get('PUBLIC_URL')
     app.config.from_object(config[env])
 
     db.init_app(app)

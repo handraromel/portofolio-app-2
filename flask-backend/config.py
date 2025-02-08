@@ -15,7 +15,7 @@ class Config:
     JWT_CSRF_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE']
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
 
-    PUBLIC_URL = os.environ.get('PUBLIC_URL', 'http://localhost:5001')
+    PUBLIC_URL = os.environ.get('PUBLIC_URL', 'http://localhost:5000')
 
     EMAIL_USER = os.environ.get('EMAIL_USER')
     EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD')
@@ -34,7 +34,7 @@ class DevelopmentConfig(Config):
     JWT_COOKIE_SECURE = False
     SESSION_COOKIE_SECURE = False
 
-    PUBLIC_URL = os.environ.get('PUBLIC_URL', 'http://localhost:5001')
+    PUBLIC_URL = os.environ.get('PUBLIC_URL', 'http://localhost:5000')
 
 
 class ProductionConfig(Config):
