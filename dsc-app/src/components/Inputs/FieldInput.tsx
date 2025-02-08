@@ -52,7 +52,7 @@ const FieldInput: React.FC<FieldInputProps> = ({
             id={id}
             value={editorContent}
             onTextChange={(e) => handleEditorChange(e.htmlValue || "")}
-            style={{ height: rows ? `${rows * 40}px` : "140px" }}
+            style={{ height: rows ? `${rows * 40}px` : "280px" }}
           />
         );
       case "password":
@@ -62,6 +62,7 @@ const FieldInput: React.FC<FieldInputProps> = ({
             {...field}
             toggleMask
             feedback={passwordFeedback}
+            className="p-inputtext-sm"
             invalid={!!hasError}
             pt={{
               iconField: {
@@ -87,7 +88,7 @@ const FieldInput: React.FC<FieldInputProps> = ({
             dateFormat="yy-mm-dd"
             placeholder={placeholder}
             invalid={!!hasError}
-            className="w-full"
+            className="p-inputtext-sm w-full"
           />
         );
       default:
@@ -98,7 +99,7 @@ const FieldInput: React.FC<FieldInputProps> = ({
             type={type}
             placeholder={placeholder}
             invalid={!!hasError}
-            className="w-full"
+            className="p-inputtext-sm w-full"
           />
         );
     }
