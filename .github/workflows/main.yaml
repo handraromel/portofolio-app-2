@@ -16,11 +16,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./dsc-app
 
       - name: Run ESLint
         run: npm run lint
-        working-directory: ./dsc-app
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -45,9 +43,8 @@ jobs:
           FLASK_ENV: ${{ secrets.FLASK_ENV }}
           VITE_REACT_APP_EDITOR_KEY: ${{ secrets.VITE_REACT_APP_EDITOR_KEY }}
           VITE_REACT_APP_API_BASE_URL: ${{ secrets.VITE_REACT_APP_API_BASE_URL }}
-          VITE_PORT: ${{ secrets.VITE_PORT }}
         run: |
-          # Create backend .env file for build
+          # Create backend .env file
           cat << EOF > flask-backend/.env
           SECRET_KEY=$SECRET_KEY
           DATABASE_URL=$DATABASE_URL
@@ -60,7 +57,7 @@ jobs:
           FLASK_ENV=$FLASK_ENV
           EOF
 
-          # Create frontend .env file for build
+          # Create frontend .env file
           cat << EOF > dsc-app/.env
           VITE_REACT_APP_EDITOR_KEY=$VITE_REACT_APP_EDITOR_KEY
           VITE_REACT_APP_API_BASE_URL=$VITE_REACT_APP_API_BASE_URL
@@ -77,11 +74,38 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          envs: DB_NAME,DB_USER,DB_PASSWORD
           script: |
-            echo "Starting deployment..."
+            echo "SSH connection test successful"
 
-            # Pull and restart containers
+            export DB_NAME=${{ secrets.DB_NAME }}
+            export DB_USER=${{ secrets.DB_USER }}
+            export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+
             cd /home/opc/mds-dsc/
+            git pull origin master
+
+            # Create backend .env file
+            cat << EOF > flask-backend/.env
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            EMAIL_USER=${{ secrets.EMAIL_USER }}
+            EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
+            EMAIL_PORT=${{ secrets.EMAIL_PORT }}
+            EMAIL_SERVICE=${{ secrets.EMAIL_SERVICE }}
+            ORIGINS_URL=${{ secrets.ORIGINS_URL }}
+            FLASK_ENV=${{ secrets.FLASK_ENV }}
+            EOF
+
+            # Create frontend .env file
+            cat << EOF > dsc-app/.env
+            VITE_REACT_APP_EDITOR_KEY=${{ secrets.VITE_REACT_APP_EDITOR_KEY }}
+            VITE_REACT_APP_API_BASE_URL=${{ secrets.VITE_REACT_APP_API_BASE_URL }}
+            VITE_PORT=${{ secrets.VITE_PORT }}
+            EOF
+
+            # Pull and start containers
             docker compose pull
             docker compose up -d --build
 
