@@ -57,6 +57,7 @@ export const logout = createAsyncThunk(
       Cookies.remove("csrf_access_token");
       Cookies.remove("csrf_refresh_token");
     } catch (error) {
+      console.error(error);
       return rejectWithValue("Logout failed");
     }
   },

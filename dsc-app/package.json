@@ -7,7 +7,7 @@
     "start": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext .ts,.tsx"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -27,6 +27,7 @@
     "yup": "^1.6.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.20.0",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^22.13.0",
     "@types/react": "latest",
@@ -35,10 +36,17 @@
     "@typescript-eslint/parser": "^8.23.0",
     "@vitejs/plugin-react": "latest",
     "eslint": "^9.20.0",
+    "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsx-a11y": "6.7.1",
+    "eslint-plugin-react": "7.35.0",
+    "eslint-plugin-react-hooks": "4.6.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "globals": "^15.14.0",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "typescript": "latest",
+    "typescript-eslint": "^8.23.0",
     "vite": "latest"
   },
   "browserslist": {

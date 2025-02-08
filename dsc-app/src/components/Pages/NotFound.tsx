@@ -9,7 +9,7 @@ const NotFound: React.FC = () => {
       <h1 className="mt-8 mb-4 text-6xl font-extrabold">404</h1>
       <p className="mb-8 text-2xl font-semibold">Oops! Page Not Found</p>
       <p className="mb-8 text-center text-xl">
-        The item you're looking for seems to have vanished from our system.
+        The item you&apos;re looking for seems to have vanished from our system.
       </p>
       <Link
         to="/"

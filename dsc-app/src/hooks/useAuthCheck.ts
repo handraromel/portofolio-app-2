@@ -13,6 +13,7 @@ export const useAuthCheck = () => {
         try {
           await dispatch(refreshToken()).unwrap();
         } catch (error) {
+          console.error(error);
           await dispatch(logout());
         }
       }

@@ -6,11 +6,10 @@ const Unauthorized: React.FC = () => {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-r from-red-500 to-pink-600 px-4 text-white">
       <LockClosedIcon className="h-24 w-24 animate-pulse text-yellow-300" />
-      <h1 className="mb-4 mt-8 text-6xl font-extrabold">403</h1>
+      <h1 className="mt-8 mb-4 text-6xl font-extrabold">403</h1>
       <p className="mb-8 text-2xl font-semibold">Access Denied</p>
       <p className="mb-8 text-center text-xl">
-        Sorry, you don't have the right ingredients to access this secret
-        recipe.
+        Sorry, you don&apos;t have the right permission to access this page.
       </p>
       <Link
         to="/"

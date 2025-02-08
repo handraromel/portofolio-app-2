@@ -9,7 +9,7 @@ const BadGateway: React.FC = () => {
       <h1 className="mt-8 mb-4 text-6xl font-extrabold">502</h1>
       <p className="mb-8 text-2xl font-semibold">Under Maintenance</p>
       <p className="mb-8 text-center text-xl">
-        We're currently updating our systems to serve you better.
+        We&apos;re currently updating our systems to serve you better.
         <br />
         Please check back in a few minutes.
       </p>

@@ -23,28 +23,13 @@ const FieldInput: React.FC<FieldInputProps> = ({
 }) => {
   const [field, meta, helpers] = useField(name);
   const [editorContent, setEditorContent] = useState<string>("");
-  const [dateValue, setDateValue] = useState<Date | null>(null);
   const ENV = import.meta.env;
 
   useEffect(() => {
     if (type === "textarea" && typeof field.value === "string") {
       setEditorContent(field.value);
     }
-    if (type === "datepicker" && field.value instanceof Date) {
-      setDateValue(field.value);
-    }
   }, [field.value, type]);
-
-  const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    helpers.setValue(event.target.value);
-  };
-
-  const handleDateInput = (date: Date | null) => {
-    if (date) {
-      setDateValue(date);
-      helpers.setValue(date);
-    }
-  };
 
   const handleEditorChange = (content: string) => {
     setEditorContent(content);
@@ -87,13 +72,7 @@ const FieldInput: React.FC<FieldInputProps> = ({
           init={tinymceConfig}
           onEditorChange={handleEditorChange}
         />
-      ) : type === "datepicker" ? // <DatePicker
-      //   id={id}
-      //   selected={dateValue}
-      //   onChange={handleDateInput}
-      //   name={name}
-      //   placeholderText={placeholder}
-      //   dateFormat="yyyy-MM-dd"
+      ) : type === "datepicker" ? //   dateFormat="yyyy-MM-dd" //   placeholderText={placeholder} //   name={name} //   onChange={handleDateInput} //   selected={dateValue} //   id={id} // <DatePicker
       //   className={fieldClasses}
       // />
       undefined : (

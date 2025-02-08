@@ -44,6 +44,7 @@ const AccountActivation: React.FC = () => {
           });
         }, 1000);
       } catch (err) {
+        console.error(err);
         setProgress(100);
         dispatch(setActivationProgress(100));
       }

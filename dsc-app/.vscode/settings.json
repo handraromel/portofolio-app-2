@@ -1,0 +1,20 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "prettier.trailingComma": "es5",
+  "prettier.requireConfig": false,
+  "prettier.singleQuote": true,
+  "prettier.useTabs": false,
+  "prettier.tabWidth": 2,
+  "prettier.printWidth": 80,
+  "editor.tabSize": 2,
+  "editor.codeActionsOnSave": ["source.formatDocument", "source.fixAll.eslint"],
+  "files.eol": "\n",
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "eslint.validate": ["typescript", "typescriptreact"],
+  "eslint.enable": true,
+  "eslint.run": "onType"
+}

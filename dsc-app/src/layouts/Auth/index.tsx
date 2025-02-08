@@ -17,7 +17,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
         {isLoginPage && (
           <div>
             <div className="mt-10 flex justify-end text-right text-sm max-sm:flex-col">
-              Don't have an account?
+              Don&apos;t have an account?
               <Link
                 to="/register"
                 className="pl-1 font-semibold text-indigo-600"

@@ -1,9 +1,33 @@
-type ApiError = {
-  response?: {
-    data?: {
-      msg?: string;
-    };
-  };
+interface ApiErrorData {
+  msg: string;
+}
+
+interface ApiErrorResponse {
+  data: ApiErrorData;
+}
+
+interface ApiError {
+  response: ApiErrorResponse;
+}
+
+const isApiErrorData = (data: unknown): data is ApiErrorData => {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "msg" in data &&
+    typeof (data as ApiErrorData).msg === "string"
+  );
+};
+
+const isApiErrorResponse = (
+  response: unknown,
+): response is ApiErrorResponse => {
+  return (
+    typeof response === "object" &&
+    response !== null &&
+    "data" in response &&
+    isApiErrorData((response as ApiErrorResponse).data)
+  );
 };
 
 export const isApiError = (error: unknown): error is ApiError => {
@@ -11,11 +35,6 @@ export const isApiError = (error: unknown): error is ApiError => {
     typeof error === "object" &&
     error !== null &&
     "response" in error &&
-    typeof (error as any).response === "object" &&
-    (error as any).response !== null &&
-    "data" in (error as any).response &&
-    typeof (error as any).response.data === "object" &&
-    (error as any).response.data !== null &&
-    "msg" in (error as any).response.data
+    isApiErrorResponse((error as ApiError).response)
   );
 };

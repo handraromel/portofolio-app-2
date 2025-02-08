@@ -47,6 +47,14 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
     <header className="sticky top-0 bg-slate-900 text-slate-200 shadow-md transition-all duration-300">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-4">
+          {/* Add a hamburger menu button */}
+          <button
+            onClick={toggleMenu}
+            className="text-slate-200 hover:text-indigo-500"
+          >
+            {/* Show different icon based on isMenuOpen state */}
+            {isMenuOpen ? "Close Menu" : "Open Menu"}
+          </button>
           <div className="flex items-center">
             <h1 className="ml-4 text-xl font-semibold">Dashboard</h1>
           </div>
