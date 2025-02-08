@@ -72,9 +72,7 @@ const FieldInput: React.FC<FieldInputProps> = ({
           init={tinymceConfig}
           onEditorChange={handleEditorChange}
         />
-      ) : type === "datepicker" ? //   dateFormat="yyyy-MM-dd" //   placeholderText={placeholder} //   name={name} //   onChange={handleDateInput} //   selected={dateValue} //   id={id} // <DatePicker
-      //   className={fieldClasses}
-      // />
+      ) : type === "datepicker" ? // /> //   className={fieldClasses} //   dateFormat="yyyy-MM-dd" //   placeholderText={placeholder} //   name={name} //   onChange={handleDateInput} //   selected={dateValue} //   id={id} // <DatePicker
       undefined : (
         <input
           {...field}
