@@ -33,3 +33,12 @@ export const registerSchema = Yup.object().shape({
 export const forgotPasswordSchema = Yup.object().shape({
   email: Yup.string().email("Invalid email").required("Email is required"),
 });
+
+export const userEditSchema = Yup.object().shape({
+  email: Yup.string()
+    .email("Invalid email format")
+    .required("Email is required"),
+  username: Yup.string().required("Username is required"),
+  first_name: Yup.string().required("First name is required"),
+  last_name: Yup.string().required("Last name is required"),
+});

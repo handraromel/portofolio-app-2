@@ -51,7 +51,7 @@ const Login: React.FC = () => {
 
   return (
     <div>
-      <h3 className="mt-2 mb-5 text-center text-xl text-gray-600">
+      <h3 className="mt-2 mb-5 text-center text-xl">
         Sign in to your account
         <br />
       </h3>

@@ -97,10 +97,7 @@ const FieldInput: React.FC<FieldInputProps> = ({
 
   return (
     <div className="field">
-      <label
-        htmlFor={id}
-        className="mb-2 block text-sm font-medium text-gray-700"
-      >
+      <label htmlFor={id} className="mb-2 block text-sm font-medium">
         {label}
       </label>
       {getInputComponent()}

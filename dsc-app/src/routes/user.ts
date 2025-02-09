@@ -10,6 +10,6 @@ export const routes: Route[] = [
     element: UserList,
     layout: MainLayout,
     protected: true,
-    allowedRoles: ["superadmin", "admin", "user"],
+    allowedRoles: ["superadmin", "admin"],
   },
 ];

@@ -10,7 +10,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600">
       <Card className="w-[350px] max-w-lg px-6 sm:w-full sm:px-12">
-        <h2 className="text-center text-3xl font-extrabold text-gray-900">
+        <h2 className="text-center text-3xl font-extrabold">
           Daily Sales Control
         </h2>
         {children}
@@ -20,7 +20,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
               Don&apos;t have an account?
               <Link
                 to="/register"
-                className="pl-1 font-semibold text-indigo-600"
+                className="pl-1 font-semibold text-indigo-600 dark:text-indigo-400"
               >
                 Register
               </Link>
@@ -29,7 +29,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
               Or do you forgot your password?
               <Link
                 to="/forgot-password"
-                className="pl-1 font-semibold text-indigo-600"
+                className="pl-1 font-semibold text-indigo-600 dark:text-indigo-400"
               >
                 Click here
               </Link>
