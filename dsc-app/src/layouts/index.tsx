@@ -20,7 +20,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <div className="flex flex-1 flex-col lg:ml-72">
         <Header isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
 
-        <main className="flex-grow p-6">
+        <main className="flex-1 p-6">
           <div className="mx-auto h-full max-w-7xl">
             <Container>{children}</Container>
           </div>

@@ -68,14 +68,20 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
             <h1 className="text-900 ml-4 text-xl font-semibold">Dashboard</h1>
           </div>
 
-          <div className="flex items-center space-x-1">
-            <button
-              className="text-primary hover:text-primary-600 flex items-center focus:outline-none"
+          <div className="flex items-center gap-2">
+            <Button
+              icon={<UserCircleIcon className="h-5 w-5" />}
+              rounded
               onClick={(e) => op.current?.toggle(e)}
-              aria-label="User Menu"
-            >
-              <UserCircleIcon className="h-8 w-8" />
-            </button>
+              pt={{
+                root: {
+                  style: {
+                    height: "2rem",
+                    width: "2rem",
+                  },
+                },
+              }}
+            />
 
             <Button
               icon={
@@ -90,8 +96,8 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
               pt={{
                 root: {
                   style: {
-                    height: "1.7rem",
-                    width: "1.7rem",
+                    height: "2rem",
+                    width: "2rem",
                   },
                 },
               }}

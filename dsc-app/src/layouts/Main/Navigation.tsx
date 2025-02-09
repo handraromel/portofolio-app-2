@@ -15,16 +15,8 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { id: "dashboard", label: "Dashboard", href: "/" },
-  // {
-  //   id: "recipes",
-  //   label: "Recipes",
-  //   subItems: [
-  //     { id: "add-recipe", label: "Add Recipe", href: "/recipes/add" },
-  //     { id: "update-recipe", label: "Update Recipe", href: "/recipes/update" },
-  //   ],
-  // },
   { id: "account", label: "My Account", href: "/account" },
-  { id: "settings", label: "Settings", href: "/settings" },
+  { id: "manageUser", label: "Manage User", href: "/users" },
 ];
 
 const Navigation: React.FC<NavigationProps> = ({ isOpen }) => {

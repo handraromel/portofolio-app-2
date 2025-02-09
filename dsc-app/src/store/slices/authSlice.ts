@@ -95,7 +95,7 @@ const authSlice = createSlice({
         state.user = null;
         state.message = {
           text: "Session expired. Please log in again.",
-          type: "warning",
+          type: "warn",
         };
       })
       .addCase(activateAccount.pending, (state) => {

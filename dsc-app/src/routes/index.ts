@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { routes as authRoutes } from "./auth";
+import { routes as userRoutes } from "./user";
 import { Route } from "./types";
 
 const Dashboard = lazy(() => import("@/components/Pages/Dashboard"));
@@ -17,6 +18,7 @@ export const routes: Route[] = [
     ...route,
     allowedRoles: route.allowedRoles || ["superadmin", "admin", "user"],
   })),
+  ...userRoutes,
 ];
 
 export { NotFound, BadGateway };
