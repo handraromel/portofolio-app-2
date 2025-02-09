@@ -30,7 +30,7 @@ importers:
         specifier: ^3.0.5
         version: 3.0.5
       primereact:
-        specifier: ^10.5.1
+        specifier: ^10.9.2
         version: 10.9.2(@types/react@19.0.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       quill:
         specifier: ^2.0.3

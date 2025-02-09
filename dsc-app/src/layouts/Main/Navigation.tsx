@@ -76,14 +76,12 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen }) => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 h-full w-72 transform overflow-y-auto bg-slate-800 text-slate-200 transition-transform duration-300 ease-in-out ${
+      className={`fixed top-0 left-0 h-full w-72 transform overflow-y-auto bg-white text-slate-900 transition-transform duration-300 ease-in-out dark:bg-slate-800 dark:text-slate-200 ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       } pt-16 shadow-xl lg:translate-x-0 lg:pt-0`}
     >
       <div className="p-6">
-        <h2 className="mb-6 text-2xl font-extrabold text-indigo-600">
-          Daily Sales Control
-        </h2>
+        <h2 className="mb-6 text-2xl font-extrabold">Daily Sales Control</h2>
         <ul className="space-y-2">
           {menuItems.map((item) => renderMenuItem(item))}
         </ul>

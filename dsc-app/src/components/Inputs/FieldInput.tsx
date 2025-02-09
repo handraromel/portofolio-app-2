@@ -4,6 +4,7 @@ import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
 import { Calendar } from "primereact/calendar";
 import { useField } from "formik";
+import { css } from "./style";
 
 interface FieldInputProps {
   id: string;
@@ -62,28 +63,10 @@ const FieldInput: React.FC<FieldInputProps> = ({
             {...field}
             toggleMask
             feedback={passwordFeedback}
-            className="p-inputtext-sm"
+            className="p-inputtext-sm w-full"
             placeholder={placeholder}
             invalid={!!hasError}
-            pt={{
-              iconField: {
-                root: {
-                  style: { width: "100%" },
-                },
-              },
-              showIcon: {
-                style: { marginTop: "-0.7rem" },
-              },
-              hideIcon: {
-                style: { marginTop: "-0.7rem" },
-              },
-              input: {
-                style: { width: "100%" },
-              },
-              root: {
-                style: { width: "100%" },
-              },
-            }}
+            pt={css.passwordStyles}
           />
         );
       case "datepicker":

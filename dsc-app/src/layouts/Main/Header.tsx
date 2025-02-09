@@ -7,6 +7,7 @@ import { OverlayPanel } from "primereact/overlaypanel";
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
+import { Button } from "primereact/button";
 
 interface HeaderProps {
   isMenuOpen: boolean;
@@ -48,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
   };
 
   return (
-    <header className="surface-ground sticky top-0 z-50 bg-white shadow-md transition-all duration-300 dark:bg-black">
+    <header className="surface-ground sticky top-0 z-50 bg-indigo-300 shadow-md transition-all duration-300 dark:bg-indigo-800">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-4">
           <button
@@ -67,7 +68,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
             <h1 className="text-900 ml-4 text-xl font-semibold">Dashboard</h1>
           </div>
 
-          <div className="flex items-center">
+          <div className="flex items-center space-x-1">
             <button
               className="text-primary hover:text-primary-600 flex items-center focus:outline-none"
               onClick={(e) => op.current?.toggle(e)}
@@ -76,27 +77,33 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
               <UserCircleIcon className="h-8 w-8" />
             </button>
 
-            <button
-              onClick={() => dispatch(toggleTheme())}
-              className="text-primary hover:text-primary-600 focus:outline-none"
-              aria-label={
-                isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
+            <Button
+              icon={
+                isDarkMode ? (
+                  <MoonIcon className="h-5 w-5" />
+                ) : (
+                  <SunIcon className="h-5 w-5" />
+                )
               }
-            >
-              {isDarkMode ? (
-                <SunIcon className="h-6 w-6" />
-              ) : (
-                <MoonIcon className="h-6 w-6" />
-              )}
-            </button>
+              rounded
+              onClick={() => dispatch(toggleTheme())}
+              pt={{
+                root: {
+                  style: {
+                    height: "1.7rem",
+                    width: "1.7rem",
+                  },
+                },
+              }}
+            />
 
-            <OverlayPanel ref={op} className="surface-card">
+            <OverlayPanel ref={op}>
               <div className="py-1">
                 {menuItems.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => handleMenuItemClick(item)}
-                    className="text-900 hover:surface-hover w-full px-4 py-2 text-left"
+                    className="w-full rounded px-4 py-2 text-left transition duration-200 hover:bg-indigo-600 hover:text-white"
                   >
                     {item.label}
                   </button>
