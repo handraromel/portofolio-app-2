@@ -22,7 +22,7 @@ export interface User {
 
 export interface MessageState {
   text: string;
-  type: "success" | "error" | "warning";
+  type: "success" | "error" | "warn" | "info";
 }
 
 export interface AuthState {

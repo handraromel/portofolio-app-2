@@ -63,12 +63,19 @@ const FieldInput: React.FC<FieldInputProps> = ({
             toggleMask
             feedback={passwordFeedback}
             className="p-inputtext-sm"
+            placeholder={placeholder}
             invalid={!!hasError}
             pt={{
               iconField: {
                 root: {
                   style: { width: "100%" },
                 },
+              },
+              showIcon: {
+                style: { marginTop: "-0.7rem" },
+              },
+              hideIcon: {
+                style: { marginTop: "-0.7rem" },
               },
               input: {
                 style: { width: "100%" },

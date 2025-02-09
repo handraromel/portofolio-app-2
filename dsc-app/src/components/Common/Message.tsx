@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef } from "react";
+import { Messages } from "primereact/messages";
 
 interface MessageProps {
   message: string;
-  type: "success" | "error" | "warning";
+  type: "success" | "error" | "warn" | "info";
   useTransition?: boolean;
 }
 
@@ -11,41 +12,21 @@ const Message: React.FC<MessageProps> = ({
   type,
   useTransition = true,
 }) => {
-  const [isVisible, setIsVisible] = useState(false);
+  const msgs = useRef<Messages>(null);
 
   useEffect(() => {
-    setIsVisible(true);
-    if (useTransition) {
-      const timer = setTimeout(() => setIsVisible(false), 5000);
-      return () => clearTimeout(timer);
+    if (msgs.current) {
+      msgs.current.clear();
+      msgs.current.show({
+        severity: type,
+        detail: message,
+        sticky: !useTransition,
+        life: useTransition ? 5000 : undefined,
+      });
     }
-  }, [message]);
-  const bgColor =
-    type === "success"
-      ? "bg-green-50"
-      : type === "error"
-        ? "bg-red-50"
-        : "bg-orange-50";
-  const borderColor =
-    type === "success"
-      ? "border-green-400"
-      : type === "error"
-        ? "border-red-400"
-        : "border-orange-400";
-  const textColor =
-    type === "success"
-      ? "text-emerald-600"
-      : type === "error"
-        ? "text-red-500"
-        : "text-orange-500";
+  }, [message, type, useTransition]);
 
-  return (
-    <div
-      className={`transition-all duration-300 ease-in-out ${isVisible ? "max-h-20 opacity-100" : "max-h-0 opacity-0"} ${bgColor} border ${borderColor} ${textColor} rounded`}
-    >
-      <p className="p-2 text-sm">{message}</p>
-    </div>
-  );
+  return <Messages ref={msgs} />;
 };
 
 export default Message;
