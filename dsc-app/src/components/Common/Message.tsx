@@ -7,7 +7,7 @@ interface MessageProps {
   useTransition?: boolean;
 }
 
-const Message: React.FC<MessageProps> = ({
+export const Message: React.FC<MessageProps> = ({
   message,
   type,
   useTransition = true,
@@ -28,5 +28,3 @@ const Message: React.FC<MessageProps> = ({
 
   return <Messages ref={msgs} />;
 };
-
-export default Message;

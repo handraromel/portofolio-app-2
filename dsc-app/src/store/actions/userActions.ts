@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { isApiError } from "@/utils/apiError";
 import UserService from "@/services/UserService";
-import { ChangeUserPrivilegeData, UpdateUserData } from "@/types/user";
+import { ChangeUserPrivilegeData, UserDataSubmission } from "@/types/user";
 
 export const fetchUsers = createAsyncThunk(
   "users/fetchUsers",
@@ -18,10 +18,25 @@ export const fetchUsers = createAsyncThunk(
   },
 );
 
+export const createUser = createAsyncThunk(
+  "users/createUser",
+  async (data: UserDataSubmission, { rejectWithValue }) => {
+    try {
+      const response = await UserService.createUser(data);
+      return response.data;
+    } catch (error) {
+      if (isApiError(error) && error.response?.data?.msg) {
+        return rejectWithValue(error.response.data.msg);
+      }
+      return rejectWithValue("Failed to create user");
+    }
+  },
+);
+
 export const updateUser = createAsyncThunk(
   "users/updateUser",
   async (
-    { userId, data }: { userId: string; data: UpdateUserData },
+    { userId, data }: { userId: string; data: UserDataSubmission },
     { rejectWithValue },
   ) => {
     try {

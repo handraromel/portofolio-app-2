@@ -20,8 +20,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <div className="flex flex-1 flex-col lg:ml-72">
         <Header isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
 
-        <main className="flex-1 p-6">
-          <div className="mx-auto h-full max-w-7xl">
+        <main className="flex-1 p-2 sm:p-4 lg:p-6">
+          <div className="mx-auto h-full w-full max-w-full">
             <Container>{children}</Container>
           </div>
         </main>

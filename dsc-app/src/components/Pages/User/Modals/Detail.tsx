@@ -1,6 +1,6 @@
 import React from "react";
 import { User } from "@/types/user";
-import Modal from "@/components/Common/Modal";
+import { Modal } from "@/components/Common";
 import { formatDate } from "@/utils/formatDate";
 
 interface DetailModalProps {
@@ -9,7 +9,7 @@ interface DetailModalProps {
   user: User | null;
 }
 
-export const DetailModal: React.FC<DetailModalProps> = ({
+export const Detail: React.FC<DetailModalProps> = ({
   visible,
   onHide,
   user,

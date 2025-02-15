@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
 import { clearMessage, setMessage } from "@/store/slices/authSlice";
 import { login } from "@/store/actions/authActions";
-import FieldInput from "@/components/Inputs/FieldInput";
+import { InputField } from "@/components/Inputs";
 import { Message } from "@/components/Common";
 import { Button } from "primereact/button";
 import { loginSchema } from "@/utils/validationSchemas";
@@ -68,7 +68,7 @@ const Login: React.FC = () => {
           <Form className="space-y-12">
             <div className="space-y-3">
               <Field
-                as={FieldInput}
+                as={InputField}
                 id="username"
                 name="username"
                 type="text"
@@ -77,7 +77,7 @@ const Login: React.FC = () => {
                 error={touched.username && errors.username}
               />
               <Field
-                as={FieldInput}
+                as={InputField}
                 id="password"
                 name="password"
                 type="password"

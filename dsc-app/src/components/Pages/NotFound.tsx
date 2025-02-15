@@ -1,6 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ExclamationTriangleIcon, HomeIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationTriangleIcon,
+  ArrowLeftCircleIcon,
+} from "@heroicons/react/24/outline";
 
 const NotFound: React.FC = () => {
   return (
@@ -15,8 +18,8 @@ const NotFound: React.FC = () => {
         to="/"
         className="flex items-center space-x-2 rounded-full bg-white px-6 py-3 font-semibold text-blue-600 transition duration-300 hover:bg-blue-100"
       >
-        <HomeIcon className="h-5 w-5" />
-        <span>Return to Home</span>
+        <ArrowLeftCircleIcon className="h-6 w-6" />
+        <span>Go Back</span>
       </Link>
     </div>
   );

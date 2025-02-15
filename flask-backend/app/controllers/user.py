@@ -2,7 +2,7 @@ from flask import jsonify, request
 from flask_jwt_extended import jwt_required
 from app import db
 from app.models.user import User, UserRole
-from app.schemas.user_schemas import UpdateProfileSchema, UpdatePasswordSchema, UpdateRoleSchema
+from app.schemas.user_schemas import UpdateProfileSchema, UpdatePasswordSchema, UpdateRoleSchema, CreateUserSchema
 from app.utils.decorators import superadmin_required, admin_required, handle_validation_error
 from app.utils.user_to_dict import user_to_dict
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -12,6 +12,7 @@ from datetime import datetime
 update_profile_shcema = UpdateProfileSchema()
 update_password_schema = UpdatePasswordSchema()
 update_role_schema = UpdateRoleSchema()
+create_user_schema = CreateUserSchema()
 
 
 @admin_required()
@@ -58,6 +59,40 @@ def get_all_users():
     }), 200
 
 
+@admin_required()
+@jwt_required()
+@handle_validation_error
+def create_user():
+    data = create_user_schema.load(request.json)
+
+    # Check if username or email already exists
+    if User.query.filter(User.username == data['username']).first():
+        return jsonify({"msg": "Username already exists"}), 400
+
+    if User.query.filter(User.email == data['email']).first():
+        return jsonify({"msg": "Email already exists"}), 400
+
+    # Create new user instance
+    new_user = User(
+        username=data['username'],
+        email=data['email'],
+        first_name=data['first_name'],
+        last_name=data['last_name'],
+        password=generate_password_hash(data['password']),
+        role=UserRole[data['role']],
+        is_active=False
+    )
+
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify(user_to_dict(new_user)), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"msg": "Error creating user", "error": str(e)}), 500
+
+
+@admin_required()
 @jwt_required()
 @handle_validation_error
 def update_user(user_id):
@@ -70,6 +105,7 @@ def update_user(user_id):
     user.email = data.get('email', user.email)
     user.first_name = data.get('first_name', user.first_name)
     user.last_name = data.get('last_name', user.last_name)
+    user.role = UserRole[data.get('role', user.role)]
 
     db.session.commit()
     return jsonify(user_to_dict(user)), 200
@@ -95,7 +131,7 @@ def update_user_password(user_id):
     return jsonify({"msg": "Password updated successfully"}), 200
 
 
-@superadmin_required()
+@admin_required()
 @jwt_required()
 def set_user_active(user_id):
     user = User.query.get(user_id)

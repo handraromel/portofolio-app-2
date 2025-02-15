@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
 import { clearMessage } from "@/store/slices/authSlice";
 import { register } from "@/store/actions/authActions";
-import FieldInput from "@/components/Inputs/FieldInput";
+import { InputField } from "@/components/Inputs";
 import { Message } from "@/components/Common";
 import { Button } from "primereact/button";
 import { registerSchema } from "@/utils/validationSchemas";
@@ -82,7 +82,7 @@ const Register: React.FC = () => {
           <Form className="space-y-12">
             <div className="space-y-3">
               <Field
-                as={FieldInput}
+                as={InputField}
                 id="username"
                 name="username"
                 type="text"
@@ -91,7 +91,7 @@ const Register: React.FC = () => {
                 error={touched.username && errors.username}
               />
               <Field
-                as={FieldInput}
+                as={InputField}
                 id="email"
                 name="email"
                 type="text"
@@ -100,7 +100,7 @@ const Register: React.FC = () => {
                 error={touched.email && errors.email}
               />
               <Field
-                as={FieldInput}
+                as={InputField}
                 id="password"
                 name="password"
                 type="password"
@@ -110,7 +110,7 @@ const Register: React.FC = () => {
                 error={touched.password && errors.password}
               />
               <Field
-                as={FieldInput}
+                as={InputField}
                 id="confirm-password"
                 name="confirmPassword"
                 type="password"

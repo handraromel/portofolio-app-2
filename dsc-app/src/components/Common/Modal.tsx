@@ -7,14 +7,16 @@ interface ModalProps {
   header: string;
   children: React.ReactNode;
   className?: string;
+  icons?: React.ReactNode;
 }
 
-const Modal: React.FC<ModalProps> = ({
+export const Modal: React.FC<ModalProps> = ({
   visible,
   onHide,
   header,
   children,
   className,
+  icons,
 }) => {
   return (
     <Dialog
@@ -25,10 +27,9 @@ const Modal: React.FC<ModalProps> = ({
       className={className}
       closeOnEscape
       dismissableMask
+      icons={icons}
     >
       {children}
     </Dialog>
   );
 };
-
-export default Modal;

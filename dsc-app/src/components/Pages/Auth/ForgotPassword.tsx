@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
 import { clearMessage } from "@/store/slices/authSlice";
 import { forgotPassword } from "@/store/actions/authActions";
-import FieldInput from "@/components/Inputs/FieldInput";
+import { InputField } from "@/components/Inputs";
 import { Message } from "@/components/Common";
 import { Button } from "primereact/button";
 import { forgotPasswordSchema } from "@/utils/validationSchemas";
@@ -74,7 +74,7 @@ const ForgotPassword: React.FC = () => {
           <Form className="space-y-12">
             <div className="space-y-3">
               <Field
-                as={FieldInput}
+                as={InputField}
                 id="email"
                 name="email"
                 type="text"

@@ -1,53 +1,77 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { InputText } from "primereact/inputtext";
-import { FilterMatchMode } from "primereact/api";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import React, { useCallback, useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "@/hooks";
+import {
+  deleteUser,
+  activateUser,
+  fetchUsers,
+} from "@/store/actions/userActions";
 import { Tag } from "primereact/tag";
 import { Button } from "primereact/button";
-import { AppDispatch, RootState } from "@/store/config";
-import { fetchUsers } from "@/store/actions/userActions";
 import { formatDate } from "@/utils/formatDate";
 import { User } from "@/types/user";
-import { EditModal, DetailModal } from "./Modals";
+import { Submission as SubmissionModal, Detail as DetailModal } from "./Modals";
+import { useModal, usePermission } from "@/hooks";
+import { ColumnDef, Confirmation } from "@/components/Common";
+import { useToast } from "@/context/Toast";
+
+import Table from "@/components/Common/Table";
 
 const UserList: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { users, isLoading } = useSelector((state: RootState) => state.user);
-  const [filters, setFilters] = useState({
-    global: {
-      value: null as string | null,
-      matchMode: FilterMatchMode.CONTAINS,
-    },
-  });
-  const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const dispatch = useAppDispatch();
+  const { canEdit, canDelete, hasRole } = usePermission();
+  const isSuperAdmin = hasRole("superadmin");
+  const isAdmin = hasRole("admin");
+  const { users, isLoading, currentUser, error } = useAppSelector((state) => ({
+    ...state.user,
+    currentUser: state.auth.user,
+  }));
+  const { showSuccess, showError, showWarning } = useToast();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
-  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+  const submissionModal = useModal();
+  const detailModal = useModal();
+  const [triggerDelete, setTriggerDelete] = useState(false);
+  const [triggerActivate, setTriggerActivate] = useState(false);
 
-  const handleEdit = (user: User) => {
-    setSelectedUser(user);
-    setIsUpdateModalVisible(true);
+  const handleSubmission = (user?: User) => {
+    setSelectedUser(user ? user : null);
+    submissionModal.open();
   };
 
   const handleView = (user: User) => {
     setSelectedUser(user);
-    setIsDetailModalVisible(true);
+    detailModal.open();
   };
 
-  useEffect(() => {
-    dispatch(fetchUsers());
-  }, [dispatch]);
+  const handleDeleteConfirm = useCallback(() => {
+    if (selectedUser) {
+      dispatch(deleteUser(selectedUser.id))
+        .unwrap()
+        .then(() => {
+          dispatch(fetchUsers());
+        });
+      showWarning("User is now deleted");
+    }
+  }, [dispatch, selectedUser]);
 
-  const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    let _filters = { ...filters };
-    _filters["global"].value = value;
-    setFilters(_filters);
-    setGlobalFilterValue(value);
-  };
+  const handleActivateConfirm = useCallback(() => {
+    if (selectedUser) {
+      dispatch(
+        activateUser({
+          userId: selectedUser.id,
+          isActive: !selectedUser.is_active,
+        }),
+      )
+        .unwrap()
+        .then(() => {
+          dispatch(fetchUsers());
+        });
+      if (selectedUser.is_active) {
+        showWarning("User is now deactivated");
+      } else {
+        showSuccess("User is now activated");
+      }
+    }
+  }, [dispatch, selectedUser]);
 
   const statusBodyTemplate = (rowData: User) => {
     return (
@@ -81,38 +105,21 @@ const UserList: React.FC = () => {
     return users.indexOf(rowData) + 1;
   };
 
-  const renderHeader = () => {
-    return (
-      <div className="flex justify-between">
-        <h2 className="text-xl font-bold">Users</h2>
-        <span className="p-input-icon-left">
-          <MagnifyingGlassIcon className="h-4 w-5" />
-          <InputText
-            value={globalFilterValue}
-            onChange={onGlobalFilterChange}
-            placeholder="Search..."
-          />
-        </span>
-      </div>
-    );
-  };
+  const handleRefresh = useCallback(() => {
+    dispatch(fetchUsers()); // Your refresh logic here
+  }, [dispatch]);
 
-  const renderFooter = () => {
-    const { totalUsers, currentPage, totalPages } = useSelector(
-      (state: RootState) => state.user,
-    );
+  useEffect(() => {
+    dispatch(fetchUsers());
+  }, [dispatch]);
 
-    return (
-      <div className="flex justify-between px-2 py-1 text-sm">
-        <span>
-          Page {currentPage} of {totalPages}
-        </span>
-        <span>Total Users: {totalUsers}</span>
-      </div>
-    );
-  };
+  useEffect(() => {
+    if (error?.message) {
+      showError(error.message);
+    }
+  }, [error, showError]);
 
-  const columns = [
+  const columns: ColumnDef<User>[] = [
     {
       header: "No",
       body: indexTemplate,
@@ -161,25 +168,42 @@ const UserList: React.FC = () => {
       body: (rowData: User) => {
         return (
           <div className="flex justify-center gap-2">
-            <Button
-              label="Edit"
-              severity="success"
-              outlined
-              size="small"
-              className="h-7"
-              text
-              raised
-              onClick={() => handleEdit(rowData)}
-            />
-            <Button
-              label="Delete"
-              severity="danger"
-              outlined
-              size="small"
-              className="h-7"
-              text
-              raised
-            />
+            {canEdit() && (
+              <Button
+                label="Edit"
+                severity="success"
+                outlined
+                size="small"
+                className="h-7"
+                text
+                raised
+                onClick={() => handleSubmission(rowData)}
+                disabled={
+                  (isSuperAdmin && currentUser?.id === rowData.id) ||
+                  (rowData.role === "superadmin" && !isSuperAdmin)
+                }
+              />
+            )}
+            {canDelete() && (
+              <Button
+                label="Delete"
+                severity="danger"
+                outlined
+                size="small"
+                className="h-7"
+                text
+                raised
+                onClick={() => {
+                  setSelectedUser(rowData);
+                  setTriggerDelete(true);
+                }}
+                disabled={
+                  !isSuperAdmin ||
+                  rowData.is_active ||
+                  (isSuperAdmin && currentUser?.id === rowData.id)
+                }
+              />
+            )}
             <Button
               label="View"
               severity="info"
@@ -190,15 +214,27 @@ const UserList: React.FC = () => {
               raised
               onClick={() => handleView(rowData)}
             />
-            <Button
-              label="Activate"
-              severity="help"
-              outlined
-              size="small"
-              className="h-7"
-              text
-              raised
-            />
+            {(isAdmin || isSuperAdmin) && (
+              <Button
+                label={rowData.is_active ? "Deactivate" : "Activate"}
+                severity="help"
+                outlined
+                size="small"
+                className="h-7"
+                text
+                raised
+                onClick={() => {
+                  setSelectedUser(rowData);
+                  setTriggerActivate(true);
+                }}
+                disabled={
+                  (isSuperAdmin && currentUser?.id === rowData.id) ||
+                  (isAdmin && currentUser?.id === rowData.id) ||
+                  (!isSuperAdmin && rowData.role === "superadmin") ||
+                  (!isSuperAdmin && !isAdmin)
+                }
+              />
+            )}
           </div>
         );
       },
@@ -207,37 +243,52 @@ const UserList: React.FC = () => {
 
   return (
     <>
-      <DataTable
-        value={users}
-        paginator
-        rows={10}
-        size="small"
-        dataKey="id"
-        filters={filters}
-        filterDisplay="menu"
+      <Table
+        data={users}
+        columns={columns}
+        title="Users"
         loading={isLoading}
-        globalFilterFields={["email", "username", "first_name", "last_name"]}
-        header={renderHeader}
-        footer={renderFooter}
-        emptyMessage="No users found."
-        className="p-datatable-lg flex flex-1 flex-col"
-        scrollable
-        scrollHeight="flex"
-      >
-        {columns.map((col, index) => (
-          <Column key={index} {...col} />
-        ))}
-      </DataTable>
-      <EditModal
-        visible={isUpdateModalVisible}
-        onHide={() => setIsUpdateModalVisible(false)}
+        globalSearchFields={["email", "username", "first_name", "last_name"]}
+        actionButton={{
+          label: "Add User",
+          onClick: () => handleSubmission(),
+          visible: canEdit(),
+        }}
+        onRefresh={handleRefresh}
+      />
+
+      <SubmissionModal
+        visible={submissionModal.isOpen}
+        onHide={submissionModal.close}
         user={selectedUser}
       />
 
       <DetailModal
-        visible={isDetailModalVisible}
-        onHide={() => setIsDetailModalVisible(false)}
+        visible={detailModal.isOpen}
+        onHide={detailModal.close}
         user={selectedUser}
+      />
+
+      <Confirmation
+        visible={triggerDelete}
+        onHide={() => setTriggerDelete(false)}
+        onConfirm={handleDeleteConfirm}
+        message={`Are you sure you want to delete user ${selectedUser?.email}?`}
+        header="Delete User"
+        icon="pi pi-exclamation-triangle"
+        acceptLabel="Delete"
+        rejectLabel="Cancel"
+      />
+
+      <Confirmation
+        visible={triggerActivate}
+        onHide={() => setTriggerActivate(false)}
+        onConfirm={handleActivateConfirm}
+        message={`Are you sure you want to ${selectedUser?.is_active ? "deactivate" : "activate"} user ${selectedUser?.email}?`}
+        header={`${selectedUser?.is_active ? "Deactivate" : "Activate"} User`}
+        icon="pi pi-exclamation-triangle"
+        acceptLabel={selectedUser?.is_active ? "Deactivate" : "Activate"}
+        rejectLabel="Cancel"
       />
     </>
   );

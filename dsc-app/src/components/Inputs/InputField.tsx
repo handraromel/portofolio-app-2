@@ -16,7 +16,7 @@ interface FieldInputProps {
   passwordFeedback?: boolean;
 }
 
-const FieldInput: React.FC<FieldInputProps> = ({
+export const InputField: React.FC<FieldInputProps> = ({
   id,
   label,
   type,
@@ -107,5 +107,3 @@ const FieldInput: React.FC<FieldInputProps> = ({
     </div>
   );
 };
-
-export default FieldInput;

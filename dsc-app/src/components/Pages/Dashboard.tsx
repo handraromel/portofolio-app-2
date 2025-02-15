@@ -3,21 +3,39 @@ import { useAppSelector } from "@/hooks/useStore";
 
 const Dashboard: React.FC = () => {
   const currentUser = useAppSelector((state) => state.auth.user);
+
   return (
-    <>
-      <h1 className="mb-4 text-4xl font-bold">Daily Sales Control App</h1>
-      <h2 className="mb-4 text-xl">Our awesome journey starts here.</h2>
-      {currentUser && (
-        <div className="text-center">
-          Welcome back,
-          <p className="text-3xl">
-            {currentUser.first_name}&nbsp;
-            {currentUser.last_name}
+    <div className="flex h-[35rem] flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-4xl space-y-8 text-center">
+        {/* App Title Section */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl md:text-5xl dark:text-white">
+            Daily Sales Control App
+          </h1>
+          <p className="text-base text-gray-500 sm:text-lg md:text-xl dark:text-gray-400">
+            Our awesome journey starts here.
           </p>
-          <p className="text-xl font-bold">{currentUser.role}</p>
         </div>
-      )}
-    </>
+
+        {/* Welcome Message Section */}
+        {currentUser && (
+          <div className="mt-12 space-y-4 rounded-xl bg-white/5 p-6 backdrop-blur-lg sm:p-8">
+            <p className="text-lg text-gray-600 sm:text-xl dark:text-gray-300">
+              Welcome back,
+            </p>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl dark:text-white">
+                {currentUser.first_name}&nbsp;{currentUser.last_name}
+              </h2>
+              <p className="inline-block rounded-full bg-indigo-100 px-4 py-1 text-sm font-semibold text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300">
+                {currentUser.role.charAt(0).toUpperCase() +
+                  currentUser.role.slice(1)}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -34,11 +34,25 @@ export const forgotPasswordSchema = Yup.object().shape({
   email: Yup.string().email("Invalid email").required("Email is required"),
 });
 
-export const userEditSchema = Yup.object().shape({
-  email: Yup.string()
-    .email("Invalid email format")
-    .required("Email is required"),
-  username: Yup.string().required("Username is required"),
-  first_name: Yup.string().required("First name is required"),
-  last_name: Yup.string().required("Last name is required"),
-});
+export const userSubmissionSchema = (isUpdate = false) =>
+  Yup.object().shape({
+    email: Yup.string()
+      .email("Invalid email format")
+      .required("Email is required"),
+    username: Yup.string().required("Username is required"),
+    first_name: Yup.string().required("First name is required"),
+    last_name: Yup.string().required("Last name is required"),
+    ...(isUpdate
+      ? {}
+      : {
+          password: Yup.string()
+            .matches(passwordRules, {
+              message:
+                "Password must contain at least 8 characters, one uppercase letter, one number, and one special character",
+            })
+            .required("Password is required"),
+          confirmPassword: Yup.string()
+            .oneOf([Yup.ref("password")], "Passwords must match")
+            .required("Confirm Password is required"),
+        }),
+  });

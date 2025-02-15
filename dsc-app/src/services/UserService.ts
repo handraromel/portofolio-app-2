@@ -1,12 +1,15 @@
 import api from "./ApiService";
-import { ChangeUserPrivilegeData, UpdateUserData } from "@/types/user";
+import { ChangeUserPrivilegeData, UserDataSubmission } from "@/types/user";
 
 const userPrefix = "/manage/user";
 
 const UserService = {
   getAllUsers: () => api.get(`${userPrefix}/all`),
 
-  updateUser: (userId: string, data: UpdateUserData) =>
+  createUser: (data: UserDataSubmission) =>
+    api.post(`${userPrefix}/create`, data),
+
+  updateUser: (userId: string, data: UserDataSubmission) =>
     api.put(`${userPrefix}/${userId}/update`, data),
 
   deleteUser: (userId: string) => api.delete(`${userPrefix}/${userId}/delete`),

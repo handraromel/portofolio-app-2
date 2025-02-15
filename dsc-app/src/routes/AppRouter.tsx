@@ -9,7 +9,12 @@ import { useAppSelector } from "@/hooks/useStore";
 import { routes } from ".";
 import { Route } from "./types";
 import MainLayout from "@/layouts";
-import { NotFound, BadGateway, LoadingScreen } from "@/components/Pages";
+import {
+  NotFound,
+  BadGateway,
+  LoadingScreen,
+  Unauthorized,
+} from "@/components/Pages";
 import { checkRole } from "./middleware";
 
 const ProtectedRoute: React.FC<{
@@ -52,6 +57,9 @@ const AppRouter: React.FC = () => {
               )
             }
           />
+
+          <ReactRoute path="/unauthorized" element={<Unauthorized />} />
+
           {routes.map((route: Route) => {
             const Element = route.element;
             const Layout = route.layout || MainLayout;
