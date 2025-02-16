@@ -54,39 +54,43 @@ const Table = <T extends { [key: string]: unknown }>({
 
   const renderHeader = () => {
     return (
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col justify-between max-sm:space-y-3 sm:flex-row">
+        <div className="flex gap-4">
           <h2 className="text-xl font-bold">{title}</h2>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row">
           <span className="p-input-icon-left">
             <i className="pi pi-search text-gray-500" />
             <InputText
               value={globalFilterValue}
               onChange={onGlobalFilterChange}
               placeholder="Search..."
-              className="pl-8"
+              className="h-12 w-full pl-8"
             />
           </span>
-          {actionButton?.visible && (
-            <Button
-              label={actionButton.label}
-              size="small"
-              onClick={actionButton.onClick}
-            />
-          )}
-          {onRefresh && (
-            <Button
-              icon="pi pi-refresh"
-              rounded
-              severity="info"
-              aria-label="Refresh"
-              tooltip="Refresh list"
-              tooltipOptions={{ position: "top" }}
-              onClick={onRefresh}
-              className="p-1"
-            />
-          )}
+          <div className="flex items-center gap-3">
+            {actionButton?.visible && (
+              <Button
+                label={actionButton.label}
+                size="small"
+                className="h-11"
+                onClick={actionButton.onClick}
+              />
+            )}
+            {onRefresh && (
+              <Button
+                icon="pi pi-refresh"
+                rounded
+                size="small"
+                severity="info"
+                aria-label="Refresh"
+                tooltip="Refresh list"
+                tooltipOptions={{ position: "top" }}
+                onClick={onRefresh}
+                className="h-11 p-1"
+              />
+            )}
+          </div>
         </div>
       </div>
     );

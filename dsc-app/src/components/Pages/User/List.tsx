@@ -21,11 +21,11 @@ const UserList: React.FC = () => {
   const { canEdit, canDelete, hasRole } = usePermission();
   const isSuperAdmin = hasRole("superadmin");
   const isAdmin = hasRole("admin");
-  const { users, isLoading, currentUser } = useAppSelector((state) => ({
+  const { users, isLoading, currentUser, error } = useAppSelector((state) => ({
     ...state.user,
     currentUser: state.auth.user,
   }));
-  const { showSuccess, showWarning } = useToast();
+  const { showSuccess, showWarning, showError } = useToast();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const submissionModal = useModal();
   const detailModal = useModal();
@@ -248,6 +248,12 @@ const UserList: React.FC = () => {
   ];
 
   useEffect(() => {
+    if (error?.message) {
+      showError(error.message);
+    }
+  }, [error, showError, selectedUser]);
+
+  useEffect(() => {
     dispatch(fetchUsers());
   }, [dispatch]);
 
@@ -256,7 +262,7 @@ const UserList: React.FC = () => {
       <Table
         data={users}
         columns={columns}
-        title="Users"
+        title="Manage Users"
         loading={isLoading}
         globalSearchFields={["email", "username", "first_name", "last_name"]}
         actionButton={{

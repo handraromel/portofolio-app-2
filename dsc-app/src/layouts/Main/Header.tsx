@@ -34,7 +34,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
   };
 
   const menuItems: MenuItem[] = [
-    { id: "profile", label: "User Profile", href: "/profile" },
+    { id: "profile", label: "User Profile", href: "/user/profile" },
     { id: "logout", label: "Logout", onClick: handleLogout },
   ];
 

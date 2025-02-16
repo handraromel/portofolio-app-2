@@ -23,15 +23,15 @@ const Profile: React.FC = () => {
   );
 
   return (
-    <div className="mx-auto w-[370px] space-y-6 p-4 sm:mt-[50px] sm:w-2xl">
+    <div className="mx-auto w-full space-y-6 p-4 sm:mt-[50px] md:w-2xl">
       <Card header={header} className="shadow-lg">
         <div className="space-y-6">
           <div className="flex flex-col items-center justify-between space-y-6 sm:flex-row sm:space-y-0">
-            <div>
-              <h1 className="text-3xl font-bold text-indigo-400">
+            <div className="max-sm:text-center">
+              <h1 className="text-2xl font-bold text-indigo-400 sm:text-3xl">
                 {currentUser.first_name} {currentUser.last_name}
               </h1>
-              <p className="text-lg text-gray-600 dark:text-indigo-100">
+              <p className="text-[14px] text-gray-600 sm:text-lg dark:text-indigo-100">
                 {currentUser.email}
               </p>
             </div>

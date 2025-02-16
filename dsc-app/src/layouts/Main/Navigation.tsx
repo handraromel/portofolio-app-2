@@ -20,7 +20,7 @@ const menuItems: MenuItem[] = [
   { id: "account", label: "My Profile", href: "/user/profile" },
   {
     id: "manageUser",
-    label: "Manage User",
+    label: "Manage Users",
     href: "/users",
     permissions: ["canEdit", "canDelete"],
   },
