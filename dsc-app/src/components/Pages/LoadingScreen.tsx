@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { CogIcon } from "@heroicons/react/24/solid";
+import { CogIcon } from "@/components/CustomIcons";
 
 const LoadingScreen: React.FC = () => {
   const [progress, setProgress] = useState(0);

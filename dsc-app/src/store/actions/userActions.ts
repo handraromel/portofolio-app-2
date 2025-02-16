@@ -101,3 +101,41 @@ export const changeUserPrivilege = createAsyncThunk(
     }
   },
 );
+
+export const updateUserPassword = createAsyncThunk(
+  "users/updateUserPassword",
+  async (
+    { userId, data }: { userId: string; data: { new_password: string } },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await UserService.updateUserPassword(userId, data);
+      return response.data;
+    } catch (error) {
+      if (isApiError(error) && error.response?.data?.msg) {
+        return rejectWithValue(error.response.data.msg);
+      }
+      return rejectWithValue("Failed to update user password");
+    }
+  },
+);
+
+export const checkCurrentPassword = createAsyncThunk(
+  "users/checkCurrentPassword",
+  async (
+    { userId, data }: { userId: string; data: { new_password: string } },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await UserService.checkCurrentPassword(userId, data);
+      return response.data;
+    } catch (error) {
+      if (isApiError(error)) {
+        return rejectWithValue(
+          error.response?.data?.msg || "Password check failed",
+        );
+      }
+      return rejectWithValue("Password check failed");
+    }
+  },
+);

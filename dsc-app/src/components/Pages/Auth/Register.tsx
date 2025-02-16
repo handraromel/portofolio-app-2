@@ -8,7 +8,6 @@ import { InputField } from "@/components/Inputs";
 import { Message } from "@/components/Common";
 import { Button } from "primereact/button";
 import { registerSchema } from "@/utils/validationSchemas";
-import { XMarkIcon } from "@heroicons/react/24/solid";
 
 type RegisterSubmitData = {
   username: string;
@@ -61,7 +60,7 @@ const Register: React.FC = () => {
     <div className="relative">
       <div className="absolute -top-14 -right-9 opacity-50 drop-shadow transition-all duration-300 hover:opacity-100 max-sm:-right-4">
         <button className="outline-none" onClick={() => navigate("/login")}>
-          <XMarkIcon className="h-6 w-6" />
+          <i className="pi pi-times h-6 w-6" />
         </button>
       </div>
 

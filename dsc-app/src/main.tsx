@@ -7,6 +7,7 @@ import store from "@/store/config";
 import App from "./App";
 import "@/assets/styles/index.css";
 import "primereact/resources/primereact.min.css";
+import "primeicons/primeicons.css";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,

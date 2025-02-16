@@ -13,3 +13,5 @@ bp.route('/<uuid:user_id>/activate_user',
 bp.route('/<uuid:user_id>/change_user_privilege',
          methods=['PUT'])(user.change_user_privilege)
 bp.route('/<uuid:user_id>/delete', methods=['DELETE'])(user.delete_user)
+bp.route('/<uuid:user_id>/check_password',
+         methods=['POST'])(user.check_current_password)

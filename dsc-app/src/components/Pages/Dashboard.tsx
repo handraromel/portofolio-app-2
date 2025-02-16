@@ -19,15 +19,15 @@ const Dashboard: React.FC = () => {
 
         {/* Welcome Message Section */}
         {currentUser && (
-          <div className="mt-12 space-y-4 rounded-xl bg-white/5 p-6 backdrop-blur-lg sm:p-8">
+          <div className="mt-12 space-y-4 rounded-xl bg-indigo-200/90 p-6 backdrop-blur-lg sm:p-8 dark:bg-indigo-500/10">
             <p className="text-lg text-gray-600 sm:text-xl dark:text-gray-300">
               Welcome back,
             </p>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl dark:text-white">
                 {currentUser.first_name}&nbsp;{currentUser.last_name}
               </h2>
-              <p className="inline-block rounded-full bg-indigo-100 px-4 py-1 text-sm font-semibold text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300">
+              <p className="inline-block rounded-full bg-indigo-100 px-4 py-1 text-sm font-semibold text-indigo-800 drop-shadow-lg dark:bg-indigo-900 dark:text-indigo-200">
                 {currentUser.role.charAt(0).toUpperCase() +
                   currentUser.role.slice(1)}
               </p>

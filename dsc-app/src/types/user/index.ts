@@ -46,6 +46,7 @@ export interface SubmissionProps {
   visible: boolean;
   onHide: () => void;
   user?: User | null;
+  isProfileEdit?: boolean;
 }
 
 export interface RoleOption {

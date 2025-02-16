@@ -3,6 +3,7 @@ import { Route } from "./types";
 import MainLayout from "@/layouts";
 
 const UserList = lazy(() => import("@/components/Pages/User/List"));
+const UserProfile = lazy(() => import("@/components/Pages/User/Profile"));
 
 export const routes: Route[] = [
   {
@@ -11,5 +12,11 @@ export const routes: Route[] = [
     layout: MainLayout,
     protected: true,
     allowedRoles: ["superadmin", "admin"],
+  },
+  {
+    path: "/user/profile",
+    element: UserProfile,
+    layout: MainLayout,
+    protected: true,
   },
 ];

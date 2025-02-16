@@ -8,6 +8,7 @@ import {
   activateAccount,
   forgotPassword,
 } from "@/store/actions/authActions";
+import { User } from "@/types/user";
 
 const initialState: AuthState = {
   user: localStorage.getItem("authUserData")
@@ -37,6 +38,9 @@ const authSlice = createSlice({
     clearActivationState: (state) => {
       state.activationProgress = 0;
       state.message = null;
+    },
+    updateAuthUser: (state, action: PayloadAction<User>) => {
+      state.user = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -140,6 +144,7 @@ const authSlice = createSlice({
 export const {
   setMessage,
   clearMessage,
+  updateAuthUser,
   setActivationProgress,
   clearActivationState,
 } = authSlice.actions;

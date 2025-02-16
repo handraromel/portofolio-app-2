@@ -11,7 +11,6 @@ import {
 import { FieldSelect, InputField } from "@/components/Inputs";
 import { Button } from "primereact/button";
 import { Tooltip } from "primereact/tooltip";
-import { ArrowPathIcon } from "@heroicons/react/24/solid";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
 import { useToast } from "@/context/Toast";
 import {
@@ -20,6 +19,7 @@ import {
   fetchUsers,
 } from "@/store/actions/userActions";
 import { usePermission } from "@/hooks";
+import { updateAuthUser } from "@/store/slices/authSlice";
 
 const USER_ROLES: UserRole[] = ["superadmin", "admin", "user"];
 
@@ -27,6 +27,7 @@ export const Submission: React.FC<SubmissionProps> = ({
   visible,
   onHide,
   user,
+  isProfileEdit,
 }) => {
   const { hasRole } = usePermission();
   const isSuperAdmin = hasRole("superadmin");
@@ -46,12 +47,6 @@ export const Submission: React.FC<SubmissionProps> = ({
       formikRef.current.resetForm();
     }
   };
-
-  useEffect(() => {
-    if (error?.message) {
-      showError(error.message);
-    }
-  }, [error, showError]);
 
   const defaultValues: UserDataSubmission = {
     email: "",
@@ -91,6 +86,11 @@ export const Submission: React.FC<SubmissionProps> = ({
 
         if (updateUser.fulfilled.match(result)) {
           showSuccess("User updated successfully");
+
+          if (isProfileEdit) {
+            dispatch(updateAuthUser(result.payload));
+          }
+
           await dispatch(fetchUsers());
           onHide();
         }
@@ -108,15 +108,21 @@ export const Submission: React.FC<SubmissionProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (error?.message && visible) {
+      showError(error.message);
+    }
+  }, [error?.message, showError, visible]);
+
   const modalIcons = (
     <>
       <Tooltip target=".resetIcon" position="top" content="Reset form" />
       <div
         onClick={handleReset}
-        className="resetIcon group relative mr-2 cursor-pointer rounded-full p-2 text-gray-400 transition-all hover:bg-gray-100/3 hover:text-gray-100"
+        className="resetIcon group relative h-8 w-8 cursor-pointer rounded-full text-center text-gray-400 transition-all hover:bg-gray-500/7 hover:text-gray-700 dark:hover:bg-gray-100/3 dark:hover:text-gray-100"
         aria-label="Reset form"
       >
-        <ArrowPathIcon className="h-5 w-5" />
+        <i className="pi pi-refresh mt-[7px]" />
       </div>
     </>
   );
@@ -126,7 +132,13 @@ export const Submission: React.FC<SubmissionProps> = ({
       <Modal
         visible={visible}
         onHide={onHide}
-        header={user ? "Update User" : "Create User"}
+        header={
+          user
+            ? isProfileEdit
+              ? "Update your profile"
+              : "Update User"
+            : "Create User"
+        }
         className="w-[500px]"
         icons={modalIcons}
       >
@@ -171,7 +183,7 @@ export const Submission: React.FC<SubmissionProps> = ({
                   label="Last Name"
                   placeholder="Last Name"
                 />
-                {!user && (
+                {!isProfileEdit && !user && (
                   <>
                     <Field
                       as={InputField}
@@ -191,7 +203,7 @@ export const Submission: React.FC<SubmissionProps> = ({
                     />
                   </>
                 )}
-                {isSuperAdmin && (
+                {!isProfileEdit && isSuperAdmin && (
                   <Field
                     as={FieldSelect}
                     id="role"

@@ -4,10 +4,8 @@ import { toggleTheme } from "@/store/slices/themeSlice";
 import { logout } from "@/store/actions/authActions";
 import { useNavigate } from "react-router-dom";
 import { OverlayPanel } from "primereact/overlaypanel";
-import { UserCircleIcon } from "@heroicons/react/24/solid";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 import { Button } from "primereact/button";
+import { Avatar } from "primereact/avatar";
 
 interface HeaderProps {
   isMenuOpen: boolean;
@@ -26,6 +24,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
   const navigate = useNavigate();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const op = useRef<OverlayPanel>(null);
+  const currentUser = useAppSelector((state) => state.auth.user);
 
   const handleLogout = async () => {
     const isLogout = await dispatch(logout());
@@ -48,6 +47,17 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
     op.current?.hide();
   };
 
+  if (!currentUser) return null;
+
+  const userAvatar = (
+    <Avatar
+      label={`${currentUser.first_name[0]}${currentUser.last_name[0]}`}
+      size="normal"
+      shape="circle"
+      className="text-4xl font-bold text-indigo-800 dark:text-indigo-100"
+    />
+  );
+
   return (
     <header className="surface-ground sticky top-0 z-50 bg-indigo-300 shadow-md transition-all duration-300 dark:bg-indigo-800">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
@@ -58,9 +68,9 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
             aria-label={isMenuOpen ? "Close Menu" : "Open Menu"}
           >
             {isMenuOpen ? (
-              <XMarkIcon className="h-6 w-6" />
+              <i className="pi pi-times h-6 w-6" />
             ) : (
-              <Bars3Icon className="h-6 w-6" />
+              <i className="pi pi-bars h-6 w-6" />
             )}
           </button>
 
@@ -70,7 +80,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
 
           <div className="flex items-center gap-2">
             <Button
-              icon={<UserCircleIcon className="h-5 w-5" />}
+              icon={userAvatar}
               rounded
               onClick={(e) => op.current?.toggle(e)}
               pt={{
@@ -86,9 +96,9 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
             <Button
               icon={
                 isDarkMode ? (
-                  <MoonIcon className="h-5 w-5" />
+                  <i className="pi pi-moon mt-[3px] h-5 w-5" />
                 ) : (
-                  <SunIcon className="h-5 w-5" />
+                  <i className="pi pi-sun mt-[3px] h-5 w-5" />
                 )
               }
               rounded

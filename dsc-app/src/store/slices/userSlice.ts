@@ -5,6 +5,7 @@ import {
   createUser,
   activateUser,
   deleteUser,
+  updateUserPassword,
 } from "@/store/actions/userActions";
 import { UserState, UserResponse } from "@/types/user";
 
@@ -86,7 +87,12 @@ const userSlice = createSlice({
       // Delete user
       .addCase(deleteUser.pending, setPending)
       .addCase(deleteUser.fulfilled, setFulfilled)
-      .addCase(deleteUser.rejected, setRejected);
+      .addCase(deleteUser.rejected, setRejected)
+
+      // Update user password
+      .addCase(updateUserPassword.pending, setPending)
+      .addCase(updateUserPassword.fulfilled, setFulfilled)
+      .addCase(updateUserPassword.rejected, setRejected);
   },
 });
 

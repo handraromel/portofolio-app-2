@@ -4,8 +4,6 @@ import { Column, ColumnProps } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { FilterMatchMode } from "primereact/api";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 export interface ColumnDef<T> extends Omit<ColumnProps, "field" | "body"> {
   field?: keyof T;
@@ -62,7 +60,7 @@ const Table = <T extends { [key: string]: unknown }>({
         </div>
         <div className="flex items-center gap-4">
           <span className="p-input-icon-left">
-            <MagnifyingGlassIcon className="h-4 w-5 text-gray-500" />
+            <i className="pi pi-search text-gray-500" />
             <InputText
               value={globalFilterValue}
               onChange={onGlobalFilterChange}
@@ -79,7 +77,7 @@ const Table = <T extends { [key: string]: unknown }>({
           )}
           {onRefresh && (
             <Button
-              icon={<ArrowPathIcon className="h-5 w-5" />}
+              icon="pi pi-refresh"
               rounded
               severity="info"
               aria-label="Refresh"

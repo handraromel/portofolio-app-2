@@ -11,6 +11,7 @@ from datetime import datetime
 
 update_profile_shcema = UpdateProfileSchema()
 update_password_schema = UpdatePasswordSchema()
+check_password_schema = UpdatePasswordSchema()
 update_role_schema = UpdateRoleSchema()
 create_user_schema = CreateUserSchema()
 
@@ -131,6 +132,23 @@ def update_user_password(user_id):
     return jsonify({"msg": "Password updated successfully"}), 200
 
 
+@jwt_required()
+@handle_validation_error
+def check_current_password(user_id):
+    data = check_password_schema.load(request.json)
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
+    new_password = data.get('new_password')
+    if not new_password:
+        return jsonify({"msg": "Password is required"}), 400
+
+    is_same = check_password_hash(user.password, new_password)
+    return jsonify({"isSame": is_same}), 200
+
+
 @admin_required()
 @jwt_required()
 def set_user_active(user_id):
@@ -171,6 +189,16 @@ def delete_user(user_id):
     if user.role == UserRole.superadmin:
         return jsonify({"msg": "Deleting a superadmin is prohibited"}), 401
 
-    db.session.delete(user)
-    db.session.commit()
-    return jsonify({"msg": "User deleted successfully"}), 200
+    if user.is_active:
+        return jsonify({"msg": "Cannot delete an active user. Deactivate the user first"}), 400
+
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"msg": "User deleted successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "msg": "Error deleting user",
+            "error": str(e)
+        }), 500

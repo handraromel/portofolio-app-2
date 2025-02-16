@@ -21,11 +21,11 @@ const UserList: React.FC = () => {
   const { canEdit, canDelete, hasRole } = usePermission();
   const isSuperAdmin = hasRole("superadmin");
   const isAdmin = hasRole("admin");
-  const { users, isLoading, currentUser, error } = useAppSelector((state) => ({
+  const { users, isLoading, currentUser } = useAppSelector((state) => ({
     ...state.user,
     currentUser: state.auth.user,
   }));
-  const { showSuccess, showError, showWarning } = useToast();
+  const { showSuccess, showWarning } = useToast();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const submissionModal = useModal();
   const detailModal = useModal();
@@ -109,15 +109,93 @@ const UserList: React.FC = () => {
     dispatch(fetchUsers()); // Your refresh logic here
   }, [dispatch]);
 
-  useEffect(() => {
-    dispatch(fetchUsers());
-  }, [dispatch]);
+  const isEditDisabled = (user: User) => {
+    return (
+      (isSuperAdmin && currentUser?.id === user.id) ||
+      (user.role === "superadmin" && !isSuperAdmin)
+    );
+  };
 
-  useEffect(() => {
-    if (error?.message) {
-      showError(error.message);
-    }
-  }, [error, showError]);
+  const isDeleteDisabled = (user: User) => {
+    return (
+      !isSuperAdmin ||
+      (isSuperAdmin && currentUser?.id === user.id) ||
+      user.is_active
+    );
+  };
+
+  const isActivateDisabled = (user: User) => {
+    return (
+      (isSuperAdmin && currentUser?.id === user.id) ||
+      (isAdmin && currentUser?.id === user.id) ||
+      (!isSuperAdmin && user.role === "superadmin") ||
+      (!isSuperAdmin && !isAdmin)
+    );
+  };
+
+  const renderActions = (rowData: User) => {
+    const editDisabled = isEditDisabled(rowData);
+    const deleteDisabled = isDeleteDisabled(rowData);
+    const activateDisabled = isActivateDisabled(rowData);
+
+    return (
+      <div className="flex justify-center gap-2">
+        {canEdit() && (
+          <Button
+            label="Edit"
+            severity="success"
+            size="small"
+            className="h-7"
+            raised
+            onClick={() => handleSubmission(rowData)}
+            disabled={editDisabled}
+            outlined={editDisabled}
+            text={editDisabled}
+          />
+        )}
+        {canDelete() && (
+          <Button
+            label="Delete"
+            severity="danger"
+            size="small"
+            className="h-7"
+            raised
+            onClick={() => {
+              setSelectedUser(rowData);
+              setTriggerDelete(true);
+            }}
+            disabled={deleteDisabled}
+            outlined={deleteDisabled}
+            text={deleteDisabled}
+          />
+        )}
+        <Button
+          label="View"
+          severity="info"
+          size="small"
+          className="h-7"
+          raised
+          onClick={() => handleView(rowData)}
+        />
+        {(isAdmin || isSuperAdmin) && (
+          <Button
+            label={rowData.is_active ? "Deactivate" : "Activate"}
+            severity="help"
+            size="small"
+            className="h-7"
+            raised
+            onClick={() => {
+              setSelectedUser(rowData);
+              setTriggerActivate(true);
+            }}
+            disabled={activateDisabled}
+            outlined={activateDisabled}
+            text={activateDisabled}
+          />
+        )}
+      </div>
+    );
+  };
 
   const columns: ColumnDef<User>[] = [
     {
@@ -165,81 +243,13 @@ const UserList: React.FC = () => {
     },
     {
       header: "Actions",
-      body: (rowData: User) => {
-        return (
-          <div className="flex justify-center gap-2">
-            {canEdit() && (
-              <Button
-                label="Edit"
-                severity="success"
-                outlined
-                size="small"
-                className="h-7"
-                text
-                raised
-                onClick={() => handleSubmission(rowData)}
-                disabled={
-                  (isSuperAdmin && currentUser?.id === rowData.id) ||
-                  (rowData.role === "superadmin" && !isSuperAdmin)
-                }
-              />
-            )}
-            {canDelete() && (
-              <Button
-                label="Delete"
-                severity="danger"
-                outlined
-                size="small"
-                className="h-7"
-                text
-                raised
-                onClick={() => {
-                  setSelectedUser(rowData);
-                  setTriggerDelete(true);
-                }}
-                disabled={
-                  !isSuperAdmin ||
-                  rowData.is_active ||
-                  (isSuperAdmin && currentUser?.id === rowData.id)
-                }
-              />
-            )}
-            <Button
-              label="View"
-              severity="info"
-              outlined
-              size="small"
-              className="h-7"
-              text
-              raised
-              onClick={() => handleView(rowData)}
-            />
-            {(isAdmin || isSuperAdmin) && (
-              <Button
-                label={rowData.is_active ? "Deactivate" : "Activate"}
-                severity="help"
-                outlined
-                size="small"
-                className="h-7"
-                text
-                raised
-                onClick={() => {
-                  setSelectedUser(rowData);
-                  setTriggerActivate(true);
-                }}
-                disabled={
-                  (isSuperAdmin && currentUser?.id === rowData.id) ||
-                  (isAdmin && currentUser?.id === rowData.id) ||
-                  (!isSuperAdmin && rowData.role === "superadmin") ||
-                  (!isSuperAdmin && !isAdmin)
-                }
-              />
-            )}
-          </div>
-        );
-      },
+      body: renderActions,
     },
   ];
+
+  useEffect(() => {
+    dispatch(fetchUsers());
+  }, [dispatch]);
 
   return (
     <>

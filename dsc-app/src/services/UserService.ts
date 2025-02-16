@@ -19,6 +19,12 @@ const UserService = {
 
   changeUserPrivilege: (userId: string, data: ChangeUserPrivilegeData) =>
     api.put(`${userPrefix}/${userId}/change_user_privilege`, data),
+
+  updateUserPassword: (userId: string, data: { new_password: string }) =>
+    api.put(`${userPrefix}/${userId}/update_user_password`, data),
+
+  checkCurrentPassword: (userId: string, data: { new_password: string }) =>
+    api.post(`${userPrefix}/${userId}/check_password`, data),
 };
 
 export default UserService;
