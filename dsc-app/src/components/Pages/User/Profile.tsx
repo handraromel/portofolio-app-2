@@ -16,7 +16,7 @@ const Profile: React.FC = () => {
 
   const header = (
     <div className="flex h-48 w-full items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600">
-      <div className="text-9xl">
+      <div className="text-9xl text-gray-50">
         {`${currentUser.first_name[0]}${currentUser.last_name[0]}`}
       </div>
     </div>
