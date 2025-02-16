@@ -62,13 +62,17 @@ const Profile: React.FC = () => {
           <Divider />
 
           {/* Details Grid */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-gray-600">Username</p>
-              <p className="text-lg">{currentUser.username}</p>
+          <div className="grid grid-cols-1 gap-3 sm:gap-6 md:grid-cols-2">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-gray-600 dark:text-slate-500">
+                Username
+              </p>
+              <p>{currentUser.username}</p>
             </div>
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-gray-600">Role</p>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-gray-600 dark:text-slate-500">
+                Role
+              </p>
               <Tag
                 severity={
                   currentUser.role === "superadmin"
@@ -83,18 +87,20 @@ const Profile: React.FC = () => {
                 }
               />
             </div>
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-gray-600">Status</p>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-gray-600 dark:text-slate-500">
+                Status
+              </p>
               <Tag
                 severity={currentUser.is_active ? "success" : "danger"}
                 value={currentUser.is_active ? "Active" : "Inactive"}
               />
             </div>
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-gray-600">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-gray-600 dark:text-slate-500">
                 Member Since
               </p>
-              <p className="text-lg">{formatDate(currentUser.created_at)}</p>
+              <p>{formatDate(currentUser.created_at)}</p>
             </div>
           </div>
         </div>
