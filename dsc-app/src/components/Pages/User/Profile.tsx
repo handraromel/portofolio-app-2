@@ -44,7 +44,7 @@ const Profile: React.FC = () => {
                 aria-label="Edit Profile"
                 onClick={() => setShowEditModal(true)}
                 tooltip="Edit Profile"
-                tooltipOptions={{ position: "left" }}
+                tooltipOptions={{ position: "top" }}
               />
               <Button
                 icon="pi pi-key"
@@ -54,7 +54,7 @@ const Profile: React.FC = () => {
                 aria-label="Change Password"
                 onClick={() => setShowPasswordModal(true)}
                 tooltip="Change Password"
-                tooltipOptions={{ position: "left" }}
+                tooltipOptions={{ position: "top" }}
               />
             </div>
           </div>

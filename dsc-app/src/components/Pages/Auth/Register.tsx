@@ -12,6 +12,8 @@ import { registerSchema } from "@/utils/validationSchemas";
 type RegisterSubmitData = {
   username: string;
   email: string;
+  first_name: string;
+  last_name: string;
   password: string;
 };
 
@@ -25,6 +27,8 @@ const Register: React.FC = () => {
     username: "",
     email: "",
     password: "",
+    first_name: "",
+    last_name: "",
     confirmPassword: "",
   };
 
@@ -41,6 +45,8 @@ const Register: React.FC = () => {
     const submitData: RegisterSubmitData = {
       username: values.username,
       email: values.email,
+      first_name: values.first_name,
+      last_name: values.last_name,
       password: values.password,
     };
 
@@ -97,6 +103,24 @@ const Register: React.FC = () => {
                 label="Email address"
                 placeholder="Email address"
                 error={touched.email && errors.email}
+              />
+              <Field
+                as={InputField}
+                id="first_name"
+                name="first_name"
+                type="text"
+                label="First Name"
+                placeholder="First Name"
+                error={touched.first_name && errors.first_name}
+              />
+              <Field
+                as={InputField}
+                id="last_name"
+                name="last_name"
+                type="text"
+                label="Last Name"
+                placeholder="Last Name"
+                error={touched.last_name && errors.last_name}
               />
               <Field
                 as={InputField}

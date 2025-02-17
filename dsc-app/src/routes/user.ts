@@ -18,5 +18,6 @@ export const routes: Route[] = [
     element: UserProfile,
     layout: MainLayout,
     protected: true,
+    allowedRoles: ["superadmin", "admin", "user"],
   },
 ];

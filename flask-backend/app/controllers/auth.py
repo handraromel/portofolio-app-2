@@ -41,6 +41,8 @@ def register():
     new_user = User(
         username=data['username'],
         email=data['email'],
+        first_name=data['first_name'],
+        last_name=data['last_name'],
         password=hashed_password,
         role=UserRole.user,
         is_active=False,
@@ -98,8 +100,21 @@ def activate_account(token):
 @jwt_required(refresh=True)
 def refresh():
     identity = get_jwt_identity()
-    access_token = create_access_token(identity=identity)
 
+    user = User.query.get(identity)
+    if not user or not user.is_active:
+        resp = make_response(
+            jsonify({
+                "logout": True,
+                "msg": "Account is inactive. Please contact administrator."
+            })
+        )
+        unset_jwt_cookies(resp)
+        resp.delete_cookie('csrf_access_token')
+        resp.delete_cookie('csrf_refresh_token')
+        return resp, 401
+
+    access_token = create_access_token(identity=identity)
     resp = jsonify({'refresh': True})
     set_access_cookies(resp, access_token)
 

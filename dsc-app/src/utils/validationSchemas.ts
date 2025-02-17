@@ -20,6 +20,8 @@ export const registerSchema = Yup.object().shape({
     .required("Name is required")
     .min(3, "Name should at least more than 2 characters"),
   email: Yup.string().email("Invalid email").required("Email is required"),
+  first_name: Yup.string().required("First name is required"),
+  last_name: Yup.string().required("Last name is required"),
   password: Yup.string()
     .matches(passwordRules, {
       message:

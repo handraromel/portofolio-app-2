@@ -23,7 +23,7 @@ class UpdateProfileSchema(Schema):
     last_name = fields.Str(validate=validate.Length(max=20))
     role = fields.Str(
         required=True,
-        validate=validate.OneOf(['admin', 'user', 'superadmin'])
+        validate=validate.OneOf(['admin', 'user'])
     )
 
 

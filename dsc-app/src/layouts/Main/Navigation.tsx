@@ -17,7 +17,11 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { id: "dashboard", label: "Dashboard", href: "/" },
-  { id: "account", label: "My Profile", href: "/user/profile" },
+  {
+    id: "account",
+    label: "My Profile",
+    href: "/user/profile",
+  },
   {
     id: "manageUser",
     label: "Manage Users",

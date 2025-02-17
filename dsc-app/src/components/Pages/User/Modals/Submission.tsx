@@ -21,7 +21,7 @@ import {
 import { usePermission } from "@/hooks";
 import { updateAuthUser } from "@/store/slices/authSlice";
 
-const USER_ROLES: UserRole[] = ["superadmin", "admin", "user"];
+const USER_ROLES: UserRole[] = ["admin", "user"];
 
 export const Submission: React.FC<SubmissionProps> = ({
   visible,
