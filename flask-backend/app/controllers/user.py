@@ -60,6 +60,14 @@ def get_all_users():
     }), 200
 
 
+def get_user_by_id(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
+    return jsonify(user_to_dict(user)), 200
+
+
 @admin_required()
 @jwt_required()
 @handle_validation_error
@@ -93,7 +101,6 @@ def create_user():
         return jsonify({"msg": "Error creating user", "error": str(e)}), 500
 
 
-@admin_required()
 @jwt_required()
 @handle_validation_error
 def update_user(user_id):

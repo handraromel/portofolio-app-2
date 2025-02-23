@@ -6,6 +6,7 @@ import {
   UserResponse,
   User,
 } from "@/types/user";
+import { useAppSelector } from "@/hooks/useStore";
 
 export const userKeys = {
   all: ["users"] as const,
@@ -19,13 +20,28 @@ export const userKeys = {
 const userPrefix = "/manage/user";
 
 export const useUsers = () => {
+  const currentUser = useAppSelector((state) => state.auth.user);
+  const hasAccess =
+    currentUser?.role && ["superadmin", "admin"].includes(currentUser.role);
   return useQuery<UserResponse, Error>({
     queryKey: userKeys.lists(),
     queryFn: async (): Promise<UserResponse> => {
       const response = await apiClient<User>(`${userPrefix}/all`);
       return response as UserResponse;
     },
-    refetchOnWindowFocus: false,
+    enabled: hasAccess,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useUser = (userId: string) => {
+  return useQuery<User, Error>({
+    queryKey: userKeys.detail(userId),
+    queryFn: async (): Promise<User> => {
+      const response = await apiClient<User>(`${userPrefix}/${userId}`);
+      return response as User;
+    },
+    enabled: !!userId,
     staleTime: 1000 * 60 * 5,
   });
 };

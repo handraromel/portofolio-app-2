@@ -4,6 +4,7 @@ from app.controllers import user
 bp = Blueprint('user', __name__)
 
 bp.route('/all', methods=['GET'])(user.get_all_users)
+bp.route('/<uuid:user_id>', methods=['GET'])(user.get_user_by_id)
 bp.route('/create', methods=['POST'])(user.create_user)
 bp.route('/<uuid:user_id>/update', methods=['PUT'])(user.update_user)
 bp.route('/<uuid:user_id>/update_user_password',

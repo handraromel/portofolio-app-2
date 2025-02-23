@@ -1,8 +1,14 @@
 import React from "react";
 import { useAppSelector } from "@/hooks/useStore";
+import { useUser } from "@/services/UserService";
 
 const Dashboard: React.FC = () => {
   const currentUser = useAppSelector((state) => state.auth.user);
+
+  if (!currentUser) return null;
+
+  const { data: userData } = useUser(currentUser?.id || "");
+  const user = userData || currentUser;
 
   return (
     <div className="flex h-[35rem] flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -18,18 +24,17 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Welcome Message Section */}
-        {currentUser && (
+        {user && (
           <div className="mt-12 space-y-4 rounded-xl bg-indigo-200/90 p-6 backdrop-blur-lg sm:p-8 dark:bg-indigo-500/10">
             <p className="text-lg text-gray-600 sm:text-xl dark:text-gray-300">
               Welcome back,
             </p>
             <div className="space-y-3">
               <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl dark:text-white">
-                {currentUser.first_name}&nbsp;{currentUser.last_name}
+                {user.first_name}&nbsp;{user.last_name}
               </h2>
               <p className="inline-block rounded-full bg-indigo-100 px-4 py-1 text-sm font-semibold text-indigo-800 drop-shadow-lg dark:bg-indigo-900 dark:text-indigo-200">
-                {currentUser.role.charAt(0).toUpperCase() +
-                  currentUser.role.slice(1)}
+                {user.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}
               </p>
             </div>
           </div>

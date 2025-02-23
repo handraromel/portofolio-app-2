@@ -61,7 +61,11 @@ export const useUserManagement = () => {
   // Handle user update
   const handleUpdateUser = async (userId: string, data: UserDataSubmission) => {
     try {
-      await updateUserMutation.mutateAsync({ userId, data });
+      const response = await updateUserMutation.mutateAsync({
+        userId,
+        data,
+      });
+      return response.user;
     } catch (error) {
       console.error("Failed to update user:", error);
       throw error;

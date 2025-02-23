@@ -21,10 +21,7 @@ class UpdateProfileSchema(Schema):
     email = fields.Email(required=True)
     first_name = fields.Str(validate=validate.Length(max=20))
     last_name = fields.Str(validate=validate.Length(max=20))
-    role = fields.Str(
-        required=True,
-        validate=validate.OneOf(['admin', 'user'])
-    )
+    role = fields.Str(required=True)
 
 
 class UpdatePasswordSchema(Schema):

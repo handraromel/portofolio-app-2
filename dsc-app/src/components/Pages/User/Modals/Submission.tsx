@@ -7,6 +7,7 @@ import {
   UserRole,
   SubmissionProps,
   RoleOption,
+  User,
 } from "@/types/user";
 import { FieldSelect, InputField } from "@/components/Inputs";
 import { Button } from "primereact/button";
@@ -24,7 +25,7 @@ export const Submission: React.FC<SubmissionProps> = ({
   visible,
   onHide,
   user,
-  isProfileEdit,
+  isProfileEdit = false,
 }) => {
   const { hasRole } = usePermission();
   const isSuperAdmin = hasRole("superadmin");
@@ -77,7 +78,7 @@ export const Submission: React.FC<SubmissionProps> = ({
         showSuccess("User updated successfully");
 
         if (isProfileEdit && updatedUser) {
-          dispatch(updateAuthUser(updatedUser));
+          dispatch(updateAuthUser(updatedUser as User));
         }
       } else {
         await createUser(submissionData);

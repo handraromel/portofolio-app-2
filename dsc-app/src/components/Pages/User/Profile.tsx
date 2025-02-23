@@ -6,6 +6,7 @@ import { Tag } from "primereact/tag";
 import { useAppSelector } from "@/hooks/useStore";
 import { formatDate } from "@/utils/formatDate";
 import { PasswordChange, Submission as UserSubmission } from "./Modals";
+import { useUser } from "@/services/UserService";
 
 const Profile: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
@@ -14,10 +15,13 @@ const Profile: React.FC = () => {
 
   if (!currentUser) return null;
 
+  const { data: userData } = useUser(currentUser?.id || "");
+  const user = userData || currentUser;
+
   const header = (
     <div className="flex h-48 w-full items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600">
       <div className="text-9xl text-gray-50">
-        {`${currentUser.first_name[0]}${currentUser.last_name[0]}`}
+        {`${user.first_name[0]}${user.last_name[0]}`}
       </div>
     </div>
   );
@@ -29,10 +33,10 @@ const Profile: React.FC = () => {
           <div className="flex flex-col items-center justify-between space-y-6 sm:flex-row sm:space-y-0">
             <div className="max-sm:text-center">
               <h1 className="text-2xl font-bold text-indigo-400 sm:text-3xl">
-                {currentUser.first_name} {currentUser.last_name}
+                {user.first_name} {user.last_name}
               </h1>
               <p className="text-[14px] text-gray-600 sm:text-lg dark:text-indigo-100">
-                {currentUser.email}
+                {user.email}
               </p>
             </div>
             <div className="flex gap-4">
@@ -67,7 +71,7 @@ const Profile: React.FC = () => {
               <p className="text-sm font-semibold text-gray-600 dark:text-slate-500">
                 Username
               </p>
-              <p>{currentUser.username}</p>
+              <p>{user.username}</p>
             </div>
             <div className="space-y-1">
               <p className="text-sm font-semibold text-gray-600 dark:text-slate-500">
@@ -92,8 +96,8 @@ const Profile: React.FC = () => {
                 Status
               </p>
               <Tag
-                severity={currentUser.is_active ? "success" : "danger"}
-                value={currentUser.is_active ? "Active" : "Inactive"}
+                severity={user.is_active ? "success" : "danger"}
+                value={user.is_active ? "Active" : "Inactive"}
               />
             </div>
             <div className="space-y-1">
@@ -110,14 +114,14 @@ const Profile: React.FC = () => {
       <UserSubmission
         visible={showEditModal}
         onHide={() => setShowEditModal(false)}
-        user={currentUser}
+        user={user}
         isProfileEdit={true}
       />
 
       <PasswordChange
         visible={showPasswordModal}
         onHide={() => setShowPasswordModal(false)}
-        userId={currentUser.id}
+        userId={user.id}
       />
     </div>
   );
