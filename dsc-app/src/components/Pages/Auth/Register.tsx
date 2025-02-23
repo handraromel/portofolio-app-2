@@ -1,27 +1,24 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Formik, Form, Field } from "formik";
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
-import { clearMessage } from "@/store/slices/authSlice";
-import { register } from "@/store/actions/authActions";
+import { useAppDispatch, useAppSelector, useAutoDismiss } from "@/hooks";
+import { setMessage } from "@/store/slices/authSlice";
+import { useAuth } from "@/store/actions/useAuth";
 import { InputField } from "@/components/Inputs";
 import { Message } from "@/components/Common";
 import { Button } from "primereact/button";
 import { registerSchema } from "@/utils/validationSchemas";
-
-type RegisterSubmitData = {
-  username: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  password: string;
-};
+import { RegisterSubmission } from "@/types/auth";
+import { ApiError } from "@/types/api";
 
 const Register: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { register, isLoading } = useAuth();
 
-  const { isLoading, message } = useAppSelector((state) => state.auth);
+  const { message } = useAppSelector((state) => state.auth);
+
+  useAutoDismiss(message);
 
   const FormInitialValues = {
     username: "",
@@ -32,17 +29,8 @@ const Register: React.FC = () => {
     confirmPassword: "",
   };
 
-  useEffect(() => {
-    if (message) {
-      const timer = setTimeout(() => {
-        dispatch(clearMessage());
-      }, 5200);
-      return () => clearTimeout(timer);
-    }
-  }, [message, dispatch]);
-
-  const handleSubmit = async (values: typeof FormInitialValues) => {
-    const submitData: RegisterSubmitData = {
+  const handleSubmit = async (values: RegisterSubmission) => {
+    const submitData: RegisterSubmission = {
       username: values.username,
       email: values.email,
       first_name: values.first_name,
@@ -50,15 +38,21 @@ const Register: React.FC = () => {
       password: values.password,
     };
 
-    const result = await dispatch(register(submitData));
-    if (register.fulfilled.match(result)) {
-      navigate("/login", {
-        replace: true,
-        state: {
-          message:
-            "Registration successful. Please check your email to activate your account.",
-        },
-      });
+    try {
+      const response = await register(submitData);
+      if (response?.success) {
+        navigate("/login", {
+          replace: true,
+          state: {
+            message:
+              "Registration successful. Please check your email to activate your account.",
+          },
+        });
+      }
+    } catch (error) {
+      const err = error as ApiError;
+      const errorMessage = err.response?.data.msg || "Operation failed";
+      dispatch(setMessage({ text: errorMessage, type: "error" }));
     }
   };
 

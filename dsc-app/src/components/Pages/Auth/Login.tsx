@@ -1,51 +1,60 @@
 import React, { useEffect } from "react";
 import { Formik, Form, Field } from "formik";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
-import { clearMessage, setMessage } from "@/store/slices/authSlice";
-import { login } from "@/store/actions/authActions";
+import { useAppDispatch, useAppSelector, useAutoDismiss } from "@/hooks";
+import { setMessage } from "@/store/slices/authSlice";
+import { useAuth } from "@/store/actions/useAuth";
 import { InputField } from "@/components/Inputs";
 import { Message } from "@/components/Common";
 import { Button } from "primereact/button";
 import { loginSchema } from "@/utils/validationSchemas";
+import { LoginData } from "@/types/auth";
+import { ApiError } from "@/types/api";
 
 const Login: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const { login, isLoading } = useAuth();
 
-  const { isLoading, message } = useAppSelector((state) => state.auth);
+  const { message } = useAppSelector((state) => state.auth);
 
   const FormInitialValues = {
     username: "",
     password: "",
   };
 
+  useAutoDismiss(message);
+
   useEffect(() => {
-    if (location.state && "message" in location.state) {
+    if (
+      location.state &&
+      "message" in location.state &&
+      "type" in location.state
+    ) {
       dispatch(
         setMessage({
           text: location.state.message as string,
-          type: "success",
+          type: location.state.type as "success" | "error" | "info",
         }),
       );
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, dispatch, navigate, location.pathname]);
 
-  useEffect(() => {
-    if (message) {
-      const timer = setTimeout(() => {
-        dispatch(clearMessage());
-      }, 5200);
-      return () => clearTimeout(timer);
-    }
-  }, [message, dispatch]);
-
-  const handleSubmit = async (values: typeof FormInitialValues) => {
-    const result = await dispatch(login(values));
-    if (login.fulfilled.match(result)) {
+  const handleSubmit = async (values: LoginData) => {
+    try {
+      await login(values);
       navigate("/");
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errorMessage = apiError.response?.data.msg || "Login failed";
+      dispatch(
+        setMessage({
+          text: errorMessage,
+          type: "error",
+        }),
+      );
     }
   };
 

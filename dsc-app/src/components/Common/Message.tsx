@@ -22,6 +22,7 @@ export const Message: React.FC<MessageProps> = ({
         detail: message,
         sticky: !useTransition,
         life: useTransition ? 5000 : undefined,
+        closable: false,
       });
     }
   }, [message, type, useTransition]);

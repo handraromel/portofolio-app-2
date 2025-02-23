@@ -11,11 +11,6 @@ export interface User {
 }
 
 export interface UserState {
-  users: User[];
-  isLoading: boolean;
-  error: {
-    message: string;
-  } | null;
   totalPages: number;
   currentPage: number;
   totalUsers: number;

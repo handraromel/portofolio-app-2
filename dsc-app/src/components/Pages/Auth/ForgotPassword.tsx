@@ -1,50 +1,52 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Formik, Form, Field } from "formik";
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
-import { clearMessage } from "@/store/slices/authSlice";
-import { forgotPassword } from "@/store/actions/authActions";
+import { useAppDispatch, useAppSelector, useAutoDismiss } from "@/hooks";
+import { useAuth } from "@/store/actions/useAuth";
 import { InputField } from "@/components/Inputs";
 import { Message } from "@/components/Common";
 import { Button } from "primereact/button";
 import { forgotPasswordSchema } from "@/utils/validationSchemas";
+import { ForgotPasswordData } from "@/types/auth";
+import { ApiError } from "@/types/api";
+import { setMessage } from "@/store/slices/authSlice";
 
 const ForgotPassword: React.FC = () => {
-  type ForgotPasswordData = {
-    email: string;
-  };
-
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { forgotPassword, isLoading } = useAuth();
 
-  const { isLoading, message } = useAppSelector((state) => state.auth);
+  const { message } = useAppSelector((state) => state.auth);
 
   const FormInitialValues = {
     email: "",
   };
 
-  useEffect(() => {
-    if (message) {
-      const timer = setTimeout(() => {
-        dispatch(clearMessage());
-      }, 5200);
-      return () => clearTimeout(timer);
-    }
-  }, [message, dispatch]);
+  useAutoDismiss(message);
 
   const handleSubmit = async (values: typeof FormInitialValues) => {
     const submitData: ForgotPasswordData = {
       email: values.email,
     };
 
-    const result = await dispatch(forgotPassword(submitData));
-    if (forgotPassword.fulfilled.match(result)) {
+    try {
+      await forgotPassword(submitData);
       navigate("/login", {
         replace: true,
         state: {
           message: "Your new password already sent to you email.",
         },
       });
+    } catch (error) {
+      const apiError = error as ApiError;
+      const errorMessage =
+        apiError.response?.data.msg || "Failed to send email";
+      dispatch(
+        setMessage({
+          text: errorMessage,
+          type: "error",
+        }),
+      );
     }
   };
 

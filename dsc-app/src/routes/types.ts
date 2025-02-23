@@ -28,10 +28,7 @@ export interface MessageState {
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
   message: MessageState | null;
-  csrfAccessToken: string | null;
-  csrfRefreshToken: string | null;
   activationProgress: number;
 }
 

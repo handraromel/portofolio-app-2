@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { Modal } from "@/components/Common";
 import { userSubmissionSchema } from "@/utils/validationSchemas";
 import { Formik, Form, Field, FormikProps } from "formik";
@@ -11,15 +11,12 @@ import {
 import { FieldSelect, InputField } from "@/components/Inputs";
 import { Button } from "primereact/button";
 import { Tooltip } from "primereact/tooltip";
-import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
+import { useAppDispatch } from "@/hooks/useStore";
 import { useToast } from "@/context/Toast";
-import {
-  createUser,
-  updateUser,
-  fetchUsers,
-} from "@/store/actions/userActions";
+import { useUserManagement } from "@/store/actions/useUserManagement";
 import { usePermission } from "@/hooks";
 import { updateAuthUser } from "@/store/slices/authSlice";
+import { ApiError } from "@/types/api";
 
 const USER_ROLES: UserRole[] = ["admin", "user"];
 
@@ -31,16 +28,15 @@ export const Submission: React.FC<SubmissionProps> = ({
 }) => {
   const { hasRole } = usePermission();
   const isSuperAdmin = hasRole("superadmin");
+  const dispatch = useAppDispatch();
+  const { showSuccess, showError } = useToast();
+  const { createUser, updateUser } = useUserManagement();
+  const formikRef = useRef<FormikProps<UserDataSubmission> | null>(null);
 
   const roleOptions: RoleOption[] = USER_ROLES.map((role) => ({
     label: role.charAt(0).toUpperCase() + role.slice(1),
     value: role,
   }));
-
-  const dispatch = useAppDispatch();
-  const { showSuccess, showError } = useToast();
-  const { error } = useAppSelector((state) => state.user);
-  const formikRef = useRef<FormikProps<UserDataSubmission> | null>(null);
 
   const handleReset = () => {
     if (formikRef.current) {
@@ -73,46 +69,27 @@ export const Submission: React.FC<SubmissionProps> = ({
       const submissionData = {
         ...values,
         password: user ? undefined : values.password,
-        confirmPassword: undefined, // Always remove confirmPassword
+        confirmPassword: undefined,
       };
 
       if (user) {
-        const result = await dispatch(
-          updateUser({
-            userId: user.id,
-            data: submissionData,
-          }),
-        );
+        const updatedUser = await updateUser(user.id, submissionData);
+        showSuccess("User updated successfully");
 
-        if (updateUser.fulfilled.match(result)) {
-          showSuccess("User updated successfully");
-
-          if (isProfileEdit) {
-            dispatch(updateAuthUser(result.payload));
-          }
-
-          await dispatch(fetchUsers());
-          onHide();
+        if (isProfileEdit && updatedUser) {
+          dispatch(updateAuthUser(updatedUser));
         }
       } else {
-        const result = await dispatch(createUser(submissionData));
-
-        if (createUser.fulfilled.match(result)) {
-          showSuccess("User created successfully");
-          await dispatch(fetchUsers());
-          onHide();
-        }
+        await createUser(submissionData);
+        showSuccess("User created successfully");
       }
-    } catch (error) {
-      console.error("Operation failed:", error);
+      onHide();
+    } catch (err) {
+      const error = err as ApiError;
+      const errorMessage = error.response?.data.msg || "Operation failed";
+      showError(errorMessage);
     }
   };
-
-  useEffect(() => {
-    if (error?.message && visible) {
-      showError(error.message);
-    }
-  }, [error?.message, showError, visible]);
 
   const modalIcons = (
     <>

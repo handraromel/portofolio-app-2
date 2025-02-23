@@ -1,15 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Modal } from "@/components/Common";
 import { passwordChangeSchema } from "@/utils/validationSchemas";
 import { Formik, Form, Field } from "formik";
 import { InputField } from "@/components/Inputs";
 import { Button } from "primereact/button";
-import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
 import { useToast } from "@/context/Toast";
-import {
-  checkCurrentPassword,
-  updateUserPassword,
-} from "@/store/actions/userActions";
+import { useUserManagement, useAuth } from "@/store/actions";
+import { useNavigate } from "react-router-dom";
 import { useDebounce } from "react-use";
 
 interface PasswordChangeProps {
@@ -28,10 +25,11 @@ export const PasswordChange: React.FC<PasswordChangeProps> = ({
   onHide,
   userId,
 }) => {
-  const dispatch = useAppDispatch();
-  const { error } = useAppSelector((state) => state.user);
   const { showSuccess, showError } = useToast();
-  const [currentPassword, setCurrentPassword] = useState("");
+
+  const { updatePassword, checkPassword, error } = useUserManagement();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const [debouncedCheckInProgress, setDebouncedCheckInProgress] =
     useState(false);
   const [isSamePassword, setIsSamePassword] = useState(false);
@@ -43,66 +41,60 @@ export const PasswordChange: React.FC<PasswordChangeProps> = ({
 
   const handleSubmit = async (values: PasswordChangeData) => {
     try {
-      const result = await dispatch(
-        updateUserPassword({
-          userId,
-          data: {
-            new_password: values.password,
-          },
-        }),
+      await updatePassword(userId, {
+        new_password: values.password,
+      });
+      showSuccess("Password updated successfully, try to login again");
+      onHide();
+      await logout();
+      navigate("/login");
+    } catch (err) {
+      showError(
+        error instanceof Error ? error.message : "Failed to update password",
       );
-
-      if (updateUserPassword.fulfilled.match(result)) {
-        showSuccess("Password updated successfully");
-        onHide();
-      }
-    } catch (error) {
-      console.error("Operation failed:", error);
+      console.error("Password update failed:", err);
     }
   };
 
+  const checkCurrentPassword = useCallback(
+    async (password: string) => {
+      if (!password) {
+        setIsSamePassword(false);
+        return;
+      }
+
+      setDebouncedCheckInProgress(true);
+      try {
+        const response = await checkPassword(userId, password);
+        setIsSamePassword(response?.isSame ?? false);
+      } catch (err) {
+        console.error("Password check failed:", err);
+        setIsSamePassword(false);
+      } finally {
+        setDebouncedCheckInProgress(false);
+      }
+    },
+    [userId, checkPassword],
+  );
+
   useDebounce(
-    () => {
-      const checkPassword = async () => {
-        if (!currentPassword) return;
-
-        setDebouncedCheckInProgress(true);
-        try {
-          const response = await dispatch(
-            checkCurrentPassword({
-              userId,
-              data: { new_password: currentPassword },
-            }),
-          ).unwrap();
-          setIsSamePassword(response.isSame);
-        } catch (error) {
-          console.error("Password check failed:", error);
-          setIsSamePassword(false);
-        } finally {
-          setDebouncedCheckInProgress(false);
-        }
-      };
-
-      checkPassword();
+    (value: string) => {
+      if (value) {
+        checkCurrentPassword(value);
+      }
     },
     500,
-    [currentPassword],
+    [],
   );
 
   const validationSchema = React.useMemo(
     () =>
       passwordChangeSchema((newPassword: string) => {
-        setCurrentPassword(newPassword);
+        checkCurrentPassword(newPassword);
         return isSamePassword;
       }),
-    [isSamePassword],
+    [checkCurrentPassword, isSamePassword],
   );
-
-  useEffect(() => {
-    if (error?.message && visible) {
-      showError(error.message);
-    }
-  }, [error?.message, showError, visible]);
 
   return (
     <Modal

@@ -1,6 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { queryClient } from "@/utils/queryClient";
 import { PrimeReactProvider } from "primereact/api";
 import { ToastProvider } from "./context/Toast";
 import store from "@/store/config";
@@ -14,12 +17,15 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <ToastProvider>
-      <PrimeReactProvider>
-        <Provider store={store}>
-          <App />
-        </Provider>
-      </PrimeReactProvider>
-    </ToastProvider>
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <PrimeReactProvider>
+          <Provider store={store}>
+            <App />
+          </Provider>
+        </PrimeReactProvider>
+      </ToastProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   </React.StrictMode>,
 );

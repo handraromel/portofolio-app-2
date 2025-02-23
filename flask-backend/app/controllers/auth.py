@@ -1,7 +1,7 @@
 from flask import jsonify, request, make_response
 from flask_jwt_extended import (
     create_access_token, create_refresh_token, jwt_required,
-    get_jwt_identity, unset_jwt_cookies, set_access_cookies, set_refresh_cookies, get_csrf_token
+    get_jwt_identity, unset_jwt_cookies, set_access_cookies, set_refresh_cookies
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models.user import User, UserRole
@@ -34,7 +34,7 @@ def register():
     data = register_schema.load(request.json)
 
     if User.query.filter((User.username == data['username']) | (User.email == data['email'])).first():
-        return jsonify({"msg": "Username or email already exists"}), 400
+        return jsonify({"msg": "Username or email already exists", "success": False}), 400
 
     hashed_password = generate_password_hash(data['password'])
     verification_token = str(uuid.uuid4())
@@ -53,9 +53,9 @@ def register():
     db.session.commit()
 
     if send_activation_email(new_user):
-        return jsonify({"msg": "User created successfully. Please check your email to activate your account."}), 201
+        return jsonify({"msg": "User created successfully. Please check your email to activate your account.", "success": True}), 201
     else:
-        return jsonify({"msg": "User created successfully, but failed to send activation email. Please contact support."}), 201
+        return jsonify({"msg": "User created successfully, but failed to send activation email. Please contact support.", "success": True}), 201
 
 
 @handle_validation_error
@@ -85,16 +85,32 @@ def login():
     return jsonify({"msg": "Invalid username or password"}), 401
 
 
+@handle_validation_error
 def activate_account(token):
-    user = User.query.filter_by(verification_token=token).first()
-    if not user:
-        return jsonify({"msg": "Invalid activation token"}), 400
+    try:
+        user = User.query.filter_by(verification_token=token).first()
 
-    user.is_active = True
-    user.verification_token = None
-    db.session.commit()
+        if not user:
+            return jsonify({
+                "success": False,
+                "msg": "Account already activated or activation token is invalid"
+            }), 400
 
-    return jsonify({"msg": "Account activated successfully"}), 200
+        user.is_active = True
+        user.verification_token = None
+        db.session.commit()
+
+        return jsonify({
+            "success": True,
+            "msg": "Account activated successfully"
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "success": False,
+            "msg": "An error occurred during activation"
+        }), 500
 
 
 @jwt_required(refresh=True)
@@ -110,12 +126,13 @@ def refresh():
             })
         )
         unset_jwt_cookies(resp)
-        resp.delete_cookie('csrf_access_token')
-        resp.delete_cookie('csrf_refresh_token')
         return resp, 401
 
     access_token = create_access_token(identity=identity)
-    resp = jsonify({'refresh': True})
+    resp = jsonify({
+        'refresh': True,
+        'user': user_to_dict(user)
+    })
     set_access_cookies(resp, access_token)
 
     return resp, 200

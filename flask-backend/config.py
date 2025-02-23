@@ -23,7 +23,7 @@ class Config:
     EMAIL_SERVICE = os.environ.get('EMAIL_SERVICE')
 
     JWT_ACCESS_TOKEN_EXPIRES = 3600  # 1 hour
-    JWT_REFRESH_TOKEN_EXPIRES = 2592000  # 30 days
+    JWT_REFRESH_TOKEN_EXPIRES = 86400  # 24 hours
 
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = 3600  # 1 hour

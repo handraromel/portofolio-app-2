@@ -1,10 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/hooks";
-import {
-  deleteUser,
-  activateUser,
-  fetchUsers,
-} from "@/store/actions/userActions";
+import { useAppSelector } from "@/hooks";
+import { useUserManagement } from "@/store/actions/useUserManagement";
 import { Tag } from "primereact/tag";
 import { Button } from "primereact/button";
 import { formatDate } from "@/utils/formatDate";
@@ -17,14 +13,15 @@ import { useToast } from "@/context/Toast";
 import Table from "@/components/Common/Table";
 
 const UserList: React.FC = () => {
-  const dispatch = useAppDispatch();
   const { canEdit, canDelete, hasRole } = usePermission();
   const isSuperAdmin = hasRole("superadmin");
   const isAdmin = hasRole("admin");
-  const { users, isLoading, currentUser, error } = useAppSelector((state) => ({
-    ...state.user,
-    currentUser: state.auth.user,
-  }));
+  const currentUser = useAppSelector((state) => state.auth.user);
+
+  // Use React Query hooks
+  const { users, isLoading, error, fetchUsers, deleteUser, activateUser } =
+    useUserManagement();
+
   const { showSuccess, showWarning, showError } = useToast();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const submissionModal = useModal();
@@ -33,7 +30,7 @@ const UserList: React.FC = () => {
   const [triggerActivate, setTriggerActivate] = useState(false);
 
   const handleSubmission = (user?: User) => {
-    setSelectedUser(user ? user : null);
+    setSelectedUser(user ?? null);
     submissionModal.open();
   };
 
@@ -42,36 +39,40 @@ const UserList: React.FC = () => {
     detailModal.open();
   };
 
-  const handleDeleteConfirm = useCallback(() => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (selectedUser) {
-      dispatch(deleteUser(selectedUser.id))
-        .unwrap()
-        .then(() => {
-          dispatch(fetchUsers());
-        });
-      showWarning("User is now deleted");
-    }
-  }, [dispatch, selectedUser]);
-
-  const handleActivateConfirm = useCallback(() => {
-    if (selectedUser) {
-      dispatch(
-        activateUser({
-          userId: selectedUser.id,
-          isActive: !selectedUser.is_active,
-        }),
-      )
-        .unwrap()
-        .then(() => {
-          dispatch(fetchUsers());
-        });
-      if (selectedUser.is_active) {
-        showWarning("User is now deactivated");
-      } else {
-        showSuccess("User is now activated");
+      try {
+        await deleteUser(selectedUser.id);
+        await fetchUsers();
+        showWarning("User is now deleted");
+      } catch {
+        showError("Failed to delete user");
       }
     }
-  }, [dispatch, selectedUser]);
+  }, [selectedUser, deleteUser, fetchUsers, showWarning, showError]);
+
+  const handleActivateConfirm = useCallback(async () => {
+    if (selectedUser) {
+      try {
+        await activateUser(selectedUser.id, !selectedUser.is_active);
+        await fetchUsers();
+        if (selectedUser.is_active) {
+          showWarning("User is now deactivated");
+        } else {
+          showSuccess("User is now activated");
+        }
+      } catch {
+        showError("Failed to update user status");
+      }
+    }
+  }, [
+    selectedUser,
+    activateUser,
+    fetchUsers,
+    showSuccess,
+    showWarning,
+    showError,
+  ]);
 
   const statusBodyTemplate = (rowData: User) => {
     return (
@@ -106,8 +107,8 @@ const UserList: React.FC = () => {
   };
 
   const handleRefresh = useCallback(() => {
-    dispatch(fetchUsers()); // Your refresh logic here
-  }, [dispatch]);
+    fetchUsers();
+  }, [fetchUsers]);
 
   const isEditDisabled = (user: User) => {
     return (
@@ -248,14 +249,10 @@ const UserList: React.FC = () => {
   ];
 
   useEffect(() => {
-    if (error?.message) {
-      showError(error.message);
+    if (error) {
+      showError(error instanceof Error ? error.message : "An error occurred");
     }
-  }, [error, showError, selectedUser]);
-
-  useEffect(() => {
-    dispatch(fetchUsers());
-  }, [dispatch]);
+  }, [error, showError]);
 
   return (
     <>

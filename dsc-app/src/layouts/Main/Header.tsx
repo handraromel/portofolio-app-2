@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
 import { toggleTheme } from "@/store/slices/themeSlice";
-import { logout } from "@/store/actions/authActions";
+import { useAuth } from "@/store/actions/useAuth";
 import { useNavigate } from "react-router-dom";
 import { OverlayPanel } from "primereact/overlaypanel";
 import { Button } from "primereact/button";
@@ -25,11 +25,14 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
   const op = useRef<OverlayPanel>(null);
   const currentUser = useAppSelector((state) => state.auth.user);
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
-    const isLogout = await dispatch(logout());
-    if (isLogout) {
+    try {
+      await logout();
       navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
     }
   };
 

@@ -1,80 +1,92 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
-import { activateAccount } from "@/store/actions/authActions";
-import {
-  setActivationProgress,
-  clearActivationState,
-} from "@/store/slices/authSlice";
+import { useAuth } from "@/store/actions/useAuth";
 import { Message } from "@/components/Common";
 import { Button } from "primereact/button";
+import { ApiError } from "@/types/api";
+
+type MessageType = "success" | "error" | "warn" | "info";
 
 const AccountActivation: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const { isLoading, message } = useAppSelector((state) => state.auth);
-  const [activationAttempted, setActivationAttempted] = useState(false);
+  const { activateAccount, isLoading, error } = useAuth();
   const [progress, setProgress] = useState(0);
+  const activationAttempted = useRef(false);
 
-  const activate = useCallback(async () => {
-    if (token && !isLoading && !activationAttempted) {
-      setActivationAttempted(true);
+  const handleRedirect = (message: string, type: MessageType) => {
+    setProgress(100);
+    setTimeout(() => {
+      navigate("/login", {
+        replace: true,
+        state: { message, type },
+      });
+    }, 500);
+  };
+
+  useEffect(() => {
+    let progressInterval: ReturnType<typeof setInterval>;
+    let redirectTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const handleActivation = async () => {
+      if (!token || isLoading || activationAttempted.current) return;
+
+      activationAttempted.current = true;
+
+      progressInterval = setInterval(() => {
+        setProgress((prev) => Math.min(prev + 10, 90));
+      }, 500);
+
       try {
-        const progressInterval = setInterval(() => {
-          setProgress((prev) => {
-            const newProgress = Math.min(prev + 10, 90);
-            dispatch(setActivationProgress(newProgress));
-            return newProgress;
-          });
-        }, 500);
+        const response = await activateAccount(token);
 
-        await dispatch(activateAccount(token)).unwrap();
-
-        clearInterval(progressInterval);
-        setProgress(100);
-        dispatch(setActivationProgress(100));
-
-        setTimeout(() => {
-          dispatch(clearActivationState());
-          navigate("/login", {
-            replace: true,
-            state: {
-              message: "Account activated successfully. Please log in.",
-            },
-          });
-        }, 1000);
-      } catch (err) {
-        console.error(err);
-        setProgress(100);
-        dispatch(setActivationProgress(100));
+        if (!response.success && response.msg) {
+          handleRedirect(
+            response.msg || "Account activation failed. Please try again.",
+            "error",
+          );
+          return;
+        }
+        handleRedirect(
+          response.msg || "Account activated successfully.",
+          "info",
+        );
+      } catch (error) {
+        const apiError = error as ApiError;
+        const errorMessage = apiError.response?.data.msg || "Activation failed";
+        handleRedirect(errorMessage, "error");
+      } finally {
+        if (progressInterval) {
+          clearInterval(progressInterval);
+        }
+        if (redirectTimeout) {
+          clearTimeout(redirectTimeout);
+        }
       }
-    }
-  }, [token, dispatch, navigate, isLoading, activationAttempted]);
-
-  useEffect(() => {
-    activate();
-  }, [activate]);
-
-  useEffect(() => {
-    return () => {
-      dispatch(clearActivationState());
     };
-  }, [dispatch]);
 
-  if (message?.type === "error") {
+    handleActivation();
+
+    return () => {
+      if (progressInterval) clearInterval(progressInterval);
+      if (redirectTimeout) clearTimeout(redirectTimeout);
+    };
+  }, [token, activateAccount, navigate, isLoading]);
+
+  if (error) {
     return (
       <div className="mt-8 flex flex-col items-center justify-center space-y-8">
-        <Message message={message.text} type="error" useTransition={false} />
+        <Message
+          message={error instanceof Error ? error.message : "Activation failed"}
+          type="error"
+          useTransition={false}
+        />
         <Button
           type="button"
           label="Go to Login"
           size="small"
           rounded
-          onClick={() => {
-            dispatch(clearActivationState());
-            navigate("/login");
-          }}
+          onClick={() => navigate("/login", { replace: true })}
         />
       </div>
     );
