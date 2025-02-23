@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useAuth } from "@/store/actions/useAuth";
+import { useAuth } from "@/actions/useAuth";
 import { Message } from "@/components/Common";
 import { Button } from "primereact/button";
 import { ApiError } from "@/types/api";

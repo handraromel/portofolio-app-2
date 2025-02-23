@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAppSelector } from "./useStore";
-import { useAuth } from "@/store/actions/useAuth";
+import { useAuth } from "@/actions/useAuth";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
 

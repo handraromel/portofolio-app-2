@@ -1,3 +1,4 @@
+import { UserDataSubmission } from "@/types/user";
 import * as Yup from "yup";
 
 const passwordRules =
@@ -45,8 +46,14 @@ export const userSubmissionSchema = (isUpdate = false) =>
     username: Yup.string().required("Username is required"),
     first_name: Yup.string().required("First name is required"),
     last_name: Yup.string().required("Last name is required"),
+    role: Yup.string()
+      .oneOf(["superadmin", "admin", "user"] as const)
+      .required("Role is required"),
     ...(isUpdate
-      ? {}
+      ? {
+          password: Yup.string().optional(),
+          confirmPassword: Yup.string().optional(),
+        }
       : {
           password: Yup.string()
             .matches(passwordRules, {
@@ -58,7 +65,7 @@ export const userSubmissionSchema = (isUpdate = false) =>
             .oneOf([Yup.ref("password")], "Passwords must match")
             .required("Confirm Password is required"),
         }),
-  });
+  }) as Yup.ObjectSchema<UserDataSubmission>;
 
 export const passwordChangeSchema = (
   checkPassword: (password: string) => boolean,

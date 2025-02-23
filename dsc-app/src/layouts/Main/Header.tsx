@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
 import { toggleTheme } from "@/store/slices/themeSlice";
-import { useAuth } from "@/store/actions/useAuth";
+import { useAuth } from "@/actions/useAuth";
 import { useNavigate } from "react-router-dom";
 import { OverlayPanel } from "primereact/overlaypanel";
 import { Button } from "primereact/button";
@@ -62,7 +62,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
   );
 
   return (
-    <header className="surface-ground sticky top-0 z-50 bg-indigo-300 shadow-md transition-all duration-300 dark:bg-indigo-800">
+    <header className="surface-ground sticky top-0 z-50 bg-indigo-500 shadow-md transition-all duration-300 dark:bg-indigo-800">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-4">
           <button
@@ -78,7 +78,9 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
           </button>
 
           <div className="flex items-center">
-            <h1 className="text-900 ml-4 text-xl font-semibold">Dashboard</h1>
+            <h1 className="text-900 ml-4 text-xl font-semibold text-indigo-100">
+              Dashboard
+            </h1>
           </div>
 
           <div className="flex items-center gap-2">

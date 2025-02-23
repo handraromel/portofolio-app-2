@@ -1,6 +1,6 @@
 import React from "react";
 import { Dropdown } from "primereact/dropdown";
-import { useField } from "formik";
+import { Controller, useFormContext } from "react-hook-form";
 
 interface Option {
   label: string;
@@ -22,30 +22,36 @@ export const FieldSelect: React.FC<FieldSelectProps> = ({
   options,
   placeholder,
 }) => {
-  const [field, meta, helpers] = useField(name);
-
-  const handleChange = (e: { value: string }) => {
-    helpers.setValue(e.value);
-  };
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext();
+  const error = errors[name]?.message as string;
 
   return (
     <div className="field">
       <label htmlFor={id} className="mb-2 block text-sm font-medium">
         {label}
       </label>
-      <Dropdown
-        id={id}
+      <Controller
         name={name}
-        value={field.value}
-        options={options}
-        onChange={handleChange}
-        placeholder={placeholder}
-        className="p-inputtext-sm w-full"
-        invalid={!!(meta.touched && meta.error)}
+        control={control}
+        render={({ field }) => (
+          <Dropdown
+            id={id}
+            value={field.value}
+            options={options}
+            onChange={(e) => field.onChange(e.value)}
+            onBlur={field.onBlur}
+            placeholder={placeholder}
+            className="p-inputtext-sm w-full"
+            invalid={!!error}
+          />
+        )}
       />
-      {meta.touched && meta.error && (
-        <small className="p-error">{meta.error}</small>
-      )}
+      {error && <small className="p-error">{error}</small>}
     </div>
   );
 };
+
+export default FieldSelect;

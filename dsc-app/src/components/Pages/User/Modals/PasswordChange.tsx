@@ -1,13 +1,13 @@
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { Modal } from "@/components/Common";
 import { passwordChangeSchema } from "@/utils/validationSchemas";
-import { Formik, Form, Field } from "formik";
 import { InputField } from "@/components/Inputs";
 import { Button } from "primereact/button";
 import { useToast } from "@/context/Toast";
-import { useUserManagement, useAuth } from "@/store/actions";
+import { useUserManagement, useAuth } from "@/actions";
 import { useNavigate } from "react-router-dom";
-import { useDebounce } from "react-use";
 
 interface PasswordChangeProps {
   visible: boolean;
@@ -20,24 +20,30 @@ interface PasswordChangeData {
   confirmPassword: string;
 }
 
+const defaultFormValues: PasswordChangeData = {
+  password: "",
+  confirmPassword: "",
+};
+
 export const PasswordChange: React.FC<PasswordChangeProps> = ({
   visible,
   onHide,
   userId,
 }) => {
   const { showSuccess, showError } = useToast();
-
   const { updatePassword, checkPassword, error } = useUserManagement();
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const [debouncedCheckInProgress, setDebouncedCheckInProgress] =
-    useState(false);
+  const [isCheckingPassword, setIsCheckingPassword] = useState(false);
   const [isSamePassword, setIsSamePassword] = useState(false);
 
-  const initialValues: PasswordChangeData = {
-    password: "",
-    confirmPassword: "",
-  };
+  const passwordChangeForm = useForm<PasswordChangeData>({
+    resolver: yupResolver(passwordChangeSchema(() => isSamePassword)),
+    mode: "onBlur",
+    defaultValues: defaultFormValues,
+  });
+
+  const { isValid, isDirty } = passwordChangeForm.formState;
 
   const handleSubmit = async (values: PasswordChangeData) => {
     try {
@@ -56,104 +62,93 @@ export const PasswordChange: React.FC<PasswordChangeProps> = ({
     }
   };
 
-  const checkCurrentPassword = useCallback(
-    async (password: string) => {
-      if (!password) {
-        setIsSamePassword(false);
-        return;
-      }
+  const handleReset = () => {
+    passwordChangeForm.reset(defaultFormValues);
+    setIsSamePassword(false);
+    setIsCheckingPassword(false);
+  };
 
-      setDebouncedCheckInProgress(true);
-      try {
-        const response = await checkPassword(userId, password);
-        setIsSamePassword(response?.isSame ?? false);
-      } catch (err) {
-        console.error("Password check failed:", err);
-        setIsSamePassword(false);
-      } finally {
-        setDebouncedCheckInProgress(false);
-      }
-    },
-    [userId, checkPassword],
-  );
+  const handleClose = () => {
+    handleReset();
+    onHide();
+  };
 
-  useDebounce(
-    (value: string) => {
-      if (value) {
-        checkCurrentPassword(value);
-      }
-    },
-    500,
-    [],
-  );
+  const handlePasswordBlur = async (value: string) => {
+    if (!value) {
+      setIsSamePassword(false);
+      return;
+    }
 
-  const validationSchema = React.useMemo(
-    () =>
-      passwordChangeSchema((newPassword: string) => {
-        checkCurrentPassword(newPassword);
-        return isSamePassword;
-      }),
-    [checkCurrentPassword, isSamePassword],
-  );
+    setIsCheckingPassword(true);
+    try {
+      const response = await checkPassword(userId, value);
+      setIsSamePassword(response?.isSame ?? false);
+    } catch (err) {
+      console.error("Password check failed:", err);
+      setIsSamePassword(false);
+    } finally {
+      setIsCheckingPassword(false);
+    }
+  };
 
   return (
     <Modal
       visible={visible}
-      onHide={onHide}
+      onHide={handleClose}
       header="Change Password"
       className="w-[500px]"
+      blockOutsideClick
     >
       <div className="p-4">
-        <Formik
-          initialValues={initialValues}
-          validationSchema={validationSchema}
-          validateOnChange={false}
-          validateOnBlur={true}
-          onSubmit={handleSubmit}
-        >
-          {({ isValid, dirty, isSubmitting }) => (
-            <Form className="space-y-4">
-              <Field
-                as={InputField}
-                id="password"
-                name="password"
-                type="password"
-                label="New Password"
-                placeholder="Enter new password"
-              />
-              <Field
-                as={InputField}
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                label="Confirm Password"
-                placeholder="Confirm new password"
-              />
+        <FormProvider {...passwordChangeForm}>
+          <form
+            onSubmit={passwordChangeForm.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
+            <InputField
+              id="password"
+              name="password"
+              type="password"
+              label="New Password"
+              placeholder="Enter new password"
+              onBlur={handlePasswordBlur}
+              passwordFeedback
+            />
+            <InputField
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              label="Confirm Password"
+              placeholder="Confirm new password"
+            />
 
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  type="button"
-                  label="Cancel"
-                  severity="secondary"
-                  outlined
-                  size="small"
-                  onClick={onHide}
-                />
-                <Button
-                  type="submit"
-                  label="Update Password"
-                  size="small"
-                  loading={isSubmitting || debouncedCheckInProgress}
-                  disabled={
-                    !(isValid && dirty) ||
-                    isSubmitting ||
-                    debouncedCheckInProgress
-                  }
-                />
-              </div>
-            </Form>
-          )}
-        </Formik>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                label="Cancel"
+                severity="secondary"
+                outlined
+                size="small"
+                onClick={onHide}
+              />
+              <Button
+                type="submit"
+                label="Update Password"
+                size="small"
+                loading={
+                  passwordChangeForm.formState.isSubmitting ||
+                  isCheckingPassword
+                }
+                disabled={
+                  !isValid ||
+                  !isDirty ||
+                  passwordChangeForm.formState.isSubmitting ||
+                  isCheckingPassword
+                }
+              />
+            </div>
+          </form>
+        </FormProvider>
       </div>
     </Modal>
   );

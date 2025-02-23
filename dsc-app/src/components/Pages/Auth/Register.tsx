@@ -1,9 +1,10 @@
 import React from "react";
-import { Formik, Form, Field } from "formik";
+import { useForm, FormProvider } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector, useAutoDismiss } from "@/hooks";
 import { setMessage } from "@/store/slices/authSlice";
-import { useAuth } from "@/store/actions/useAuth";
+import { useAuth } from "@/actions/useAuth";
 import { InputField } from "@/components/Inputs";
 import { Message } from "@/components/Common";
 import { Button } from "primereact/button";
@@ -14,22 +15,31 @@ import { ApiError } from "@/types/api";
 const Register: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { register, isLoading } = useAuth();
-
+  const { register: registerUser, isLoading } = useAuth();
   const { message } = useAppSelector((state) => state.auth);
+
+  const registerForm = useForm<
+    RegisterSubmission & { confirmPassword: string }
+  >({
+    resolver: yupResolver(registerSchema),
+    mode: "onBlur",
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      first_name: "",
+      last_name: "",
+      confirmPassword: "",
+    },
+  });
+
+  const { isValid, isDirty } = registerForm.formState;
 
   useAutoDismiss(message);
 
-  const FormInitialValues = {
-    username: "",
-    email: "",
-    password: "",
-    first_name: "",
-    last_name: "",
-    confirmPassword: "",
-  };
-
-  const handleSubmit = async (values: RegisterSubmission) => {
+  const onSubmit = async (
+    values: RegisterSubmission & { confirmPassword: string },
+  ) => {
     const submitData: RegisterSubmission = {
       username: values.username,
       email: values.email,
@@ -39,7 +49,7 @@ const Register: React.FC = () => {
     };
 
     try {
-      const response = await register(submitData);
+      const response = await registerUser(submitData);
       if (response?.success) {
         navigate("/login", {
           replace: true,
@@ -72,84 +82,69 @@ const Register: React.FC = () => {
         {message && <Message message={message.text} type={message.type} />}
       </div>
 
-      <Formik
-        initialValues={FormInitialValues}
-        validationSchema={registerSchema}
-        onSubmit={handleSubmit}
-      >
-        {({ errors, touched, isValid, dirty }) => (
-          <Form className="space-y-12">
-            <div className="space-y-3">
-              <Field
-                as={InputField}
-                id="username"
-                name="username"
-                type="text"
-                label="Username (will be used for login after your account is activated)"
-                placeholder="Username"
-                error={touched.username && errors.username}
-              />
-              <Field
-                as={InputField}
-                id="email"
-                name="email"
-                type="text"
-                label="Email address"
-                placeholder="Email address"
-                error={touched.email && errors.email}
-              />
-              <Field
-                as={InputField}
-                id="first_name"
-                name="first_name"
-                type="text"
-                label="First Name"
-                placeholder="First Name"
-                error={touched.first_name && errors.first_name}
-              />
-              <Field
-                as={InputField}
-                id="last_name"
-                name="last_name"
-                type="text"
-                label="Last Name"
-                placeholder="Last Name"
-                error={touched.last_name && errors.last_name}
-              />
-              <Field
-                as={InputField}
-                id="password"
-                name="password"
-                type="password"
-                label="Password"
-                placeholder="Password"
-                passwordFeedback
-                error={touched.password && errors.password}
-              />
-              <Field
-                as={InputField}
-                id="confirm-password"
-                name="confirmPassword"
-                type="password"
-                label="Confirm Password"
-                placeholder="Confirm Password"
-                error={touched.confirmPassword && errors.confirmPassword}
-              />
-            </div>
+      <FormProvider {...registerForm}>
+        <form
+          onSubmit={registerForm.handleSubmit(onSubmit)}
+          className="space-y-12"
+        >
+          <div className="space-y-3">
+            <InputField
+              id="username"
+              name="username"
+              type="text"
+              label="Username (will be used for login after your account is activated)"
+              placeholder="Username"
+            />
+            <InputField
+              id="email"
+              name="email"
+              type="text"
+              label="Email address"
+              placeholder="Email address"
+            />
+            <InputField
+              id="first_name"
+              name="first_name"
+              type="text"
+              label="First Name"
+              placeholder="First Name"
+            />
+            <InputField
+              id="last_name"
+              name="last_name"
+              type="text"
+              label="Last Name"
+              placeholder="Last Name"
+            />
+            <InputField
+              id="password"
+              name="password"
+              type="password"
+              label="Password"
+              placeholder="Password"
+              passwordFeedback
+            />
+            <InputField
+              id="confirm-password"
+              name="confirmPassword"
+              type="password"
+              label="Confirm Password"
+              placeholder="Confirm Password"
+            />
+          </div>
 
-            <div className="flex justify-center pb-2">
-              <Button
-                type="submit"
-                label="Create Account"
-                size="small"
-                rounded
-                loading={isLoading}
-                disabled={!(isValid && dirty) || isLoading}
-              />
-            </div>
-          </Form>
-        )}
-      </Formik>
+          <div className="flex justify-center pb-2">
+            <Button
+              type="submit"
+              label="Create Account"
+              size="small"
+              rounded
+              loading={isLoading}
+              disabled={!isDirty || !isValid || isLoading}
+            />
+          </div>
+        </form>
+      </FormProvider>
     </div>
   );
 };

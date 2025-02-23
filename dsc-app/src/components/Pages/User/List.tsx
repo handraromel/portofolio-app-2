@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useAppSelector } from "@/hooks";
-import { useUserManagement } from "@/store/actions/useUserManagement";
+import { useUserManagement } from "@/actions/useUserManagement";
 import { Tag } from "primereact/tag";
 import { Button } from "primereact/button";
 import { formatDate } from "@/utils/formatDate";

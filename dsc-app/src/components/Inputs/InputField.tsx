@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Editor } from "primereact/editor";
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
 import { Calendar } from "primereact/calendar";
-import { useField } from "formik";
+import {
+  Controller,
+  useFormContext,
+  ControllerRenderProps,
+} from "react-hook-form";
 import { css } from "./style";
 
 interface FieldInputProps {
@@ -14,6 +18,7 @@ interface FieldInputProps {
   placeholder?: string;
   rows?: number;
   passwordFeedback?: boolean;
+  onBlur?: (value: string) => void | Promise<void>;
 }
 
 export const InputField: React.FC<FieldInputProps> = ({
@@ -24,27 +29,26 @@ export const InputField: React.FC<FieldInputProps> = ({
   placeholder,
   rows,
   passwordFeedback = false,
+  onBlur,
 }) => {
-  const [field, meta, helpers] = useField(name);
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext();
   const [editorContent, setEditorContent] = useState<string>("");
+  const error = errors[name]?.message as string;
 
-  useEffect(() => {
-    if (type === "textarea" && typeof field.value === "string") {
-      setEditorContent(field.value);
-    }
-  }, [field.value, type]);
+  const getInputComponent = (
+    field: ControllerRenderProps<Record<string, string>>,
+  ) => {
+    const hasError = !!error;
 
-  const handleEditorChange = (content: string) => {
-    setEditorContent(content);
-    helpers.setValue(content);
-  };
-
-  const handleCalendarChange = (e: { value: Date | undefined | null }) => {
-    helpers.setValue(e.value ?? null);
-  };
-
-  const getInputComponent = () => {
-    const hasError = meta.touched && meta.error;
+    const handleBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+      if (onBlur) {
+        await onBlur(e.target.value);
+      }
+      field.onBlur();
+    };
 
     switch (type) {
       case "textarea":
@@ -52,7 +56,10 @@ export const InputField: React.FC<FieldInputProps> = ({
           <Editor
             id={id}
             value={editorContent}
-            onTextChange={(e) => handleEditorChange(e.htmlValue || "")}
+            onTextChange={(e) => {
+              setEditorContent(e.htmlValue || "");
+              field.onChange(e.htmlValue || "");
+            }}
             style={{ height: rows ? `${rows * 40}px` : "280px" }}
           />
         );
@@ -60,12 +67,14 @@ export const InputField: React.FC<FieldInputProps> = ({
         return (
           <Password
             id={id}
-            {...field}
+            value={field.value}
+            onChange={field.onChange}
+            onBlur={handleBlur}
             toggleMask
             feedback={passwordFeedback}
             className="p-inputtext-sm w-full"
             placeholder={placeholder}
-            invalid={!!hasError}
+            invalid={hasError}
             pt={css.passwordStyles}
           />
         );
@@ -74,10 +83,11 @@ export const InputField: React.FC<FieldInputProps> = ({
           <Calendar
             id={id}
             value={field.value ? new Date(field.value) : null}
-            onChange={handleCalendarChange}
+            onChange={(e) => field.onChange(e.value)}
+            onBlur={handleBlur}
             dateFormat="yy-mm-dd"
             placeholder={placeholder}
-            invalid={!!hasError}
+            invalid={hasError}
             className="p-inputtext-sm w-full"
           />
         );
@@ -85,10 +95,12 @@ export const InputField: React.FC<FieldInputProps> = ({
         return (
           <InputText
             id={id}
-            {...field}
+            value={field.value}
+            onChange={field.onChange}
+            onBlur={handleBlur}
             type={type}
             placeholder={placeholder}
-            invalid={!!hasError}
+            invalid={hasError}
             className="p-inputtext-sm w-full"
           />
         );
@@ -100,10 +112,12 @@ export const InputField: React.FC<FieldInputProps> = ({
       <label htmlFor={id} className="mb-2 block text-sm font-medium">
         {label}
       </label>
-      {getInputComponent()}
-      {meta.touched && meta.error && (
-        <small className="p-error">{meta.error}</small>
-      )}
+      <Controller
+        name={name}
+        control={control}
+        render={({ field }) => getInputComponent(field)}
+      />
+      {error && <small className="p-error">{error}</small>}
     </div>
   );
 };

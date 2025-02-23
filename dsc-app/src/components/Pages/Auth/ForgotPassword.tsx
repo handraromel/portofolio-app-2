@@ -1,8 +1,9 @@
 import React from "react";
-import { Formik, Form, Field } from "formik";
+import { useForm, FormProvider } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector, useAutoDismiss } from "@/hooks";
-import { useAuth } from "@/store/actions/useAuth";
+import { useAuth } from "@/actions/useAuth";
 import { InputField } from "@/components/Inputs";
 import { Message } from "@/components/Common";
 import { Button } from "primereact/button";
@@ -15,22 +16,23 @@ const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { forgotPassword, isLoading } = useAuth();
-
   const { message } = useAppSelector((state) => state.auth);
 
-  const FormInitialValues = {
-    email: "",
-  };
+  const forgotPasswordForm = useForm<ForgotPasswordData>({
+    resolver: yupResolver(forgotPasswordSchema),
+    mode: "onBlur",
+    defaultValues: {
+      email: "",
+    },
+  });
+
+  const { isValid, isDirty } = forgotPasswordForm.formState;
 
   useAutoDismiss(message);
 
-  const handleSubmit = async (values: typeof FormInitialValues) => {
-    const submitData: ForgotPasswordData = {
-      email: values.email,
-    };
-
+  const onSubmit = async (values: ForgotPasswordData) => {
     try {
-      await forgotPassword(submitData);
+      await forgotPassword(values);
       navigate("/login", {
         replace: true,
         state: {
@@ -66,38 +68,33 @@ const ForgotPassword: React.FC = () => {
         {message && <Message message={message.text} type={message.type} />}
       </div>
 
-      <Formik
-        initialValues={FormInitialValues}
-        validationSchema={forgotPasswordSchema}
-        onSubmit={handleSubmit}
-      >
-        {({ errors, touched, isValid, dirty }) => (
-          <Form className="space-y-12">
-            <div className="space-y-3">
-              <Field
-                as={InputField}
-                id="email"
-                name="email"
-                type="text"
-                label="Email address"
-                placeholder="Email address"
-                error={touched.email && errors.email}
-              />
-            </div>
+      <FormProvider {...forgotPasswordForm}>
+        <form
+          onSubmit={forgotPasswordForm.handleSubmit(onSubmit)}
+          className="space-y-12"
+        >
+          <div className="space-y-3">
+            <InputField
+              id="email"
+              name="email"
+              type="text"
+              label="Email address"
+              placeholder="Email address"
+            />
+          </div>
 
-            <div className="flex justify-center pb-2">
-              <Button
-                type="submit"
-                label="Submit"
-                size="small"
-                rounded
-                loading={isLoading}
-                disabled={!(isValid && dirty) || isLoading}
-              />
-            </div>
-          </Form>
-        )}
-      </Formik>
+          <div className="flex justify-center pb-2">
+            <Button
+              type="submit"
+              label="Submit"
+              size="small"
+              rounded
+              loading={isLoading}
+              disabled={!isDirty || !isValid || isLoading}
+            />
+          </div>
+        </form>
+      </FormProvider>
     </div>
   );
 };

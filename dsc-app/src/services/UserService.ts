@@ -30,7 +30,6 @@ export const useUsers = () => {
       return response as UserResponse;
     },
     enabled: hasAccess,
-    staleTime: 1000 * 60 * 5,
   });
 };
 
@@ -42,7 +41,6 @@ export const useUser = (userId: string) => {
       return response as User;
     },
     enabled: !!userId,
-    staleTime: 1000 * 60 * 5,
   });
 };
 

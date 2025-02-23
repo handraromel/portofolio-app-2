@@ -1,7 +1,8 @@
-import React, { useRef } from "react";
+import React, { useEffect } from "react";
 import { Modal } from "@/components/Common";
 import { userSubmissionSchema } from "@/utils/validationSchemas";
-import { Formik, Form, Field, FormikProps } from "formik";
+import { useForm, FormProvider } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import {
   UserDataSubmission,
   UserRole,
@@ -14,7 +15,7 @@ import { Button } from "primereact/button";
 import { Tooltip } from "primereact/tooltip";
 import { useAppDispatch } from "@/hooks/useStore";
 import { useToast } from "@/context/Toast";
-import { useUserManagement } from "@/store/actions/useUserManagement";
+import { useUserManagement } from "@/actions/useUserManagement";
 import { usePermission } from "@/hooks";
 import { updateAuthUser } from "@/store/slices/authSlice";
 import { ApiError } from "@/types/api";
@@ -32,18 +33,11 @@ export const Submission: React.FC<SubmissionProps> = ({
   const dispatch = useAppDispatch();
   const { showSuccess, showError } = useToast();
   const { createUser, updateUser } = useUserManagement();
-  const formikRef = useRef<FormikProps<UserDataSubmission> | null>(null);
 
   const roleOptions: RoleOption[] = USER_ROLES.map((role) => ({
     label: role.charAt(0).toUpperCase() + role.slice(1),
     value: role,
   }));
-
-  const handleReset = () => {
-    if (formikRef.current) {
-      formikRef.current.resetForm();
-    }
-  };
 
   const defaultValues: UserDataSubmission = {
     email: "",
@@ -55,15 +49,37 @@ export const Submission: React.FC<SubmissionProps> = ({
     confirmPassword: "",
   };
 
-  const initialValues: UserDataSubmission = user
-    ? {
-        email: user.email,
-        username: user.username,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        role: user.role,
-      }
-    : defaultValues;
+  const extractUserValues = (
+    user: User | null,
+  ): Partial<UserDataSubmission> => {
+    if (!user) return defaultValues;
+
+    return {
+      email: user.email,
+      username: user.username,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
+    };
+  };
+
+  const initialValues = user ? extractUserValues(user) : defaultValues;
+
+  const submissionForm = useForm<UserDataSubmission>({
+    resolver: yupResolver<UserDataSubmission>(userSubmissionSchema(!!user)),
+    mode: "onBlur",
+    defaultValues: initialValues,
+  });
+
+  useEffect(() => {
+    submissionForm.reset(user ? extractUserValues(user) : defaultValues);
+  }, [user, submissionForm]);
+
+  const { isValid, isDirty, isSubmitting } = submissionForm.formState;
+
+  const handleReset = () => {
+    submissionForm.reset(initialValues);
+  };
 
   const handleSubmit = async (values: UserDataSubmission) => {
     try {
@@ -106,115 +122,104 @@ export const Submission: React.FC<SubmissionProps> = ({
   );
 
   return (
-    <>
-      <Modal
-        visible={visible}
-        onHide={onHide}
-        header={
-          user
-            ? isProfileEdit
-              ? "Update your profile"
-              : "Update User"
-            : "Create User"
-        }
-        className="w-[500px]"
-        icons={modalIcons}
-      >
-        <div className="p-4">
-          <Formik
-            initialValues={initialValues}
-            validationSchema={userSubmissionSchema(!!user)}
-            innerRef={formikRef}
-            onSubmit={handleSubmit}
+    <Modal
+      visible={visible}
+      onHide={onHide}
+      header={
+        user
+          ? isProfileEdit
+            ? "Update your profile"
+            : "Update User"
+          : "Create User"
+      }
+      className="w-[500px]"
+      onClose={handleReset}
+      icons={modalIcons}
+      blockOutsideClick
+    >
+      <div className="p-4">
+        <FormProvider {...submissionForm}>
+          <form
+            onSubmit={submissionForm.handleSubmit(handleSubmit)}
+            className="space-y-4"
           >
-            {({ isValid, dirty, isSubmitting }) => (
-              <Form className="space-y-4">
-                <Field
-                  as={InputField}
-                  id="email"
-                  name="email"
-                  type="text"
-                  label="Email"
-                  placeholder="Email"
+            <InputField
+              id="email"
+              name="email"
+              type="text"
+              label="Email"
+              placeholder="Email"
+            />
+            <InputField
+              id="username"
+              name="username"
+              type="text"
+              label="Username"
+              placeholder="Username"
+            />
+            <InputField
+              id="first_name"
+              name="first_name"
+              type="text"
+              label="First Name"
+              placeholder="First Name"
+            />
+            <InputField
+              id="last_name"
+              name="last_name"
+              type="text"
+              label="Last Name"
+              placeholder="Last Name"
+            />
+            {!isProfileEdit && !user && (
+              <>
+                <InputField
+                  id="password"
+                  name="password"
+                  type="password"
+                  label="Password"
+                  placeholder="Password"
                 />
-                <Field
-                  as={InputField}
-                  id="username"
-                  name="username"
-                  type="text"
-                  label="Username"
-                  placeholder="Username"
+                <InputField
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  label="Confirm Password"
+                  placeholder="Confirm Password"
                 />
-                <Field
-                  as={InputField}
-                  id="first_name"
-                  name="first_name"
-                  type="text"
-                  label="First Name"
-                  placeholder="First Name"
-                />
-                <Field
-                  as={InputField}
-                  id="last_name"
-                  name="last_name"
-                  type="text"
-                  label="Last Name"
-                  placeholder="Last Name"
-                />
-                {!isProfileEdit && !user && (
-                  <>
-                    <Field
-                      as={InputField}
-                      id="password"
-                      name="password"
-                      type="password"
-                      label="Password"
-                      placeholder="Password"
-                    />
-                    <Field
-                      as={InputField}
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      label="Password"
-                      placeholder="Confirm Password"
-                    />
-                  </>
-                )}
-                {!isProfileEdit && isSuperAdmin && (
-                  <Field
-                    as={FieldSelect}
-                    id="role"
-                    name="role"
-                    label="Role"
-                    options={roleOptions}
-                    placeholder="Select a Role"
-                  />
-                )}
-
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button
-                    type="button"
-                    label="Cancel"
-                    severity="secondary"
-                    outlined
-                    size="small"
-                    onClick={onHide}
-                  />
-                  <Button
-                    type="submit"
-                    label="Submit"
-                    size="small"
-                    loading={isSubmitting}
-                    disabled={!(isValid && dirty) || isSubmitting}
-                  />
-                </div>
-              </Form>
+              </>
             )}
-          </Formik>
-        </div>
-      </Modal>
-    </>
+            {!isProfileEdit && isSuperAdmin && (
+              <FieldSelect
+                id="role"
+                name="role"
+                label="Role"
+                options={roleOptions}
+                placeholder="Select a Role"
+              />
+            )}
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                label="Cancel"
+                severity="secondary"
+                outlined
+                size="small"
+                onClick={onHide}
+              />
+              <Button
+                type="submit"
+                label="Submit"
+                size="small"
+                loading={isSubmitting}
+                disabled={!isValid || !isDirty || isSubmitting}
+              />
+            </div>
+          </form>
+        </FormProvider>
+      </div>
+    </Modal>
   );
 };
 
