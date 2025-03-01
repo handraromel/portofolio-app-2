@@ -37,6 +37,7 @@ const ForgotPassword: React.FC = () => {
         replace: true,
         state: {
           message: "Your new password already sent to you email.",
+          type: "success",
         },
       });
     } catch (error) {

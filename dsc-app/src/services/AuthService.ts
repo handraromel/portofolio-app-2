@@ -89,8 +89,5 @@ export const useForgotPassword = () => {
 export const useActivateAccount = () => {
   return useMutation({
     mutationFn: (token: string) => apiClient(`${authPrefix}/activate/${token}`),
-    onError: (error) => {
-      console.error("Account activation failed:", error);
-    },
   });
 };

@@ -28,12 +28,8 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
   const { logout } = useAuth();
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    await logout();
+    navigate("/login");
   };
 
   const menuItems: MenuItem[] = [

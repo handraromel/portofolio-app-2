@@ -4,6 +4,8 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from config import config
+import logging
+from logging.handlers import RotatingFileHandler
 import os
 
 db = SQLAlchemy()
@@ -11,8 +13,37 @@ migrate = Migrate()
 jwt = JWTManager()
 
 
+def configure_logging(app):
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+
+    file_handler = RotatingFileHandler(
+        'logs/app.log', maxBytes=10240, backupCount=10)
+    file_formatter = logging.Formatter(
+        '%(asctime)s %(levelname)s [%(name)s] %(message)s [in %(pathname)s:%(lineno)d]'
+    )
+    file_handler.setFormatter(file_formatter)
+    file_handler.setLevel(logging.INFO)
+
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info('Application startup')
+
+    # Set up auth logger
+    auth_logger = logging.getLogger('app.auth')
+    auth_logger.setLevel(logging.INFO)
+    auth_logger.addHandler(file_handler)
+
+    # Set up user logger
+    user_logger = logging.getLogger('app.user')
+    user_logger.setLevel(logging.INFO)
+    user_logger.addHandler(file_handler)
+
+
 def create_app():
     app = Flask(__name__)
+
+    configure_logging(app)
 
     env = os.environ.get('FLASK_ENV', 'default')
     origins = os.environ.get('PUBLIC_URL')

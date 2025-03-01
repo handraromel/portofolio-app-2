@@ -10,7 +10,7 @@ import {
   useUpdateUserPassword,
   useCheckPassword,
 } from "@/services/UserService";
-import { UserDataSubmission, ChangeUserPrivilegeData } from "@/types/user";
+import { UserDataSubmission } from "@/types/user";
 
 const checkPasswordCache = new Map<string, { isSame: boolean }>();
 
@@ -29,93 +29,44 @@ export const useUserManagement = () => {
   const updatePasswordMutation = useUpdateUserPassword();
   const checkPasswordMutation = useCheckPassword();
 
-  // Handle users fetch
   const fetchUsers = async () => {
-    try {
-      const data = await usersQuery.refetch();
-      if (data.data) {
-        dispatch(
-          setPagination({
-            currentPage: data.data.current_page || 0,
-            totalPages: data.data.pages || 0,
-            totalUsers: data.data.total || 0,
-          }),
-        );
-      }
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-      throw error;
+    const data = await usersQuery.refetch();
+    if (data.data) {
+      dispatch(
+        setPagination({
+          currentPage: data.data.current_page || 0,
+          totalPages: data.data.pages || 0,
+          totalUsers: data.data.total || 0,
+        }),
+      );
     }
   };
 
-  // Handle user creation
   const handleCreateUser = async (data: UserDataSubmission) => {
-    try {
-      await createUserMutation.mutateAsync(data);
-    } catch (error) {
-      console.error("Failed to create user:", error);
-      throw error;
-    }
+    return await createUserMutation.mutateAsync(data);
   };
 
-  // Handle user update
   const handleUpdateUser = async (userId: string, data: UserDataSubmission) => {
-    try {
-      const response = await updateUserMutation.mutateAsync({
-        userId,
-        data,
-      });
-      return response.user;
-    } catch (error) {
-      console.error("Failed to update user:", error);
-      throw error;
-    }
+    const response = await updateUserMutation.mutateAsync({
+      userId,
+      data,
+    });
+    return response.user;
   };
 
-  // Handle user deletion
   const handleDeleteUser = async (userId: string) => {
-    try {
-      await deleteUserMutation.mutateAsync(userId);
-    } catch (error) {
-      console.error("Failed to delete user:", error);
-      throw error;
-    }
+    return await deleteUserMutation.mutateAsync(userId);
   };
 
-  // Handle user activation
   const handleActivateUser = async (userId: string, isActive: boolean) => {
-    try {
-      await activateUserMutation.mutateAsync({ userId, isActive });
-    } catch (error) {
-      console.error("Failed to update user status:", error);
-      throw error;
-    }
+    return await activateUserMutation.mutateAsync({ userId, isActive });
   };
 
-  // Handle privilege change
-  const handleChangeUserPrivilege = async (
-    userId: string,
-    data: ChangeUserPrivilegeData,
-  ) => {
-    try {
-      await changeUserPrivilegeMutation.mutateAsync({ userId, data });
-    } catch (error) {
-      console.error("Failed to change user privilege:", error);
-      throw error;
-    }
-  };
-
-  // Handle password update
   const handleUpdatePassword = async (
     userId: string,
     data: { new_password: string },
   ) => {
-    try {
-      await updatePasswordMutation.mutateAsync({ userId, data });
-    } catch (error) {
-      console.error("Failed to update password:", error);
-      throw error;
-    }
+    return await updatePasswordMutation.mutateAsync({ userId, data });
   };
 
   const handleCheckPassword = async (userId: string, new_password: string) => {
@@ -127,18 +78,16 @@ export const useUserManagement = () => {
       return checkPasswordCache.get(cacheKey);
     }
 
-    try {
-      const result = await checkPasswordMutation.mutateAsync({
-        userId,
-        new_password,
+    return await checkPasswordMutation
+      .mutateAsync({ userId, new_password })
+      .then((result) => {
+        const safeResult = { isSame: result.isSame || false };
+        checkPasswordCache.set(cacheKey, safeResult);
+        return safeResult;
+      })
+      .catch(() => {
+        return { isSame: false };
       });
-      const safeResult = { isSame: result.isSame || false };
-      checkPasswordCache.set(cacheKey, safeResult);
-      return safeResult;
-    } catch (error) {
-      console.error("Failed to check password:", error);
-      return { isSame: false };
-    }
   };
 
   return {
@@ -166,7 +115,6 @@ export const useUserManagement = () => {
     updateUser: handleUpdateUser,
     deleteUser: handleDeleteUser,
     activateUser: handleActivateUser,
-    changeUserPrivilege: handleChangeUserPrivilege,
     updatePassword: handleUpdatePassword,
     checkPassword: handleCheckPassword,
   };

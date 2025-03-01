@@ -54,11 +54,10 @@ export const PasswordChange: React.FC<PasswordChangeProps> = ({
       onHide();
       await logout();
       navigate("/login");
-    } catch (err) {
+    } catch {
       showError(
         error instanceof Error ? error.message : "Failed to update password",
       );
-      console.error("Password update failed:", err);
     }
   };
 
@@ -83,8 +82,7 @@ export const PasswordChange: React.FC<PasswordChangeProps> = ({
     try {
       const response = await checkPassword(userId, value);
       setIsSamePassword(response?.isSame ?? false);
-    } catch (err) {
-      console.error("Password check failed:", err);
+    } catch {
       setIsSamePassword(false);
     } finally {
       setIsCheckingPassword(false);
