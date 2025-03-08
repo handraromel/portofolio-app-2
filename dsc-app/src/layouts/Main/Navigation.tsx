@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { usePermission, useNavigation } from "@/hooks";
 
 interface NavigationProps {
@@ -66,6 +66,17 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen, onClose }) => {
     isOpen,
     onClose,
   });
+  const location = useLocation();
+
+  const isItemActive = (href?: string): boolean => {
+    if (!href) return false;
+
+    if (href === "/" && location.pathname === "/") {
+      return true;
+    }
+
+    return href !== "/" && location.pathname.startsWith(href);
+  };
 
   const hasPermission = (permissions?: string[]): boolean => {
     if (!permissions || permissions.length === 0) return true;
@@ -87,6 +98,10 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen, onClose }) => {
       return null;
     }
 
+    const isActive = isItemActive(item.href);
+    const hasActiveChild =
+      item.subItems?.some((subItem) => isItemActive(subItem.href)) || false;
+
     if (item.subItems) {
       const visibleSubItems = item.subItems.filter((subItem) =>
         hasPermission(subItem.permissions),
@@ -100,7 +115,11 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen, onClose }) => {
         <li key={item.id}>
           <button
             onClick={() => toggleSubMenu(item.id)}
-            className="flex w-full items-center rounded px-4 py-2 text-left transition duration-200 hover:bg-indigo-600 hover:text-white"
+            className={`flex w-full items-center rounded px-4 py-2 text-left transition duration-200 ${
+              isActive
+                ? "bg-indigo-600 text-white"
+                : "hover:bg-indigo-600 hover:text-white"
+            }`}
           >
             <div className="flex w-full items-center justify-between">
               <div>
@@ -109,19 +128,28 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen, onClose }) => {
               </div>
               <i
                 className={`pi pi-chevron-right mt-1 flex h-5 w-5 origin-center transition-transform duration-200 ${
-                  openSubMenus[item.id] ? "rotate-90 transform" : ""
+                  openSubMenus[item.id] || hasActiveChild
+                    ? "rotate-90 transform"
+                    : ""
                 }`}
               />
             </div>
           </button>
           <ul
             className={`ml-6 space-y-2 overflow-hidden transition-all duration-300 ease-in-out ${
-              openSubMenus[item.id]
-                ? "max-h-80 opacity-100"
+              openSubMenus[item.id] || hasActiveChild
+                ? "mt-1 max-h-80 opacity-100"
                 : "max-h-0 opacity-0"
             }`}
           >
-            {visibleSubItems.map((subItem) => renderMenuItem(subItem))}
+            {visibleSubItems.map((subItem) => {
+              // Create a modified subItem with ndash prefix
+              const subItemWithDash = {
+                ...subItem,
+                label: `– ${subItem.label}`,
+              };
+              return renderMenuItem(subItemWithDash);
+            })}
           </ul>
         </li>
       );
@@ -131,7 +159,11 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen, onClose }) => {
       <li key={item.id}>
         <Link
           to={item.href || "#"}
-          className="flex items-center rounded px-4 py-2 transition duration-200 hover:bg-indigo-600 hover:text-white"
+          className={`flex items-center rounded px-4 py-2 transition duration-200 ${
+            isActive
+              ? "bg-indigo-600 text-white"
+              : "hover:bg-indigo-600 hover:text-white"
+          }`}
         >
           {item.icon && <i className={`${item.icon} mr-2`} />}
           {item.label}
