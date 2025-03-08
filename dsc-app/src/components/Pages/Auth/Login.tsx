@@ -8,7 +8,7 @@ import { useAuth } from "@/actions/useAuth";
 import { InputField } from "@/components/Inputs";
 import { Message } from "@/components/Common";
 import { Button } from "primereact/button";
-import { loginSchema } from "@/utils/validationSchemas";
+import { loginSchema } from "@/schemas/validations/auth";
 import { LoginData } from "@/types/auth";
 import { ApiError } from "@/types/api";
 

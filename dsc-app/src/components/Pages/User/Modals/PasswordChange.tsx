@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Modal } from "@/components/Common";
-import { passwordChangeSchema } from "@/utils/validationSchemas";
+import { passwordChangeSchema } from "@/schemas/validations/user";
 import { InputField } from "@/components/Inputs";
 import { Button } from "primereact/button";
 import { useToast } from "@/context/Toast";

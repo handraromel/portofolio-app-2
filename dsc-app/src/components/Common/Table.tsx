@@ -1,5 +1,5 @@
-import React, { JSX } from "react";
-import { DataTable } from "primereact/datatable";
+import React, { JSX, useState } from "react";
+import { DataTable, DataTablePageEvent } from "primereact/datatable";
 import { Column, ColumnProps } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
@@ -11,6 +11,14 @@ export interface ColumnDef<T> extends Omit<ColumnProps, "field" | "body"> {
   body?: (data: T) => React.ReactNode;
   sortable?: boolean;
   style?: React.CSSProperties;
+}
+
+export interface PaginatorProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  rows?: number;
+  onRowsPerPageChange?: (rows: number) => void;
 }
 
 export interface TableProps<T> {
@@ -25,6 +33,9 @@ export interface TableProps<T> {
     visible?: boolean;
   };
   onRefresh?: () => void;
+  totalRecords?: number;
+  paginator?: PaginatorProps;
+  onSearch?: (search: string) => void;
 }
 
 const Table = <T extends { [key: string]: unknown }>({
@@ -35,14 +46,18 @@ const Table = <T extends { [key: string]: unknown }>({
   globalSearchFields = [],
   actionButton,
   onRefresh,
+  totalRecords,
+  paginator,
+  onSearch,
 }: TableProps<T>) => {
-  const [filters, setFilters] = React.useState({
+  const [filters, setFilters] = useState({
     global: {
       value: null as string | null,
       matchMode: FilterMatchMode.CONTAINS,
     },
   });
-  const [globalFilterValue, setGlobalFilterValue] = React.useState("");
+  const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const [currentRows, setCurrentRows] = useState(paginator?.rows || 10);
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -50,6 +65,10 @@ const Table = <T extends { [key: string]: unknown }>({
     _filters["global"].value = value;
     setFilters(_filters);
     setGlobalFilterValue(value);
+
+    if (onSearch) {
+      onSearch(value);
+    }
   };
 
   const renderHeader = () => {
@@ -101,11 +120,42 @@ const Table = <T extends { [key: string]: unknown }>({
     field: col.field as string,
   });
 
+  const footerTemplate = () => {
+    if (totalRecords !== undefined) {
+      return (
+        <div className="px-4 py-2">
+          <div>Total records: {totalRecords}</div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Handle pagination events (page change and rows per page change)
+  const handlePage = (event: DataTablePageEvent) => {
+    if (paginator) {
+      // Handle page change
+      if (event.page !== undefined) {
+        const newPage = event.page + 1;
+        paginator.onPageChange(newPage);
+      }
+
+      // Handle rows per page change
+      if (event.rows !== undefined && event.rows !== currentRows) {
+        setCurrentRows(event.rows);
+        if (paginator.onRowsPerPageChange) {
+          paginator.onRowsPerPageChange(event.rows);
+        }
+      }
+    }
+  };
+
   return (
     <DataTable
       value={data}
-      paginator
-      rows={10}
+      paginator={true}
+      rows={currentRows}
+      rowsPerPageOptions={[5, 10, 25, 50]}
       size="small"
       dataKey="id"
       filters={filters}
@@ -113,10 +163,15 @@ const Table = <T extends { [key: string]: unknown }>({
       loading={loading}
       globalFilterFields={globalSearchFields as string[]}
       header={renderHeader}
+      footer={footerTemplate}
       emptyMessage="No data found."
       className="p-datatable-lg flex flex-1 flex-col [&_.p-datatable-scrollable-table>.p-datatable-thead]:!z-0"
       scrollable
       scrollHeight="flex"
+      totalRecords={totalRecords}
+      lazy={!!paginator}
+      first={paginator ? (paginator.currentPage - 1) * currentRows : 0}
+      onPage={handlePage}
     >
       {columns.map((col, index) => (
         <Column key={index} {...convertToColumnProps(col)} />

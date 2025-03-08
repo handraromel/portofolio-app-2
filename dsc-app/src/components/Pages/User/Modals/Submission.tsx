@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Modal } from "@/components/Common";
-import { userSubmissionSchema } from "@/utils/validationSchemas";
+import { userSubmissionSchema } from "@/schemas/validations/user";
 import { useForm, FormProvider } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {

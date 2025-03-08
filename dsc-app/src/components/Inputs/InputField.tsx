@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Editor } from "primereact/editor";
 import { InputText } from "primereact/inputtext";
+import { InputNumber } from "primereact/inputnumber";
 import { Password } from "primereact/password";
 import { Calendar } from "primereact/calendar";
 import {
@@ -10,15 +11,18 @@ import {
 } from "react-hook-form";
 import { css } from "./style";
 
+type FieldValue = string | number | Date | null;
+
 interface FieldInputProps {
   id: string;
   label: string;
-  type: "text" | "textarea" | "datepicker" | "password";
+  type: "text" | "textarea" | "datepicker" | "password" | "number";
   name: string;
   placeholder?: string;
   rows?: number;
   passwordFeedback?: boolean;
   onBlur?: (value: string) => void | Promise<void>;
+  disabled?: boolean;
 }
 
 export const InputField: React.FC<FieldInputProps> = ({
@@ -30,6 +34,7 @@ export const InputField: React.FC<FieldInputProps> = ({
   rows,
   passwordFeedback = false,
   onBlur,
+  disabled = false,
 }) => {
   const {
     control,
@@ -39,7 +44,7 @@ export const InputField: React.FC<FieldInputProps> = ({
   const error = errors[name]?.message as string;
 
   const getInputComponent = (
-    field: ControllerRenderProps<Record<string, string>>,
+    field: ControllerRenderProps<Record<string, FieldValue>, string>,
   ) => {
     const hasError = !!error;
 
@@ -61,13 +66,14 @@ export const InputField: React.FC<FieldInputProps> = ({
               field.onChange(e.htmlValue || "");
             }}
             style={{ height: rows ? `${rows * 40}px` : "280px" }}
+            disabled={disabled}
           />
         );
       case "password":
         return (
           <Password
             id={id}
-            value={field.value}
+            value={field.value as string}
             onChange={field.onChange}
             onBlur={handleBlur}
             toggleMask
@@ -76,32 +82,50 @@ export const InputField: React.FC<FieldInputProps> = ({
             placeholder={placeholder}
             invalid={hasError}
             pt={css.passwordStyles}
+            disabled={disabled}
           />
         );
       case "datepicker":
         return (
           <Calendar
             id={id}
-            value={field.value ? new Date(field.value) : null}
+            value={field.value ? new Date(field.value as string) : null}
             onChange={(e) => field.onChange(e.value)}
             onBlur={handleBlur}
             dateFormat="yy-mm-dd"
             placeholder={placeholder}
             invalid={hasError}
             className="p-inputtext-sm w-full"
+            disabled={disabled}
+          />
+        );
+      case "number":
+        return (
+          <InputNumber
+            id={id}
+            value={field.value as number}
+            onChange={(e) => field.onChange(e.value)}
+            onBlur={field.onBlur}
+            placeholder={placeholder}
+            className="p-inputtext-sm w-full"
+            inputClassName={hasError ? "p-invalid" : ""}
+            disabled={disabled}
+            min={0}
+            showButtons={false}
           />
         );
       default:
         return (
           <InputText
             id={id}
-            value={field.value}
+            value={field.value as string}
             onChange={field.onChange}
             onBlur={handleBlur}
             type={type}
             placeholder={placeholder}
             invalid={hasError}
             className="p-inputtext-sm w-full"
+            disabled={disabled}
           />
         );
     }

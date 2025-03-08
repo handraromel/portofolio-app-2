@@ -13,20 +13,50 @@ interface MenuItem {
   href?: string;
   subItems?: MenuItem[];
   permissions?: string[];
+  icon?: string; // Optional icon class
 }
 
 const menuItems: MenuItem[] = [
-  { id: "dashboard", label: "Dashboard", href: "/" },
+  { id: "dashboard", label: "Dashboard", href: "/", icon: "pi pi-home" },
   {
     id: "account",
     label: "My Profile",
     href: "/user/profile",
+    icon: "pi pi-user",
+  },
+  {
+    id: "products",
+    label: "Products",
+    icon: "pi pi-tag",
+    subItems: [
+      {
+        id: "brands",
+        label: "Brands",
+        href: "/product/brands",
+      },
+      {
+        id: "divisions",
+        label: "Divisions",
+        href: "/product/divisions",
+      },
+      {
+        id: "groups",
+        label: "Groups",
+        href: "/product/groups",
+      },
+      {
+        id: "categories",
+        label: "Categories",
+        href: "/product/categories",
+      },
+    ],
   },
   {
     id: "manageUser",
     label: "Manage Users",
     href: "/users",
     permissions: ["canEdit", "canDelete"],
+    icon: "pi pi-users",
   },
 ];
 
@@ -70,19 +100,24 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen, onClose }) => {
         <li key={item.id}>
           <button
             onClick={() => toggleSubMenu(item.id)}
-            className="flex w-full items-center justify-between rounded px-4 py-2 text-left transition duration-200 hover:bg-indigo-600 hover:text-white"
+            className="flex w-full items-center rounded px-4 py-2 text-left transition duration-200 hover:bg-indigo-600 hover:text-white"
           >
-            {item.label}
-            <i
-              className={`pi pi-chevron-down h-5 w-5 transition-transform duration-200 ${
-                openSubMenus[item.id] ? "rotate-180 transform" : ""
-              }`}
-            />
+            <div className="flex w-full items-center justify-between">
+              <div>
+                {item.icon && <i className={`${item.icon} mr-2`} />}
+                {item.label}
+              </div>
+              <i
+                className={`pi pi-chevron-right mt-1 flex h-5 w-5 origin-center transition-transform duration-200 ${
+                  openSubMenus[item.id] ? "rotate-90 transform" : ""
+                }`}
+              />
+            </div>
           </button>
           <ul
-            className={`mt-2 ml-4 space-y-2 overflow-hidden transition-all duration-300 ease-in-out ${
+            className={`ml-6 space-y-2 overflow-hidden transition-all duration-300 ease-in-out ${
               openSubMenus[item.id]
-                ? "max-h-40 opacity-100"
+                ? "max-h-80 opacity-100"
                 : "max-h-0 opacity-0"
             }`}
           >
@@ -96,8 +131,9 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen, onClose }) => {
       <li key={item.id}>
         <Link
           to={item.href || "#"}
-          className="block rounded px-4 py-2 transition duration-200 hover:bg-indigo-600 hover:text-white"
+          className="flex items-center rounded px-4 py-2 transition duration-200 hover:bg-indigo-600 hover:text-white"
         >
+          {item.icon && <i className={`${item.icon} mr-2`} />}
           {item.label}
         </Link>
       </li>
