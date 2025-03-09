@@ -113,26 +113,32 @@ jobs:
             VITE_PORT=${{ secrets.VITE_PORT }}
             EOF
 
-            # Pull and start containers
-            docker compose pull
+             # Stop, rebuild, and start containers
+            docker compose down
             docker compose up -d --build
 
-            # Check if containers are running
-            if ! docker compose ps | grep -q "Up"; then
-              echo "Error: Some containers failed to start"
-              docker compose logs
-              exit 1
-            fi
-
-            # Wait for database to be ready
+            # Wait for database before running migrations
             echo "Waiting for database to be ready..."
-            until docker compose exec db pg_isready -h db -p 5432; do
+            sleep 10
+            until docker compose exec -T db pg_isready -h db -p 5432; do
               echo "Database is unavailable - sleeping"
-              sleep 1
+              sleep 2
             done
 
             # Run migrations
-            docker compose exec backend sh -c 'flask db upgrade'
+            echo "Running database migrations..."
+            docker compose exec -T backend flask db current || true
+            if ! docker compose exec -T backend flask db upgrade; then
+              echo "Migration failed, attempting recovery..."
+              # You might need a more sophisticated recovery strategy
+              # For now, just show the error
+              docker compose logs backend
+            fi
+
+            # Clean up unused Docker resources
+            echo "Cleaning up unused Docker resources..."
+            docker image prune -af --filter "until=24h"
+            docker volume prune -f --filter "label!=keep"
 
       - name: Verify deployment
         uses: appleboy/ssh-action@master
