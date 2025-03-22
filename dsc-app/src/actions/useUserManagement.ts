@@ -10,15 +10,22 @@ import {
   useUpdateUserPassword,
   useCheckPassword,
 } from "@/services/UserService";
-import { UserDataSubmission } from "@/types/user";
+import { UserDataSubmission, UserQueryFilters } from "@/types/user";
+import { useState } from "react";
 
 const checkPasswordCache = new Map<string, { isSame: boolean }>();
 
 export const useUserManagement = () => {
   const dispatch = useAppDispatch();
 
+  const [filters, setFilters] = useState<UserQueryFilters>({
+    page: 1,
+    per_page: 10,
+    search: "",
+  });
+
   // Query for fetching users
-  const usersQuery = useUsers();
+  const usersQuery = useUsers(filters);
 
   // Mutations
   const createUserMutation = useCreateUser();
@@ -40,6 +47,22 @@ export const useUserManagement = () => {
         }),
       );
     }
+  };
+
+  const changePage = (page: number) => {
+    setFilters((prev) => ({ ...prev, page }));
+  };
+
+  const changePerPage = (per_page: number) => {
+    setFilters((prev) => ({ ...prev, per_page, page: 1 }));
+  };
+
+  const searchUsers = (search: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      search,
+      page: 1,
+    }));
   };
 
   const handleCreateUser = async (data: UserDataSubmission) => {
@@ -92,6 +115,13 @@ export const useUserManagement = () => {
 
   return {
     users: usersQuery.data?.users ?? [],
+    pagination: {
+      currentPage: usersQuery.data?.current_page || 1,
+      totalPages: usersQuery.data?.pages || 1,
+      totalRecords: usersQuery.data?.total || 0,
+    },
+    filters,
+    usersQuery,
     isLoading:
       usersQuery.isLoading ||
       createUserMutation.isPending ||
@@ -111,6 +141,9 @@ export const useUserManagement = () => {
       updatePasswordMutation.error ||
       checkPasswordMutation.error,
     fetchUsers,
+    changePage,
+    changePerPage,
+    searchUsers,
     createUser: handleCreateUser,
     updateUser: handleUpdateUser,
     deleteUser: handleDeleteUser,

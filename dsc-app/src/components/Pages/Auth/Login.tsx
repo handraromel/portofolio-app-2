@@ -12,6 +12,8 @@ import { loginSchema } from "@/schemas/validations/auth";
 import { LoginData } from "@/types/auth";
 import { ApiError } from "@/types/api";
 
+type MessageType = "success" | "error" | "info";
+
 const Login: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -39,7 +41,7 @@ const Login: React.FC = () => {
       dispatch(
         setMessage({
           text: location.state.message as string,
-          type: location.state.type as "success" | "error" | "info",
+          type: location.state.type as MessageType,
         }),
       );
       navigate(location.pathname, { replace: true, state: {} });

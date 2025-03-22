@@ -165,7 +165,7 @@ const Table = <T extends { [key: string]: unknown }>({
       header={renderHeader}
       footer={footerTemplate}
       emptyMessage="No data found."
-      className="p-datatable-lg flex flex-1 flex-col [&_.p-datatable-scrollable-table>.p-datatable-thead]:!z-0"
+      className="p-datatable-lg flex flex-1 flex-col [&_.p-datatable-scrollable-header]:!z-2 [&_.p-datatable-scrollable-table>.p-datatable-thead]:!z-2 [&_.p-datatable-thead]:!z-2"
       scrollable
       scrollHeight="flex"
       totalRecords={totalRecords}

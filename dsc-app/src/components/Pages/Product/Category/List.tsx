@@ -1,70 +1,78 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { Button } from "primereact/button";
 import { formatDate } from "@/utils/formatDate";
-import { ProductBrand } from "@/types/product";
+import { ProductCategory } from "@/types/product";
 import { Confirmation, ColumnDef } from "@/components/Common";
 import { useModal, usePermission } from "@/hooks";
 import { useToast } from "@/context/Toast";
-import { useBrand } from "@/actions/product/useBrand";
+import { useCategory } from "@/actions/product/useCategory";
 import Table from "@/components/Common/Table";
 import Submission from "./Modals/Submission";
 import Detail from "./Modals/Detail";
 
-const BrandList: React.FC = () => {
+const CategoryList: React.FC = () => {
   const { canEdit, canDelete } = usePermission();
   const {
-    brands,
+    categories,
     pagination,
     isLoading,
     error,
-    fetchBrands,
-    deleteBrand,
-    searchBrands,
+    fetchCategories,
+    deleteCategory,
+    searchCategories,
     changePage,
     changePerPage,
-    brandsQuery,
+    categoriesQuery,
     filters,
-  } = useBrand();
+  } = useCategory();
 
   const { showWarning, showError } = useToast();
-  const responseMsg = brandsQuery.data?.msg;
-  const [selectedBrand, setSelectedBrand] = useState<ProductBrand | null>(null);
+  const responseMsg = categoriesQuery.data?.msg;
+  const [selectedCategory, setSelectedCategory] =
+    useState<ProductCategory | null>(null);
   const submissionModal = useModal();
   const detailModal = useModal();
   const [triggerDelete, setTriggerDelete] = useState(false);
 
-  const handleSubmission = (brand?: ProductBrand) => {
-    setSelectedBrand(brand ?? null);
+  const handleSubmission = (category?: ProductCategory) => {
+    setSelectedCategory(category ?? null);
     submissionModal.open();
   };
 
-  const handleView = (brand: ProductBrand) => {
-    setSelectedBrand(brand);
+  const handleView = (category: ProductCategory) => {
+    setSelectedCategory(category);
     detailModal.open();
   };
 
   const handleDeleteConfirm = useCallback(async () => {
-    if (selectedBrand) {
+    if (selectedCategory) {
       try {
-        await deleteBrand(selectedBrand.uuid);
-        showWarning(responseMsg || "Brand deleted successfully");
+        await deleteCategory(selectedCategory.uuid);
+        showWarning(responseMsg || "Category deleted successfully");
         setTriggerDelete(false);
       } catch {
-        showError(responseMsg || "Failed to delete brand");
+        showError(responseMsg || "Failed to delete category");
       }
     }
-  }, [selectedBrand, deleteBrand, showWarning, showError]);
+  }, [selectedCategory, deleteCategory, responseMsg, showWarning, showError]);
 
-  const indexTemplate = (rowData: ProductBrand) => {
-    const index = brands.findIndex((brand) => brand.uuid === rowData.uuid);
-    return (pagination.currentPage || 1) * 10 - 10 + index + 1;
+  const indexTemplate = (rowData: ProductCategory) => {
+    const index = categories.findIndex(
+      (category) => category.uuid === rowData.uuid,
+    );
+    return (
+      (pagination.currentPage || 1) * (filters.per_page || 10) -
+      (filters.per_page || 10) +
+      index +
+      1
+    );
   };
 
   const handleRefresh = useCallback(() => {
-    fetchBrands();
-  }, [fetchBrands]);
+    fetchCategories();
+  }, [fetchCategories]);
 
-  const renderActions = (rowData: ProductBrand) => {
+  const renderActions = (rowData: ProductCategory) => {
     return (
       <div className="flex gap-2">
         {canEdit() && (
@@ -85,7 +93,7 @@ const BrandList: React.FC = () => {
             className="h-7"
             raised
             onClick={() => {
-              setSelectedBrand(rowData);
+              setSelectedCategory(rowData);
               setTriggerDelete(true);
             }}
           />
@@ -102,31 +110,26 @@ const BrandList: React.FC = () => {
     );
   };
 
-  const columns: ColumnDef<ProductBrand>[] = [
+  const columns: ColumnDef<ProductCategory>[] = [
     {
       header: "No",
       body: indexTemplate,
     },
     {
-      field: "id",
-      header: "ID",
-      sortable: true,
-    },
-    {
       field: "name",
-      header: "Brand Name",
+      header: "Category Name",
       sortable: true,
     },
     {
       field: "created_at",
       header: "Created At",
-      body: (rowData: ProductBrand) => formatDate(rowData.created_at),
+      body: (rowData: ProductCategory) => formatDate(rowData.created_at),
       sortable: true,
     },
     {
       field: "updated_at",
       header: "Updated At",
-      body: (rowData: ProductBrand) => formatDate(rowData.updated_at),
+      body: (rowData: ProductCategory) => formatDate(rowData.updated_at),
       sortable: true,
     },
     {
@@ -135,7 +138,7 @@ const BrandList: React.FC = () => {
     },
   ];
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       showError(error instanceof Error ? error.message : "An error occurred");
     }
@@ -144,13 +147,13 @@ const BrandList: React.FC = () => {
   return (
     <>
       <Table
-        data={brands}
+        data={categories}
         columns={columns}
-        title="Manage Product Brands"
+        title="Manage Product Categories"
         loading={isLoading}
-        globalSearchFields={["id", "name"]}
+        globalSearchFields={["name"]}
         actionButton={{
-          label: "Add Brand",
+          label: "Add Category",
           onClick: () => handleSubmission(),
           visible: canEdit(),
         }}
@@ -163,27 +166,27 @@ const BrandList: React.FC = () => {
           rows: filters.per_page,
           onRowsPerPageChange: changePerPage,
         }}
-        onSearch={searchBrands}
+        onSearch={searchCategories}
       />
 
       <Submission
         visible={submissionModal.isOpen}
         onHide={submissionModal.close}
-        brand={selectedBrand}
+        category={selectedCategory}
       />
 
       <Detail
         visible={detailModal.isOpen}
         onHide={detailModal.close}
-        brand={selectedBrand}
+        category={selectedCategory}
       />
 
       <Confirmation
         visible={triggerDelete}
         onHide={() => setTriggerDelete(false)}
         onConfirm={handleDeleteConfirm}
-        message={`Are you sure you want to delete brand ${selectedBrand?.name}?`}
-        header="Delete Brand"
+        message={`Are you sure you want to delete category ${selectedCategory?.name}?`}
+        header="Delete Category"
         icon="pi pi-exclamation-triangle"
         acceptLabel="Delete"
         rejectLabel="Cancel"
@@ -192,4 +195,4 @@ const BrandList: React.FC = () => {
   );
 };
 
-export default BrandList;
+export default CategoryList;

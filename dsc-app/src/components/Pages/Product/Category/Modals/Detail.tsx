@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal } from "@/components/Common";
-import { ProductBrand } from "@/types/product";
+import { ProductCategory } from "@/types/product";
 import { formatDate } from "@/utils/formatDate";
 import { Tag } from "primereact/tag";
 import { formatDistanceToNow } from "date-fns";
@@ -8,13 +8,13 @@ import { formatDistanceToNow } from "date-fns";
 interface DetailProps {
   visible: boolean;
   onHide: () => void;
-  brand: ProductBrand | null;
+  category: ProductCategory | null;
 }
 
-const Detail: React.FC<DetailProps> = ({ visible, onHide, brand }) => {
-  if (!brand) return null;
+const Detail: React.FC<DetailProps> = ({ visible, onHide, category }) => {
+  if (!category) return null;
 
-  const createdDate = new Date(brand.created_at);
+  const createdDate = new Date(category.created_at);
 
   const getTimeAgo = (date: Date) => {
     return formatDistanceToNow(date, { addSuffix: true });
@@ -36,26 +36,14 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, brand }) => {
                 <i className="pi pi-tag text-lg"></i>
               </div>
               <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                {brand.name}
+                {category.name}
               </h2>
             </div>
-            <Tag value="Brand" severity="info" className="px-3 py-1" />
+            <Tag value="Category" severity="info" className="px-3 py-1" />
           </div>
         </div>
 
         <div className="mb-5 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {/* Brand ID card */}
-          <div className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <div className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
-              Brand ID
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                {brand.id}
-              </div>
-            </div>
-          </div>
-
           {/* Created date card */}
           <div className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <div className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -63,7 +51,7 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, brand }) => {
             </div>
             <div className="flex flex-col">
               <div className="text-gray-800 dark:text-gray-200">
-                {formatDate(brand.created_at)}
+                {formatDate(category.created_at)}
               </div>
               <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 {getTimeAgo(createdDate)}

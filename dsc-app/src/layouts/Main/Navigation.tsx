@@ -143,10 +143,9 @@ const Navigation: React.FC<NavigationProps> = ({ isOpen, onClose }) => {
             }`}
           >
             {visibleSubItems.map((subItem) => {
-              // Create a modified subItem with ndash prefix
               const subItemWithDash = {
                 ...subItem,
-                label: `– ${subItem.label}`,
+                label: `⚬ ${subItem.label}`,
               };
               return renderMenuItem(subItemWithDash);
             })}

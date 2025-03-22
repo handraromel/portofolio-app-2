@@ -19,8 +19,19 @@ const UserList: React.FC = () => {
   const currentUser = useAppSelector((state) => state.auth.user);
 
   // Use React Query hooks
-  const { users, isLoading, error, fetchUsers, deleteUser, activateUser } =
-    useUserManagement();
+  const {
+    users,
+    pagination,
+    isLoading,
+    error,
+    fetchUsers,
+    deleteUser,
+    activateUser,
+    changePage,
+    changePerPage,
+    searchUsers,
+    filters,
+  } = useUserManagement();
 
   const { showSuccess, showWarning, showError } = useToast();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -103,7 +114,13 @@ const UserList: React.FC = () => {
   };
 
   const indexTemplate = (rowData: User) => {
-    return users.indexOf(rowData) + 1;
+    const index = users.indexOf(rowData);
+    return (
+      (pagination.currentPage || 1) * (filters.per_page || 10) -
+      (filters.per_page || 10) +
+      index +
+      1
+    );
   };
 
   const handleRefresh = useCallback(() => {
@@ -268,6 +285,15 @@ const UserList: React.FC = () => {
           visible: canEdit(),
         }}
         onRefresh={handleRefresh}
+        totalRecords={pagination.totalRecords}
+        paginator={{
+          currentPage: pagination.currentPage,
+          totalPages: pagination.totalPages,
+          onPageChange: changePage,
+          rows: filters.per_page,
+          onRowsPerPageChange: changePerPage,
+        }}
+        onSearch={searchUsers}
       />
 
       <SubmissionModal

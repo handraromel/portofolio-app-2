@@ -5,13 +5,14 @@ import {
   UserDataSubmission,
   UserResponse,
   User,
+  UserQueryFilters,
 } from "@/types/user";
 import { useAppSelector } from "@/hooks/useStore";
 
 export const userKeys = {
   all: ["users"] as const,
   lists: () => [...userKeys.all, "list"] as const,
-  list: (filters: Record<string, unknown>) =>
+  list: (filters: UserQueryFilters) =>
     [...userKeys.lists(), { filters }] as const,
   details: () => [...userKeys.all, "detail"] as const,
   detail: (id: string) => [...userKeys.details(), id] as const,
@@ -19,14 +20,25 @@ export const userKeys = {
 
 const userPrefix = "/manage/user";
 
-export const useUsers = () => {
+export const useUsers = (filters: UserQueryFilters = {}) => {
   const currentUser = useAppSelector((state) => state.auth.user);
   const hasAccess =
     currentUser?.role && ["superadmin", "admin"].includes(currentUser.role);
+
+  const queryParams = new URLSearchParams();
+
+  if (filters.page) queryParams.append("page", filters.page.toString());
+  if (filters.per_page)
+    queryParams.append("per_page", filters.per_page.toString());
+  if (filters.search) queryParams.append("search", filters.search);
+
+  const queryString = queryParams.toString();
+  const endpoint = `${userPrefix}/all${queryString ? `?${queryString}` : ""}`;
+
   return useQuery<UserResponse, Error>({
-    queryKey: userKeys.lists(),
+    queryKey: userKeys.list(filters),
     queryFn: async (): Promise<UserResponse> => {
-      const response = await apiClient<User>(`${userPrefix}/all`);
+      const response = await apiClient<UserResponse>(endpoint);
       return response as UserResponse;
     },
     enabled: hasAccess,

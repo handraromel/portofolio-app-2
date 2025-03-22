@@ -98,6 +98,7 @@ export const Submission: React.FC<SubmissionProps> = ({
         }
       } else {
         await createUser(submissionData);
+        handleReset();
         showSuccess("User created successfully");
       }
       onHide();

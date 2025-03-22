@@ -50,3 +50,9 @@ export interface RoleOption {
 }
 
 export type UserRole = "superadmin" | "admin" | "user";
+
+export interface UserQueryFilters {
+  page?: number;
+  per_page?: number;
+  search?: string;
+}

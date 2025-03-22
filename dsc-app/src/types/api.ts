@@ -1,8 +1,10 @@
+import { User } from "./user";
+
 export interface ApiResponse<T = unknown> {
   msg?: string;
   login?: boolean;
   logout?: boolean;
-  users?: T[];
+  users?: User[];
   user?: T;
   data?: T;
   success?: boolean;
