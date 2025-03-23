@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useAppSelector } from "@/hooks";
 import { useUserManagement } from "@/actions/useUserManagement";
 import { Tag } from "primereact/tag";
-import { Button } from "primereact/button";
 import { formatDate } from "@/utils/formatDate";
 import { User } from "@/types/user";
 import { Submission as SubmissionModal, Detail as DetailModal } from "./Modals";
@@ -89,7 +88,7 @@ const UserList: React.FC = () => {
     return (
       <Tag
         value={rowData.is_active ? "Active" : "Inactive"}
-        severity={rowData.is_active ? "success" : "secondary"}
+        severity={rowData.is_active ? "success" : "danger"}
       />
     );
   };
@@ -151,70 +150,6 @@ const UserList: React.FC = () => {
     );
   };
 
-  const renderActions = (rowData: User) => {
-    const editDisabled = isEditDisabled(rowData);
-    const deleteDisabled = isDeleteDisabled(rowData);
-    const activateDisabled = isActivateDisabled(rowData);
-
-    return (
-      <div className="flex justify-center gap-2">
-        {canEdit() && (
-          <Button
-            label="Edit"
-            severity="success"
-            size="small"
-            className="h-7"
-            raised
-            onClick={() => handleSubmission(rowData)}
-            disabled={editDisabled}
-            outlined={editDisabled}
-            text={editDisabled}
-          />
-        )}
-        {canDelete() && (
-          <Button
-            label="Delete"
-            severity="danger"
-            size="small"
-            className="h-7"
-            raised
-            onClick={() => {
-              setSelectedUser(rowData);
-              setTriggerDelete(true);
-            }}
-            disabled={deleteDisabled}
-            outlined={deleteDisabled}
-            text={deleteDisabled}
-          />
-        )}
-        <Button
-          label="View"
-          severity="info"
-          size="small"
-          className="h-7"
-          raised
-          onClick={() => handleView(rowData)}
-        />
-        {(isAdmin || isSuperAdmin) && (
-          <Button
-            label={rowData.is_active ? "Deactivate" : "Activate"}
-            severity="help"
-            size="small"
-            className="h-7"
-            raised
-            onClick={() => {
-              setSelectedUser(rowData);
-              setTriggerActivate(true);
-            }}
-            disabled={activateDisabled}
-            outlined={activateDisabled}
-            text={activateDisabled}
-          />
-        )}
-      </div>
-    );
-  };
-
   const columns: ColumnDef<User>[] = [
     {
       header: "No",
@@ -259,10 +194,6 @@ const UserList: React.FC = () => {
       body: (rowData: User) => formatDate(rowData.updated_at),
       sortable: true,
     },
-    {
-      header: "Actions",
-      body: renderActions,
-    },
   ];
 
   useEffect(() => {
@@ -294,6 +225,49 @@ const UserList: React.FC = () => {
           onRowsPerPageChange: changePerPage,
         }}
         onSearch={searchUsers}
+        actions={{
+          header: "Actions",
+          buttons: [
+            {
+              icon: "pi pi-pencil",
+              tooltip: "Edit",
+              severity: "success",
+              onClick: (rowData) => handleSubmission(rowData),
+              disabled: (rowData) => isEditDisabled(rowData),
+              visible: () => canEdit(),
+            },
+            {
+              icon: "pi pi-trash",
+              tooltip: "Delete",
+              severity: "danger",
+              onClick: (rowData) => {
+                setSelectedUser(rowData);
+                setTriggerDelete(true);
+              },
+              disabled: (rowData) => isDeleteDisabled(rowData),
+              visible: () => canDelete(),
+            },
+            {
+              icon: "pi pi-eye",
+              tooltip: "View",
+              severity: "info",
+              onClick: (rowData) => handleView(rowData),
+              visible: () => true,
+            },
+            {
+              icon: (rowData) =>
+                rowData.is_active ? "pi pi-ban" : "pi pi-check",
+              tooltip: (rowData) =>
+                rowData.is_active ? "Deactivate" : "Activate",
+              onClick: (rowData) => {
+                setSelectedUser(rowData);
+                setTriggerActivate(true);
+              },
+              disabled: (rowData) => isActivateDisabled(rowData),
+              visible: () => isAdmin || isSuperAdmin,
+            },
+          ],
+        }}
       />
 
       <SubmissionModal

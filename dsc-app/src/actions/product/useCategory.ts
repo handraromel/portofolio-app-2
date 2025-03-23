@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   useProductCategories,
-  useProductCategory,
   useCreateProductCategory,
   useUpdateProductCategory,
   useDeleteProductCategory,
@@ -122,22 +121,5 @@ export const useCategory = () => {
     createCategoryMutation,
     updateCategoryMutation,
     deleteCategoryMutation,
-  };
-};
-
-// Create a separate hook for fetching a single category by ID
-export const useCategoryDetail = (categoryId?: string) => {
-  const categoryQuery = useProductCategory(categoryId || "");
-
-  const fetchCategory = async () => {
-    return await categoryQuery.refetch();
-  };
-
-  return {
-    category: categoryQuery.data,
-    isLoading: categoryQuery.isLoading,
-    error: categoryQuery.error,
-    fetchCategory,
-    categoryQuery,
   };
 };

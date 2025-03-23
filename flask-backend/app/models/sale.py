@@ -1,6 +1,6 @@
 from app import db
 from sqlalchemy.dialects.postgresql import UUID
-from datetime import datetime, timezone
+from sqlalchemy.sql import func
 import uuid
 
 
@@ -26,9 +26,9 @@ class Sale(db.Model):
     product_category_id = db.Column(UUID(as_uuid=True), db.ForeignKey(
         "product_categories.uuid"), nullable=False)
 
-    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=datetime.now(
-        timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=func.now())
+    updated_at = db.Column(
+        db.DateTime, default=func.now(), onupdate=func.now())
 
     # Relationships
     brand = db.relationship(

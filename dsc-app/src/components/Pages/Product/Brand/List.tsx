@@ -1,5 +1,4 @@
 import React, { useCallback, useState } from "react";
-import { Button } from "primereact/button";
 import { formatDate } from "@/utils/formatDate";
 import { ProductBrand } from "@/types/product";
 import { Confirmation, ColumnDef } from "@/components/Common";
@@ -53,54 +52,21 @@ const BrandList: React.FC = () => {
         showError(responseMsg || "Failed to delete brand");
       }
     }
-  }, [selectedBrand, deleteBrand, showWarning, showError]);
+  }, [selectedBrand, deleteBrand, responseMsg, showWarning, showError]);
 
   const indexTemplate = (rowData: ProductBrand) => {
     const index = brands.findIndex((brand) => brand.uuid === rowData.uuid);
-    return (pagination.currentPage || 1) * 10 - 10 + index + 1;
+    return (
+      (pagination.currentPage || 1) * (filters.per_page || 10) -
+      (filters.per_page || 10) +
+      index +
+      1
+    );
   };
 
   const handleRefresh = useCallback(() => {
     fetchBrands();
   }, [fetchBrands]);
-
-  const renderActions = (rowData: ProductBrand) => {
-    return (
-      <div className="flex gap-2">
-        {canEdit() && (
-          <Button
-            label="Edit"
-            severity="success"
-            size="small"
-            className="h-7"
-            raised
-            onClick={() => handleSubmission(rowData)}
-          />
-        )}
-        {canDelete() && (
-          <Button
-            label="Delete"
-            severity="danger"
-            size="small"
-            className="h-7"
-            raised
-            onClick={() => {
-              setSelectedBrand(rowData);
-              setTriggerDelete(true);
-            }}
-          />
-        )}
-        <Button
-          label="View"
-          severity="info"
-          size="small"
-          className="h-7"
-          raised
-          onClick={() => handleView(rowData)}
-        />
-      </div>
-    );
-  };
 
   const columns: ColumnDef<ProductBrand>[] = [
     {
@@ -128,10 +94,6 @@ const BrandList: React.FC = () => {
       header: "Updated At",
       body: (rowData: ProductBrand) => formatDate(rowData.updated_at),
       sortable: true,
-    },
-    {
-      header: "Actions",
-      body: renderActions,
     },
   ];
 
@@ -164,6 +126,35 @@ const BrandList: React.FC = () => {
           onRowsPerPageChange: changePerPage,
         }}
         onSearch={searchBrands}
+        actions={{
+          header: "Actions",
+          buttons: [
+            {
+              icon: "pi pi-pencil",
+              tooltip: "Edit",
+              severity: "success",
+              onClick: (rowData) => handleSubmission(rowData),
+              visible: () => canEdit(),
+            },
+            {
+              icon: "pi pi-trash",
+              tooltip: "Delete",
+              severity: "danger",
+              onClick: (rowData) => {
+                setSelectedBrand(rowData);
+                setTriggerDelete(true);
+              },
+              visible: () => canDelete(),
+            },
+            {
+              icon: "pi pi-eye",
+              tooltip: "View",
+              severity: "info",
+              onClick: (rowData) => handleView(rowData),
+              visible: () => true,
+            },
+          ],
+        }}
       />
 
       <Submission

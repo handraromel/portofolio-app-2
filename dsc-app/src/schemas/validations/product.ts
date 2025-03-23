@@ -2,6 +2,8 @@ import * as yup from "yup";
 import {
   ProductBrandSubmission,
   ProductCategorySubmission,
+  ProductDivisionSubmission,
+  ProductGroupSubmission,
 } from "@/types/product";
 
 export const productBrandSchema = yup.object<ProductBrandSubmission>().shape({
@@ -24,3 +26,29 @@ export const productCategorySchema = yup
       .required("Category name is required")
       .max(25, "Brand name must be at most 25 characters"),
   });
+
+export const productDivisionSchema = yup
+  .object<ProductDivisionSubmission>()
+  .shape({
+    name: yup
+      .string()
+      .required("Division name is required")
+      .min(1, "Division name is required")
+      .max(100, "Division name must be at most 100 characters"),
+    alias: yup
+      .string()
+      .nullable()
+      .max(100, "Division alias must be at most 100 characters"),
+  });
+
+export const productGroupSchema = yup.object<ProductGroupSubmission>().shape({
+  id: yup
+    .number()
+    .required("Group ID is required")
+    .positive("Group ID must be positive"),
+  name: yup
+    .string()
+    .required("Group name is required")
+    .min(1, "Group name is required")
+    .max(100, "Group name must be at most 100 characters"),
+});

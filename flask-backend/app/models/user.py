@@ -1,6 +1,6 @@
 from app import db
 from sqlalchemy.dialects.postgresql import UUID
-from datetime import datetime, timezone
+from sqlalchemy.sql import func
 import uuid
 import enum
 
@@ -24,9 +24,9 @@ class User(db.Model):
                      nullable=False, default=UserRole.user)
     is_active = db.Column(db.Boolean, default=False, nullable=False)
     verification_token = db.Column(db.String(128))
-    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=datetime.now(
-        timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=func.now())
+    updated_at = db.Column(
+        db.DateTime, default=func.now(), onupdate=func.now())
 
     def __repr__(self):
         return f'<User {self.username}>'

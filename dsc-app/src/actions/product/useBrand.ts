@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   useProductBrands,
-  useProductBrand,
   useCreateProductBrand,
   useUpdateProductBrand,
   useDeleteProductBrand,
@@ -116,22 +115,5 @@ export const useBrand = () => {
     createBrandMutation,
     updateBrandMutation,
     deleteBrandMutation,
-  };
-};
-
-// Create a separate hook for fetching a single brand by ID
-export const useBrandDetail = (brandId?: string) => {
-  const brandQuery = useProductBrand(brandId || "");
-
-  const fetchBrand = async () => {
-    return await brandQuery.refetch();
-  };
-
-  return {
-    brand: brandQuery.data,
-    isLoading: brandQuery.isLoading,
-    error: brandQuery.error,
-    fetchBrand,
-    brandQuery,
   };
 };

@@ -23,6 +23,7 @@ interface FieldInputProps {
   passwordFeedback?: boolean;
   onBlur?: (value: string) => void | Promise<void>;
   disabled?: boolean;
+  numericOnly?: boolean;
 }
 
 export const InputField: React.FC<FieldInputProps> = ({
@@ -35,6 +36,7 @@ export const InputField: React.FC<FieldInputProps> = ({
   passwordFeedback = false,
   onBlur,
   disabled = false,
+  numericOnly = false,
 }) => {
   const {
     control,
@@ -119,13 +121,21 @@ export const InputField: React.FC<FieldInputProps> = ({
           <InputText
             id={id}
             value={field.value as string}
-            onChange={field.onChange}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              if (numericOnly) {
+                const numericValue = e.target.value.replace(/[^0-9]/g, "");
+                field.onChange(numericValue);
+              } else {
+                field.onChange(e.target.value);
+              }
+            }}
             onBlur={handleBlur}
             type={type}
             placeholder={placeholder}
             invalid={hasError}
             className="p-inputtext-sm w-full"
             disabled={disabled}
+            inputMode={numericOnly ? "numeric" : "text"}
           />
         );
     }

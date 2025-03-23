@@ -1,9 +1,10 @@
-import React, { JSX, useState } from "react";
+import React, { JSX, useCallback, useEffect, useState } from "react";
 import { DataTable, DataTablePageEvent } from "primereact/datatable";
 import { Column, ColumnProps } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { FilterMatchMode } from "primereact/api";
+import { debounce } from "lodash";
 
 export interface ColumnDef<T> extends Omit<ColumnProps, "field" | "body"> {
   field?: keyof T;
@@ -21,6 +22,24 @@ export interface PaginatorProps {
   onRowsPerPageChange?: (rows: number) => void;
 }
 
+export interface ActionButton<T> {
+  icon: string | ((rowData: T) => string);
+  tooltip?: string | ((rowData: T) => string);
+  severity?:
+    | "secondary"
+    | "success"
+    | "info"
+    | "warning"
+    | "danger"
+    | "help"
+    | "contrast";
+  onClick: (rowData: T) => void;
+  disabled?: (rowData: T) => boolean;
+  visible?: (rowData: T) => boolean;
+  className?: string;
+  tooltipOptions?: object;
+}
+
 export interface TableProps<T> {
   data: T[];
   columns: ColumnDef<T>[];
@@ -36,6 +55,11 @@ export interface TableProps<T> {
   totalRecords?: number;
   paginator?: PaginatorProps;
   onSearch?: (search: string) => void;
+  actions?: {
+    header?: string;
+    buttons: ActionButton<T>[];
+    align?: "left" | "center" | "right";
+  };
 }
 
 const Table = <T extends { [key: string]: unknown }>({
@@ -49,6 +73,7 @@ const Table = <T extends { [key: string]: unknown }>({
   totalRecords,
   paginator,
   onSearch,
+  actions,
 }: TableProps<T>) => {
   const [filters, setFilters] = useState({
     global: {
@@ -59,17 +84,112 @@ const Table = <T extends { [key: string]: unknown }>({
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [currentRows, setCurrentRows] = useState(paginator?.rows || 10);
 
+  const debouncedSearch = useCallback(
+    debounce((value: string) => {
+      if (onSearch) {
+        onSearch(value);
+      }
+    }, 500),
+    [onSearch],
+  );
+
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     let _filters = { ...filters };
     _filters["global"].value = value;
     setFilters(_filters);
     setGlobalFilterValue(value);
-
-    if (onSearch) {
-      onSearch(value);
-    }
+    debouncedSearch(value);
   };
+
+  const renderActions = useCallback(
+    (rowData: T) => {
+      if (!actions?.buttons.length) return null;
+
+      return (
+        <div
+          className={`flex gap-2 ${actions.align === "center" ? "justify-center" : actions.align === "right" ? "justify-end" : "justify-start"}`}
+        >
+          {actions.buttons.map((button, index) => {
+            // Check if button should be visible
+            const isVisible = button.visible ? button.visible(rowData) : true;
+            if (!isVisible) return null;
+
+            const isDisabled = button.disabled
+              ? button.disabled(rowData)
+              : false;
+
+            const getIconName =
+              typeof button.icon === "function"
+                ? button.icon(rowData)
+                : button.icon;
+            const tooltipText =
+              typeof button.tooltip === "function"
+                ? button.tooltip(rowData)
+                : button.tooltip;
+
+            return (
+              <Button
+                key={index}
+                size="small"
+                rounded
+                icon={getIconName}
+                tooltip={tooltipText}
+                severity={button.severity}
+                tooltipOptions={
+                  button.tooltipOptions || {
+                    position: "top",
+                    style: { fontSize: "12px" },
+                  }
+                }
+                pt={{
+                  root: {
+                    style: { height: "37px", width: "30px" },
+                  },
+                }}
+                className={button.className}
+                raised
+                onClick={() => button.onClick(rowData)}
+                disabled={isDisabled}
+                outlined={isDisabled}
+                text={isDisabled}
+              />
+            );
+          })}
+        </div>
+      );
+    },
+    [actions],
+  );
+
+  useEffect(() => {
+    if (
+      actions &&
+      actions.buttons.length > 0 &&
+      !columns.some(
+        (col) => col.header === actions.header || col.header === "Actions",
+      )
+    ) {
+      const actionColumn: ColumnDef<T> = {
+        header: actions.header || "Actions",
+        body: renderActions,
+        style: { width: actions.buttons.length * 40 + "px" },
+      };
+
+      const updatedColumns = [...columns, actionColumn];
+      setDisplayColumns(updatedColumns);
+    } else {
+      setDisplayColumns(columns);
+    }
+  }, [columns, actions, renderActions]);
+
+  const [displayColumns, setDisplayColumns] = useState<ColumnDef<T>[]>(columns);
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   const renderHeader = () => {
     return (
@@ -173,7 +293,7 @@ const Table = <T extends { [key: string]: unknown }>({
       first={paginator ? (paginator.currentPage - 1) * currentRows : 0}
       onPage={handlePage}
     >
-      {columns.map((col, index) => (
+      {displayColumns.map((col, index) => (
         <Column key={index} {...convertToColumnProps(col)} />
       ))}
     </DataTable>

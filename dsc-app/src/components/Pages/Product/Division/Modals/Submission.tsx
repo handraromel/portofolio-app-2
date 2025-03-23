@@ -1,68 +1,76 @@
 import React, { useEffect } from "react";
 import { Modal } from "@/components/Common";
-import { productBrandSchema } from "@/schemas/validations/product";
+import { productDivisionSchema } from "@/schemas/validations/product";
 import { useForm, FormProvider } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { ProductBrand, ProductBrandSubmission } from "@/types/product";
+import { ProductDivision, ProductDivisionSubmission } from "@/types/product";
 import { InputField } from "@/components/Inputs";
 import { Button } from "primereact/button";
 import { Tooltip } from "primereact/tooltip";
 import { useToast } from "@/context/Toast";
-import { useBrand } from "@/actions/product/useBrand";
+import { useDivision } from "@/actions/product/useDivision";
 import { ApiError } from "@/types/api";
 
 interface SubmissionProps {
   visible: boolean;
   onHide: () => void;
-  brand: ProductBrand | null;
+  division: ProductDivision | null;
 }
 
-const defaultValues: ProductBrandSubmission = {
-  id: null,
+const defaultValues: ProductDivisionSubmission = {
   name: "",
+  alias: null,
 };
 
-const Submission: React.FC<SubmissionProps> = ({ visible, onHide, brand }) => {
+const Submission: React.FC<SubmissionProps> = ({
+  visible,
+  onHide,
+  division,
+}) => {
   const { showSuccess, showError } = useToast();
-  const { createBrand, updateBrand, isLoading } = useBrand();
+  const { createDivision, updateDivision, isLoading } = useDivision();
 
-  const extractBrandValues = (
-    brand: ProductBrand | null,
-  ): ProductBrandSubmission => {
-    if (!brand) return defaultValues;
+  const extractDivisionValues = (
+    division: ProductDivision | null,
+  ): ProductDivisionSubmission => {
+    if (!division) return defaultValues;
 
     return {
-      id: brand.id,
-      name: brand.name,
+      name: division.name,
+      alias: division.alias,
     };
   };
 
-  const submissionForm = useForm<ProductBrandSubmission>({
-    resolver: yupResolver<ProductBrandSubmission>(productBrandSchema),
+  const submissionForm = useForm<ProductDivisionSubmission>({
+    resolver: yupResolver<ProductDivisionSubmission>(productDivisionSchema),
     mode: "onBlur",
     defaultValues: defaultValues,
   });
 
   useEffect(() => {
     if (visible) {
-      submissionForm.reset(brand ? extractBrandValues(brand) : defaultValues);
+      submissionForm.reset(
+        division ? extractDivisionValues(division) : defaultValues,
+      );
     }
-  }, [visible, brand, submissionForm]);
+  }, [visible, division, submissionForm]);
 
   const { isValid, isDirty, isSubmitting } = submissionForm.formState;
 
   const handleReset = () => {
-    submissionForm.reset(brand ? extractBrandValues(brand) : defaultValues);
+    submissionForm.reset(
+      division ? extractDivisionValues(division) : defaultValues,
+    );
   };
 
-  const handleSubmit = async (values: ProductBrandSubmission) => {
+  const handleSubmit = async (values: ProductDivisionSubmission) => {
     try {
-      if (brand) {
-        await updateBrand(brand.uuid, values);
-        showSuccess("Brand updated successfully");
+      if (division) {
+        await updateDivision(division.uuid, values);
+        showSuccess("Division updated successfully");
       } else {
-        await createBrand(values);
-        showSuccess("Brand created successfully");
+        await createDivision(values);
+        showSuccess("Division created successfully");
       }
       onHide();
       submissionForm.reset(defaultValues);
@@ -96,7 +104,7 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, brand }) => {
     <Modal
       visible={visible}
       onHide={handleClose}
-      header={brand ? "Update Brand" : "Create Brand"}
+      header={division ? "Update Division" : "Create Division"}
       className="w-[500px]"
       onClose={handleReset}
       icons={modalIcons}
@@ -109,20 +117,18 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, brand }) => {
             className="space-y-4"
           >
             <InputField
-              id="id"
-              name="id"
-              type="text"
-              label="Brand ID"
-              placeholder="Brand ID"
-              numericOnly
-              disabled={!!brand}
-            />
-            <InputField
               id="name"
               name="name"
               type="text"
-              label="Brand Name"
-              placeholder="Brand Name"
+              label="Division Name"
+              placeholder="Division Name"
+            />
+            <InputField
+              id="alias"
+              name="alias"
+              type="text"
+              label="Alias (Optional)"
+              placeholder="Division Alias"
             />
 
             <div className="flex justify-end gap-2 pt-4">

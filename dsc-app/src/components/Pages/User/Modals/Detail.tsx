@@ -23,6 +23,7 @@ export const Detail: React.FC<DetailModalProps> = ({
   if (!user) return null;
 
   const createdDate = new Date(user.created_at);
+  const updatedDate = new Date(user.updated_at);
 
   const getTimeAgo = (date: Date) => {
     return formatDistanceToNow(date, { addSuffix: true });
@@ -109,7 +110,7 @@ export const Detail: React.FC<DetailModalProps> = ({
 
         {/* Account information */}
         <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div className="rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 p-4 shadow-sm dark:from-blue-900/20 dark:to-purple-900/20">
             <div className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
               Username
             </div>
@@ -118,7 +119,7 @@ export const Detail: React.FC<DetailModalProps> = ({
             </div>
           </div>
 
-          <div className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div className="rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 p-4 shadow-sm dark:from-blue-900/20 dark:to-purple-900/20">
             <div className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
               Account Created
             </div>
@@ -127,6 +128,17 @@ export const Detail: React.FC<DetailModalProps> = ({
             </div>
             <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               {getTimeAgo(createdDate)}
+            </div>
+          </div>
+          <div className="rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 p-4 shadow-sm dark:from-blue-900/20 dark:to-purple-900/20">
+            <div className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+              Last Update
+            </div>
+            <div className="text-gray-800 dark:text-gray-200">
+              {formatDate(user.updated_at)}
+            </div>
+            <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {getTimeAgo(updatedDate)}
             </div>
           </div>
         </div>

@@ -1,68 +1,68 @@
 import React, { useEffect } from "react";
 import { Modal } from "@/components/Common";
-import { productBrandSchema } from "@/schemas/validations/product";
+import { productGroupSchema } from "@/schemas/validations/product";
 import { useForm, FormProvider } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { ProductBrand, ProductBrandSubmission } from "@/types/product";
+import { ProductGroup, ProductGroupSubmission } from "@/types/product";
 import { InputField } from "@/components/Inputs";
 import { Button } from "primereact/button";
 import { Tooltip } from "primereact/tooltip";
 import { useToast } from "@/context/Toast";
-import { useBrand } from "@/actions/product/useBrand";
+import { useGroup } from "@/actions/product/useGroup";
 import { ApiError } from "@/types/api";
 
 interface SubmissionProps {
   visible: boolean;
   onHide: () => void;
-  brand: ProductBrand | null;
+  group: ProductGroup | null;
 }
 
-const defaultValues: ProductBrandSubmission = {
+const defaultValues: ProductGroupSubmission = {
   id: null,
   name: "",
 };
 
-const Submission: React.FC<SubmissionProps> = ({ visible, onHide, brand }) => {
+const Submission: React.FC<SubmissionProps> = ({ visible, onHide, group }) => {
   const { showSuccess, showError } = useToast();
-  const { createBrand, updateBrand, isLoading } = useBrand();
+  const { createGroup, updateGroup, isLoading } = useGroup();
 
-  const extractBrandValues = (
-    brand: ProductBrand | null,
-  ): ProductBrandSubmission => {
-    if (!brand) return defaultValues;
+  const extractGroupValues = (
+    group: ProductGroup | null,
+  ): ProductGroupSubmission => {
+    if (!group) return defaultValues;
 
     return {
-      id: brand.id,
-      name: brand.name,
+      id: group.id,
+      name: group.name,
     };
   };
 
-  const submissionForm = useForm<ProductBrandSubmission>({
-    resolver: yupResolver<ProductBrandSubmission>(productBrandSchema),
+  const submissionForm = useForm<ProductGroupSubmission>({
+    resolver: yupResolver<ProductGroupSubmission>(productGroupSchema),
     mode: "onBlur",
     defaultValues: defaultValues,
   });
 
   useEffect(() => {
     if (visible) {
-      submissionForm.reset(brand ? extractBrandValues(brand) : defaultValues);
+      submissionForm.reset(group ? extractGroupValues(group) : defaultValues);
     }
-  }, [visible, brand, submissionForm]);
+  }, [visible, group, submissionForm]);
 
   const { isValid, isDirty, isSubmitting } = submissionForm.formState;
 
   const handleReset = () => {
-    submissionForm.reset(brand ? extractBrandValues(brand) : defaultValues);
+    submissionForm.reset(group ? extractGroupValues(group) : defaultValues);
   };
 
-  const handleSubmit = async (values: ProductBrandSubmission) => {
+  const handleSubmit = async (values: ProductGroupSubmission) => {
     try {
-      if (brand) {
-        await updateBrand(brand.uuid, values);
-        showSuccess("Brand updated successfully");
+      if (group) {
+        await updateGroup(group.uuid, values);
+        showSuccess("Group updated successfully");
       } else {
-        await createBrand(values);
-        showSuccess("Brand created successfully");
+        await createGroup(values);
+        showSuccess("Group created successfully");
       }
       onHide();
       submissionForm.reset(defaultValues);
@@ -96,7 +96,7 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, brand }) => {
     <Modal
       visible={visible}
       onHide={handleClose}
-      header={brand ? "Update Brand" : "Create Brand"}
+      header={group ? "Update Group" : "Create Group"}
       className="w-[500px]"
       onClose={handleReset}
       icons={modalIcons}
@@ -112,17 +112,17 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, brand }) => {
               id="id"
               name="id"
               type="text"
-              label="Brand ID"
-              placeholder="Brand ID"
+              label="Group ID"
+              placeholder="Group ID"
               numericOnly
-              disabled={!!brand}
+              disabled={!!group}
             />
             <InputField
               id="name"
               name="name"
               type="text"
-              label="Brand Name"
-              placeholder="Brand Name"
+              label="Group Name"
+              placeholder="Group Name"
             />
 
             <div className="flex justify-end gap-2 pt-4">

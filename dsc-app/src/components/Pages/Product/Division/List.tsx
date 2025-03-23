@@ -1,63 +1,63 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState } from "react";
 import { formatDate } from "@/utils/formatDate";
-import { ProductCategory } from "@/types/product";
+import { ProductDivision } from "@/types/product";
 import { Confirmation, ColumnDef } from "@/components/Common";
 import { useModal, usePermission } from "@/hooks";
 import { useToast } from "@/context/Toast";
-import { useCategory } from "@/actions/product/useCategory";
+import { useDivision } from "@/actions/product/useDivision";
 import Table from "@/components/Common/Table";
 import Submission from "./Modals/Submission";
 import Detail from "./Modals/Detail";
 
-const CategoryList: React.FC = () => {
+const DivisionList: React.FC = () => {
   const { canEdit, canDelete } = usePermission();
   const {
-    categories,
+    divisions,
     pagination,
     isLoading,
     error,
-    fetchCategories,
-    deleteCategory,
-    searchCategories,
+    fetchDivisions,
+    deleteDivision,
+    searchDivisions,
     changePage,
     changePerPage,
-    categoriesQuery,
+    divisionsQuery,
     filters,
-  } = useCategory();
+  } = useDivision();
 
   const { showWarning, showError } = useToast();
-  const responseMsg = categoriesQuery.data?.msg;
-  const [selectedCategory, setSelectedCategory] =
-    useState<ProductCategory | null>(null);
+  const responseMsg = divisionsQuery.data?.msg;
+  const [selectedDivision, setSelectedDivision] =
+    useState<ProductDivision | null>(null);
   const submissionModal = useModal();
   const detailModal = useModal();
   const [triggerDelete, setTriggerDelete] = useState(false);
 
-  const handleSubmission = (category?: ProductCategory) => {
-    setSelectedCategory(category ?? null);
+  const handleSubmission = (division?: ProductDivision) => {
+    setSelectedDivision(division ?? null);
     submissionModal.open();
   };
 
-  const handleView = (category: ProductCategory) => {
-    setSelectedCategory(category);
+  const handleView = (division: ProductDivision) => {
+    setSelectedDivision(division);
     detailModal.open();
   };
 
   const handleDeleteConfirm = useCallback(async () => {
-    if (selectedCategory) {
+    if (selectedDivision) {
       try {
-        await deleteCategory(selectedCategory.uuid);
-        showWarning(responseMsg || "Category deleted successfully");
+        await deleteDivision(selectedDivision.uuid);
+        showWarning(responseMsg || "Division deleted successfully");
         setTriggerDelete(false);
       } catch {
-        showError(responseMsg || "Failed to delete category");
+        showError(responseMsg || "Failed to delete division");
       }
     }
-  }, [selectedCategory, deleteCategory, responseMsg, showWarning, showError]);
+  }, [selectedDivision, deleteDivision, responseMsg, showWarning, showError]);
 
-  const indexTemplate = (rowData: ProductCategory) => {
-    const index = categories.findIndex(
-      (category) => category.uuid === rowData.uuid,
+  const indexTemplate = (rowData: ProductDivision) => {
+    const index = divisions.findIndex(
+      (division) => division.uuid === rowData.uuid,
     );
     return (
       (pagination.currentPage || 1) * (filters.per_page || 10) -
@@ -68,34 +68,40 @@ const CategoryList: React.FC = () => {
   };
 
   const handleRefresh = useCallback(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+    fetchDivisions();
+  }, [fetchDivisions]);
 
-  const columns: ColumnDef<ProductCategory>[] = [
+  const columns: ColumnDef<ProductDivision>[] = [
     {
       header: "No",
       body: indexTemplate,
     },
     {
       field: "name",
-      header: "Category Name",
+      header: "Division Name",
+      sortable: true,
+    },
+    {
+      field: "alias",
+      header: "Alias",
+      body: (rowData: ProductDivision) => rowData.alias || "-",
       sortable: true,
     },
     {
       field: "created_at",
       header: "Created At",
-      body: (rowData: ProductCategory) => formatDate(rowData.created_at),
+      body: (rowData: ProductDivision) => formatDate(rowData.created_at),
       sortable: true,
     },
     {
       field: "updated_at",
       header: "Updated At",
-      body: (rowData: ProductCategory) => formatDate(rowData.updated_at),
+      body: (rowData: ProductDivision) => formatDate(rowData.updated_at),
       sortable: true,
     },
   ];
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (error) {
       showError(error instanceof Error ? error.message : "An error occurred");
     }
@@ -104,13 +110,13 @@ const CategoryList: React.FC = () => {
   return (
     <>
       <Table
-        data={categories}
+        data={divisions}
         columns={columns}
-        title="Manage Product Categories"
+        title="Manage Product Divisions"
         loading={isLoading}
-        globalSearchFields={["name"]}
+        globalSearchFields={["name", "alias"]}
         actionButton={{
-          label: "Add Category",
+          label: "Add Division",
           onClick: () => handleSubmission(),
           visible: canEdit(),
         }}
@@ -123,9 +129,10 @@ const CategoryList: React.FC = () => {
           rows: filters.per_page,
           onRowsPerPageChange: changePerPage,
         }}
-        onSearch={searchCategories}
+        onSearch={searchDivisions}
         actions={{
           header: "Actions",
+          align: "center",
           buttons: [
             {
               icon: "pi pi-pencil",
@@ -139,7 +146,7 @@ const CategoryList: React.FC = () => {
               tooltip: "Delete",
               severity: "danger",
               onClick: (rowData) => {
-                setSelectedCategory(rowData);
+                setSelectedDivision(rowData);
                 setTriggerDelete(true);
               },
               visible: () => canDelete(),
@@ -158,21 +165,21 @@ const CategoryList: React.FC = () => {
       <Submission
         visible={submissionModal.isOpen}
         onHide={submissionModal.close}
-        category={selectedCategory}
+        division={selectedDivision}
       />
 
       <Detail
         visible={detailModal.isOpen}
         onHide={detailModal.close}
-        category={selectedCategory}
+        division={selectedDivision}
       />
 
       <Confirmation
         visible={triggerDelete}
         onHide={() => setTriggerDelete(false)}
         onConfirm={handleDeleteConfirm}
-        message={`Are you sure you want to delete category ${selectedCategory?.name}?`}
-        header="Delete Category"
+        message={`Are you sure you want to delete division ${selectedDivision?.name}?`}
+        header="Delete Division"
         icon="pi pi-exclamation-triangle"
         acceptLabel="Delete"
         rejectLabel="Cancel"
@@ -181,4 +188,4 @@ const CategoryList: React.FC = () => {
   );
 };
 
-export default CategoryList;
+export default DivisionList;

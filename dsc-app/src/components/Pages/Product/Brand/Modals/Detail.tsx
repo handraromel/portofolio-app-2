@@ -15,6 +15,7 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, brand }) => {
   if (!brand) return null;
 
   const createdDate = new Date(brand.created_at);
+  const updatedDate = new Date(brand.updated_at);
 
   const getTimeAgo = (date: Date) => {
     return formatDistanceToNow(date, { addSuffix: true });
@@ -45,7 +46,7 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, brand }) => {
 
         <div className="mb-5 grid grid-cols-1 gap-6 sm:grid-cols-2">
           {/* Brand ID card */}
-          <div className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div className="rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 p-4 shadow-sm dark:from-blue-900/20 dark:to-purple-900/20">
             <div className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
               Brand ID
             </div>
@@ -57,7 +58,7 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, brand }) => {
           </div>
 
           {/* Created date card */}
-          <div className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div className="rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 p-4 shadow-sm dark:from-blue-900/20 dark:to-purple-900/20">
             <div className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
               Created
             </div>
@@ -67,6 +68,21 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, brand }) => {
               </div>
               <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 {getTimeAgo(createdDate)}
+              </div>
+            </div>
+          </div>
+
+          {/* Updated date card */}
+          <div className="rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 p-4 shadow-sm dark:from-blue-900/20 dark:to-purple-900/20">
+            <div className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+              Updated
+            </div>
+            <div className="flex flex-col">
+              <div className="text-gray-800 dark:text-gray-200">
+                {formatDate(brand.updated_at)}
+              </div>
+              <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {getTimeAgo(updatedDate)}
               </div>
             </div>
           </div>
