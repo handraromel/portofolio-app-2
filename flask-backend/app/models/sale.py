@@ -9,7 +9,7 @@ class Sale(db.Model):
 
     uuid = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     sale_qty = db.Column(db.Integer, nullable=False, default=0)
-    discount_amt = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
+    discounted_amt = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
     sale_amt = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
     sku = db.Column(db.String(50), nullable=True)
     item_no = db.Column(db.String(50), nullable=True)
@@ -41,4 +41,4 @@ class Sale(db.Model):
         "ProductCategory", backref=db.backref("sales", lazy=True))
 
     def __repr__(self):
-        return f"<Sale {self.id} - {self.name}>"
+        return f"<Sale {self.uuid} - {self.sku}>"

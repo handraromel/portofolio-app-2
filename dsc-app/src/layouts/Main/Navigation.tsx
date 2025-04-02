@@ -52,6 +52,19 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    id: "tax-config",
+    label: "Tax Configuration",
+    icon: "pi pi-percentage",
+    subItems: [
+      {
+        id: "tax-list",
+        label: "Tax List",
+        href: "/configurations/tax",
+        permissions: ["canEdit"],
+      },
+    ],
+  },
+  {
     id: "manageUser",
     label: "Manage Users",
     href: "/users",

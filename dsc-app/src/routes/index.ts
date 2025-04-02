@@ -2,6 +2,7 @@ import { lazy } from "react";
 import { routes as authRoutes } from "./auth";
 import { routes as userRoutes } from "./user";
 import { routes as productRoutes } from "./product";
+import { routes as taxRoutes } from "./tax";
 import { Route } from "./types";
 
 const Dashboard = lazy(() => import("@/components/Pages/Dashboard"));
@@ -21,6 +22,7 @@ export const routes: Route[] = [
   })),
   ...userRoutes,
   ...productRoutes,
+  ...taxRoutes,
 ];
 
 export { NotFound, BadGateway };
