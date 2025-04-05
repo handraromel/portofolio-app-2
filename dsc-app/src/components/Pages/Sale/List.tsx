@@ -11,6 +11,8 @@ import { FilterData } from "@/types/sale";
 import DailySales from "./Reports/DailySales";
 import MtdSales from "./Reports/MtdSales";
 import Filter from "./Modal/Filter";
+import Detail from "./Modal/Detail";
+import Submission from "./Modal/Submission";
 
 const SaleList: React.FC = () => {
   const { canEdit, canDelete } = usePermission();
@@ -38,7 +40,11 @@ const SaleList: React.FC = () => {
   const responseMsg = salesQuery.data?.msg;
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [triggerDelete, setTriggerDelete] = useState(false);
+
+  // Modals
   const filterModal = useModal();
+  const detailModal = useModal();
+  const submissionModal = useModal();
 
   const handleFetchData = (e: { index: number }) => {
     setActiveTab(e.index);
@@ -80,14 +86,19 @@ const SaleList: React.FC = () => {
     changeProductFilters(brand_id, group_id, division_id, category_id);
   };
 
-  const indexTemplate = (rowData: Sale) => {
-    const index = sales.findIndex((sale) => sale.uuid === rowData.uuid);
-    return (
-      (pagination.currentPage || 1) * (filters.per_page || 10) -
-      (filters.per_page || 10) +
-      index +
-      1
-    );
+  const handleView = (sale: Sale) => {
+    setSelectedSale(sale);
+    detailModal.open();
+  };
+
+  const handleEdit = (sale: Sale) => {
+    setSelectedSale(sale);
+    submissionModal.open();
+  };
+
+  const handleAdd = () => {
+    setSelectedSale(null);
+    submissionModal.open();
   };
 
   const handleRefresh = useCallback(() => {
@@ -100,22 +111,91 @@ const SaleList: React.FC = () => {
     }
   }, [fetchSales, fetchDailySales, fetchMtdSales, activeTab]);
 
+  const indexTemplate = (rowData: Sale) => {
+    const index = sales.findIndex((sale) => sale.uuid === rowData.uuid);
+    return (
+      (pagination.currentPage || 1) * (filters.per_page || 10) -
+      (filters.per_page || 10) +
+      index +
+      1
+    );
+  };
+
   const columns: ColumnDef<Sale>[] = [
     {
       header: "No",
       body: indexTemplate,
+      width: "30px",
+    },
+    {
+      header: "Brand",
+      body: (rowData: Sale) => rowData.brand.name,
+      sortable: true,
+      width: "200px",
+    },
+    {
+      header: "Division",
+      body: (rowData: Sale) => rowData.division.name,
+      sortable: true,
+      width: "200px",
+    },
+    {
+      header: "Group",
+      body: (rowData: Sale) => rowData.group.name,
+      sortable: true,
+      width: "200px",
+    },
+    {
+      header: "Category",
+      body: (rowData: Sale) => rowData.category.name,
+      sortable: true,
+      width: "200px",
+    },
+    {
+      field: "description",
+      header: "Description",
+      body: (rowData: Sale) => rowData.description || "-",
+      sortable: true,
+      width: "200px",
+    },
+    {
+      field: "sku",
+      header: "SKU",
+      body: (rowData: Sale) => rowData.sku || "-",
+      sortable: true,
+      width: "200px",
+    },
+    {
+      field: "item_no",
+      header: "Item No",
+      body: (rowData: Sale) => rowData.item_no || "-",
+      sortable: true,
+      width: "200px",
     },
     {
       field: "input_date",
-      header: "Date",
+      header: "Input Date",
       body: (rowData: Sale) =>
         formatDate(rowData.input_date, { format: "DD MMM YYYY" }),
       sortable: true,
+      width: "200px",
     },
     {
       field: "sale_qty",
       header: "Quantity",
       sortable: true,
+      width: "200px",
+    },
+    {
+      field: "sale_amt",
+      header: "Sale Amount",
+      body: (rowData: Sale) =>
+        new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "IDR",
+        }).format(rowData.sale_amt),
+      sortable: true,
+      width: "200px",
     },
     {
       field: "gross_sales",
@@ -123,9 +203,21 @@ const SaleList: React.FC = () => {
       body: (rowData: Sale) =>
         new Intl.NumberFormat("en-US", {
           style: "currency",
-          currency: "USD",
+          currency: "IDR",
         }).format(rowData.gross_sales),
       sortable: true,
+      width: "200px",
+    },
+    {
+      field: "discounted_amt",
+      header: "Discount Amount",
+      body: (rowData: Sale) =>
+        new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "IDR",
+        }).format(rowData.discounted_amt),
+      sortable: true,
+      width: "200px",
     },
     {
       field: "nett_sales",
@@ -133,9 +225,10 @@ const SaleList: React.FC = () => {
       body: (rowData: Sale) =>
         new Intl.NumberFormat("en-US", {
           style: "currency",
-          currency: "USD",
+          currency: "IDR",
         }).format(rowData.nett_sales),
       sortable: true,
+      width: "200px",
     },
     {
       field: "tax_amount",
@@ -143,9 +236,10 @@ const SaleList: React.FC = () => {
       body: (rowData: Sale) =>
         new Intl.NumberFormat("en-US", {
           style: "currency",
-          currency: "USD",
+          currency: "IDR",
         }).format(rowData.tax_amount),
       sortable: true,
+      width: "200px",
     },
     {
       field: "nett_sales_after_tax",
@@ -153,19 +247,10 @@ const SaleList: React.FC = () => {
       body: (rowData: Sale) =>
         new Intl.NumberFormat("en-US", {
           style: "currency",
-          currency: "USD",
+          currency: "IDR",
         }).format(rowData.nett_sales_after_tax),
       sortable: true,
-    },
-    {
-      field: "brand.name" as keyof Sale,
-      header: "Brand",
-      sortable: true,
-    },
-    {
-      field: "division.name" as keyof Sale,
-      header: "Division",
-      sortable: true,
+      width: "200px",
     },
   ];
 
@@ -206,15 +291,10 @@ const SaleList: React.FC = () => {
               columns={columns}
               title="Sales Records"
               loading={isLoading}
-              globalSearchFields={[
-                "sku",
-                "item_no",
-                "description",
-                "brand.name" as keyof Sale,
-              ]}
+              globalSearchFields={["sku", "item_no", "description"]}
               actionButton={{
                 label: "Add Sale",
-                onClick: () => {},
+                onClick: handleAdd,
                 visible: canEdit(),
               }}
               otherActions={[
@@ -247,7 +327,7 @@ const SaleList: React.FC = () => {
                     icon: "pi pi-pencil",
                     tooltip: "Edit",
                     severity: "success",
-                    onClick: () => {}, // Will implement for edit later
+                    onClick: handleEdit,
                     visible: () => canEdit(),
                   },
                   {
@@ -264,7 +344,7 @@ const SaleList: React.FC = () => {
                     icon: "pi pi-eye",
                     tooltip: "View",
                     severity: "info",
-                    onClick: () => {}, // Will implement for view later
+                    onClick: handleView,
                     visible: () => true,
                   },
                 ],
@@ -280,12 +360,25 @@ const SaleList: React.FC = () => {
         </TabPanel>
       </TabView>
 
+      {/* Modals */}
       <Filter
         visible={filterModal.isOpen}
         onHide={filterModal.close}
         onApply={handleFilterApply}
         currentFilters={filters}
         filterType="list"
+      />
+
+      <Detail
+        visible={detailModal.isOpen}
+        onHide={detailModal.close}
+        sale={selectedSale}
+      />
+
+      <Submission
+        visible={submissionModal.isOpen}
+        onHide={submissionModal.close}
+        sale={selectedSale}
       />
 
       <Confirmation

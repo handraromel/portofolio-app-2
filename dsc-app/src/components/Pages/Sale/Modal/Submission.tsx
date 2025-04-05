@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { Modal } from "@/components/Common";
 import { useForm, FormProvider } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import { InputField } from "@/components/Inputs";
 import { Button } from "primereact/button";
 import { Tooltip } from "primereact/tooltip";
@@ -14,6 +13,7 @@ import { useBrand } from "@/actions/product/useBrand";
 import { useGroup } from "@/actions/product/useGroup";
 import { useDivision } from "@/actions/product/useDivision";
 import { useCategory } from "@/actions/product/useCategory";
+import { saleSubmissionSchema } from "@/schemas/validations/sale";
 import FieldSelect from "@/components/Inputs/InputSelect";
 import { ApiError } from "@/types/api";
 
@@ -23,40 +23,14 @@ interface SubmissionProps {
   sale?: Sale | null;
 }
 
-// Create a validation schema
-const saleSubmissionSchema = yup.object({
-  sale_qty: yup
-    .number()
-    .required("Quantity is required")
-    .positive("Quantity must be positive")
-    .typeError("Quantity must be a number"),
-  sale_amt: yup
-    .number()
-    .required("Sale amount is required")
-    .min(0, "Sale amount cannot be negative")
-    .typeError("Sale amount must be a number"),
-  discounted_amt: yup
-    .number()
-    .min(0, "Discount amount cannot be negative")
-    .typeError("Discount amount must be a number"),
-  sku: yup.string().nullable(),
-  item_no: yup.string().nullable(),
-  input_date: yup.string().required("Date is required"),
-  description: yup.string().nullable(),
-  product_brand_id: yup.string().required("Brand is required"),
-  product_group_id: yup.string().required("Group is required"),
-  product_division_id: yup.string().required("Division is required"),
-  product_category_id: yup.string().required("Category is required"),
-});
-
 const defaultValues: SaleSubmission = {
   sale_qty: 0,
   discounted_amt: 0,
   sale_amt: 0,
-  sku: null,
-  item_no: null,
+  sku: "",
+  item_no: "",
   input_date: getTodayFormatted(),
-  description: null,
+  description: "",
   product_brand_id: "",
   product_group_id: "",
   product_division_id: "",
@@ -67,13 +41,11 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, sale }) => {
   const { showSuccess, showError } = useToast();
   const { createSale, updateSale, isLoading } = useSale();
 
-  // Get product data for dropdowns
   const { brands } = useBrand();
   const { groups } = useGroup();
   const { divisions } = useDivision();
   const { categories } = useCategory();
 
-  // Transform to sale submission object
   const extractSaleValues = (sale: Sale | null): SaleSubmission => {
     if (!sale) return defaultValues;
 

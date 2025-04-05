@@ -12,6 +12,7 @@ export interface ColumnDef<T> extends Omit<ColumnProps, "field" | "body"> {
   body?: (data: T) => React.ReactNode;
   sortable?: boolean;
   style?: React.CSSProperties;
+  width?: string;
 }
 
 export interface PaginatorProps {
@@ -124,9 +125,16 @@ const Table = <T extends { [key: string]: unknown }>({
     (rowData: T) => {
       if (!actions?.buttons.length) return null;
 
+      // Calculate appropriate width for actions column based on number of buttons
+      const actionWidth =
+        actions.buttons.filter((b) => !b.visible || b.visible(rowData)).length *
+          40 +
+        "px";
+
       return (
         <div
           className={`flex gap-2 ${actions.align === "center" ? "justify-center" : actions.align === "right" ? "justify-end" : "justify-start"}`}
+          style={{ minWidth: actionWidth }}
         >
           {actions.buttons.map((button, index) => {
             // Check if button should be visible
@@ -191,7 +199,7 @@ const Table = <T extends { [key: string]: unknown }>({
       const actionColumn: ColumnDef<T> = {
         header: actions.header || "Actions",
         body: renderActions,
-        style: { width: actions.buttons.length * 40 + "px" },
+        width: actions.buttons.length * 40 + "px",
       };
 
       const updatedColumns = [...columns, actionColumn];
@@ -257,10 +265,18 @@ const Table = <T extends { [key: string]: unknown }>({
     );
   };
 
-  const convertToColumnProps = (col: ColumnDef<T>): ColumnProps => ({
-    ...col,
-    field: col.field as string,
-  });
+  const convertToColumnProps = (col: ColumnDef<T>): ColumnProps => {
+    const style: React.CSSProperties = {
+      ...(col.style || {}),
+      ...(col.width ? { width: col.width } : {}),
+    };
+
+    return {
+      ...col,
+      field: col.field as string,
+      style: Object.keys(style).length > 0 ? style : undefined,
+    };
+  };
 
   const footerTemplate = () => {
     if (totalRecords !== undefined) {
