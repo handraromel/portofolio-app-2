@@ -119,15 +119,15 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, sale }) => {
   };
 
   const brandOptions = brands.map((brand) => ({
-    label: brand.name,
+    label: `${brand.id} - ${brand.name}`,
     value: brand.uuid,
   }));
   const groupOptions = groups.map((group) => ({
-    label: group.name,
+    label: `${group.id} - ${group.name}`,
     value: group.uuid,
   }));
   const divisionOptions = divisions.map((division) => ({
-    label: division.name,
+    label: `${division.name} - ${division.alias}`,
     value: division.uuid,
   }));
   const categoryOptions = categories.map((category) => ({
@@ -182,8 +182,8 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, sale }) => {
                 id="input_date"
                 name="input_date"
                 type="datepicker"
-                label="Date"
-                placeholder="Select sale date"
+                label="Input Date"
+                placeholder="Select sale input date"
               />
             </div>
 

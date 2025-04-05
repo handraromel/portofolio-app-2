@@ -114,7 +114,7 @@ export const useDailySales = (
         const response = await apiClient<{ data?: DailySalesSummary }>(
           endpoint,
         );
-        return response.data?.data || null;
+        return response.data || null;
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -164,7 +164,7 @@ export const useMtdSales = (
     queryFn: async (): Promise<MtdSalesSummary | null> => {
       try {
         const response = await apiClient<{ data?: MtdSalesSummary }>(endpoint);
-        return response.data?.data || null;
+        return response.data || null;
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -181,7 +181,7 @@ export const useCreateSale = () => {
 
   return useMutation({
     mutationFn: (data: SaleSubmission) =>
-      apiClient(`${salePrefix}`, { data, method: "POST" }),
+      apiClient(`${salePrefix}/create`, { data, method: "POST" }),
     onSuccess: () => {
       // Invalidate and refetch sales list
       queryClient.invalidateQueries({ queryKey: saleKeys.lists() });

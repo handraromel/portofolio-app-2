@@ -348,9 +348,7 @@ const SaleList: React.FC = () => {
         onHide={filterModal.close}
         onApply={handleFilterApply}
         currentFilters={filters}
-        filterType={
-          activeTab === 0 ? "list" : activeTab === 1 ? "daily" : "mtd"
-        }
+        filterType="list"
       />
 
       <Detail
