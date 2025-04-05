@@ -3,7 +3,6 @@ from datetime import date
 
 
 class TaxConfigurationSchema(Schema):
-    uuid = fields.UUID(dump_only=True)
     name = fields.String(
         required=True, validate=validate.Length(min=2, max=100))
     tax_rate = fields.Decimal(required=True, places=2,

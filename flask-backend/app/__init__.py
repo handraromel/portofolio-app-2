@@ -65,19 +65,21 @@ def create_app():
 
     with app.app_context():
         from app import models
-        from app.routes import auth, user, product, tax_config, utils
+        from app.routes import auth, user, product, tax_config, sale, utils
 
         url_prefix = '/api/v1'
         auth_prefix = url_prefix + '/auth/user'
         user_prefix = url_prefix + '/manage/user'
         product_prefix = url_prefix + '/manage/product'
         tax_config_prefix = url_prefix + '/manage/tax'
+        sales_prefix = url_prefix + '/manage/sales'
         utils_prefix = url_prefix + '/utils'
 
         app.register_blueprint(auth.bp, url_prefix=auth_prefix)
         app.register_blueprint(user.bp, url_prefix=user_prefix)
         app.register_blueprint(product.bp, url_prefix=product_prefix)
         app.register_blueprint(tax_config.bp, url_prefix=tax_config_prefix)
+        app.register_blueprint(sale.bp, url_prefix=sales_prefix)
         app.register_blueprint(utils.bp, url_prefix=utils_prefix)
 
     return app

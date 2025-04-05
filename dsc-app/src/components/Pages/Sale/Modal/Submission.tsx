@@ -1,0 +1,305 @@
+import React, { useEffect } from "react";
+import { Modal } from "@/components/Common";
+import { useForm, FormProvider } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { InputField } from "@/components/Inputs";
+import { Button } from "primereact/button";
+import { Tooltip } from "primereact/tooltip";
+import { useToast } from "@/context/Toast";
+import { useSale } from "@/actions/useSale";
+import { Sale, SaleSubmission } from "@/types/sale";
+import { getTodayFormatted, formatDateFromAPI } from "@/utils/formatDate";
+import { useBrand } from "@/actions/product/useBrand";
+import { useGroup } from "@/actions/product/useGroup";
+import { useDivision } from "@/actions/product/useDivision";
+import { useCategory } from "@/actions/product/useCategory";
+import FieldSelect from "@/components/Inputs/InputSelect";
+import { ApiError } from "@/types/api";
+
+interface SubmissionProps {
+  visible: boolean;
+  onHide: () => void;
+  sale?: Sale | null;
+}
+
+// Create a validation schema
+const saleSubmissionSchema = yup.object({
+  sale_qty: yup
+    .number()
+    .required("Quantity is required")
+    .positive("Quantity must be positive")
+    .typeError("Quantity must be a number"),
+  sale_amt: yup
+    .number()
+    .required("Sale amount is required")
+    .min(0, "Sale amount cannot be negative")
+    .typeError("Sale amount must be a number"),
+  discounted_amt: yup
+    .number()
+    .min(0, "Discount amount cannot be negative")
+    .typeError("Discount amount must be a number"),
+  sku: yup.string().nullable(),
+  item_no: yup.string().nullable(),
+  input_date: yup.string().required("Date is required"),
+  description: yup.string().nullable(),
+  product_brand_id: yup.string().required("Brand is required"),
+  product_group_id: yup.string().required("Group is required"),
+  product_division_id: yup.string().required("Division is required"),
+  product_category_id: yup.string().required("Category is required"),
+});
+
+const defaultValues: SaleSubmission = {
+  sale_qty: 0,
+  discounted_amt: 0,
+  sale_amt: 0,
+  sku: null,
+  item_no: null,
+  input_date: getTodayFormatted(),
+  description: null,
+  product_brand_id: "",
+  product_group_id: "",
+  product_division_id: "",
+  product_category_id: "",
+};
+
+const Submission: React.FC<SubmissionProps> = ({ visible, onHide, sale }) => {
+  const { showSuccess, showError } = useToast();
+  const { createSale, updateSale, isLoading } = useSale();
+
+  // Get product data for dropdowns
+  const { brands } = useBrand();
+  const { groups } = useGroup();
+  const { divisions } = useDivision();
+  const { categories } = useCategory();
+
+  // Transform to sale submission object
+  const extractSaleValues = (sale: Sale | null): SaleSubmission => {
+    if (!sale) return defaultValues;
+
+    return {
+      sale_qty: sale.sale_qty,
+      discounted_amt: sale.discounted_amt,
+      sale_amt: sale.sale_amt,
+      sku: sale.sku,
+      item_no: sale.item_no,
+      input_date: formatDateFromAPI(sale.input_date) || getTodayFormatted(),
+      description: sale.description,
+      product_brand_id: sale.brand.uuid,
+      product_group_id: sale.group.uuid,
+      product_division_id: sale.division.uuid,
+      product_category_id: sale.category.uuid,
+    };
+  };
+
+  const submissionForm = useForm<SaleSubmission>({
+    resolver: yupResolver<SaleSubmission>(saleSubmissionSchema),
+    mode: "onBlur",
+    defaultValues,
+  });
+
+  useEffect(() => {
+    if (visible) {
+      submissionForm.reset(sale ? extractSaleValues(sale) : defaultValues);
+    }
+  }, [visible, sale, submissionForm]);
+
+  const { isValid, isDirty, isSubmitting } = submissionForm.formState;
+
+  const handleReset = () => {
+    submissionForm.reset(sale ? extractSaleValues(sale) : defaultValues);
+  };
+
+  const handleSubmit = async (values: SaleSubmission) => {
+    try {
+      if (sale) {
+        await updateSale(sale.uuid, values);
+        showSuccess("Sale record updated successfully");
+      } else {
+        await createSale(values);
+        showSuccess("Sale record created successfully");
+      }
+      onHide();
+      submissionForm.reset(defaultValues);
+    } catch (err) {
+      const error = err as ApiError;
+      const errorMessage = error.response?.data?.msg || "Operation failed";
+      showError(errorMessage);
+    }
+  };
+
+  const modalIcons = (
+    <>
+      <Tooltip target=".resetIcon" position="top" content="Reset form" />
+      <div
+        onClick={handleReset}
+        className="resetIcon group relative h-8 w-8 cursor-pointer rounded-full text-center text-gray-400 transition-all hover:bg-gray-500/7 hover:text-gray-700 dark:hover:bg-gray-100/3 dark:hover:text-gray-100"
+        aria-label="Reset form"
+      >
+        <i className="pi pi-refresh mt-[7px]" />
+      </div>
+    </>
+  );
+
+  const handleClose = () => {
+    onHide();
+    submissionForm.reset(defaultValues);
+  };
+
+  const brandOptions = brands.map((brand) => ({
+    label: brand.name,
+    value: brand.uuid,
+  }));
+  const groupOptions = groups.map((group) => ({
+    label: group.name,
+    value: group.uuid,
+  }));
+  const divisionOptions = divisions.map((division) => ({
+    label: division.name,
+    value: division.uuid,
+  }));
+  const categoryOptions = categories.map((category) => ({
+    label: category.name,
+    value: category.uuid,
+  }));
+
+  return (
+    <Modal
+      visible={visible}
+      onHide={handleClose}
+      header={sale ? "Edit Sale Record" : "Add Sale Record"}
+      className="w-[600px]"
+      onClose={handleReset}
+      icons={modalIcons}
+      blockOutsideClick
+    >
+      <div className="p-4">
+        <FormProvider {...submissionForm}>
+          <form
+            onSubmit={submissionForm.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <InputField
+                id="sale_qty"
+                name="sale_qty"
+                type="number"
+                label="Quantity"
+                placeholder="Enter sale quantity"
+              />
+
+              <InputField
+                id="sale_amt"
+                name="sale_amt"
+                type="number"
+                label="Sale Amount"
+                placeholder="Enter sale amount"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <InputField
+                id="discounted_amt"
+                name="discounted_amt"
+                type="number"
+                label="Discount Amount"
+                placeholder="Enter discount amount"
+              />
+
+              <InputField
+                id="input_date"
+                name="input_date"
+                type="datepicker"
+                label="Date"
+                placeholder="Select sale date"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <InputField
+                id="sku"
+                name="sku"
+                type="text"
+                label="SKU (Optional)"
+                placeholder="Enter SKU"
+              />
+
+              <InputField
+                id="item_no"
+                name="item_no"
+                type="text"
+                label="Item Number (Optional)"
+                placeholder="Enter item number"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FieldSelect
+                id="product_brand_id"
+                name="product_brand_id"
+                label="Brand"
+                options={brandOptions}
+                placeholder="Select brand"
+              />
+
+              <FieldSelect
+                id="product_group_id"
+                name="product_group_id"
+                label="Group"
+                options={groupOptions}
+                placeholder="Select group"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FieldSelect
+                id="product_division_id"
+                name="product_division_id"
+                label="Division"
+                options={divisionOptions}
+                placeholder="Select division"
+              />
+
+              <FieldSelect
+                id="product_category_id"
+                name="product_category_id"
+                label="Category"
+                options={categoryOptions}
+                placeholder="Select category"
+              />
+            </div>
+
+            <InputField
+              id="description"
+              name="description"
+              type="text"
+              label="Description (Optional)"
+              placeholder="Enter a description"
+              rows={3}
+            />
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                label="Cancel"
+                severity="secondary"
+                outlined
+                size="small"
+                onClick={handleClose}
+              />
+              <Button
+                type="submit"
+                label="Submit"
+                size="small"
+                loading={isSubmitting || isLoading}
+                disabled={!isValid || !isDirty || isSubmitting || isLoading}
+              />
+            </div>
+          </form>
+        </FormProvider>
+      </div>
+    </Modal>
+  );
+};
+
+export default Submission;

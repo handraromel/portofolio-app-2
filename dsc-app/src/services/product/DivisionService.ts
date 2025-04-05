@@ -47,7 +47,7 @@ export const useProductDivision = (divisionId: string) => {
       const response = await apiClient<ProductDivision>(
         `${productPrefix}/divisions/${divisionId}`,
       );
-      return response as ProductDivision;
+      return response as unknown as ProductDivision;
     },
     enabled: !!divisionId,
   });

@@ -50,7 +50,7 @@ export const useUser = (userId: string) => {
     queryKey: userKeys.detail(userId),
     queryFn: async (): Promise<User> => {
       const response = await apiClient<User>(`${userPrefix}/${userId}`);
-      return response as User;
+      return response as unknown as User;
     },
     enabled: !!userId,
   });

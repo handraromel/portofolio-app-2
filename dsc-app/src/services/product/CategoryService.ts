@@ -47,7 +47,7 @@ export const useProductCategory = (categoryId: string) => {
       const response = await apiClient<ProductCategory>(
         `${productPrefix}/categories/${categoryId}`,
       );
-      return response as ProductCategory;
+      return response as unknown as ProductCategory;
     },
     enabled: !!categoryId,
   });

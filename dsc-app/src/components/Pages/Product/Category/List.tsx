@@ -114,7 +114,14 @@ const CategoryList: React.FC = () => {
           onClick: () => handleSubmission(),
           visible: canEdit(),
         }}
-        onRefresh={handleRefresh}
+        otherActions={[
+          {
+            icon: "pi pi-refresh",
+            tooltip: "Refresh list",
+            severity: "info",
+            onClick: handleRefresh,
+          },
+        ]}
         totalRecords={pagination.totalRecords}
         paginator={{
           currentPage: pagination.currentPage || 1,

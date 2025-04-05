@@ -1,4 +1,5 @@
 import { User } from "./user";
+import { Sale } from "./sale";
 
 export interface ApiResponse<T = unknown> {
   msg?: string;
@@ -7,6 +8,7 @@ export interface ApiResponse<T = unknown> {
   users?: User[];
   user?: T;
   data?: T;
+  sale: Sale;
   success?: boolean;
   error?: string;
   current_page?: number;

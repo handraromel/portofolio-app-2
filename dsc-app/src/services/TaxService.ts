@@ -31,7 +31,7 @@ export const useTaxConfigurations = (filters: TaxQueryFilters = {}) => {
   if (filters.end_date) queryParams.append("end_date", filters.end_date);
 
   const queryString = queryParams.toString();
-  const endpoint = `${taxPrefix}/all${queryString ? `?${queryString}` : ""}`;
+  const endpoint = `${taxPrefix}${queryString ? `?${queryString}` : ""}`;
 
   return useQuery<TaxConfigurationResponse, Error>({
     queryKey: taxConfigKeys.list(filters),
@@ -49,7 +49,7 @@ export const useTaxConfiguration = (configId: string) => {
       const response = await apiClient<TaxConfiguration>(
         `${taxPrefix}/${configId}`,
       );
-      return response as TaxConfiguration;
+      return response as unknown as TaxConfiguration;
     },
     enabled: !!configId,
   });

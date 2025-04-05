@@ -1,5 +1,6 @@
 import moment from "moment";
 import { format, parseISO, isValid } from "date-fns";
+import { dateFormats } from "../constants/dateFormats";
 
 type DateInput = string | number | Date | moment.Moment;
 
@@ -35,19 +36,6 @@ export const formatDate = (
 
   return momentDate.format(format);
 };
-
-// Common format presets
-export const dateFormats = {
-  SHORT_DATE: "DD/MM/YYYY",
-  LONG_DATE: "DD MMMM YYYY",
-  CALENDAR_DATE: "DD MMM YYYY",
-  CALENDAR_DATE_TIME: "DD MMM YYYY HH:mm",
-  SHORT_DATETIME: "DD/MM/YYYY HH:mm",
-  LONG_DATETIME: "DD MMMM YYYY HH:mm",
-  TIME: "HH:mm",
-  ISO: "YYYY-MM-DD[T]HH:mm:ss.SSS[Z]",
-  API_DATE: "yyyy-MM-dd",
-} as const;
 
 /**
  * Formats a date from API (ISO format) to a specific date format

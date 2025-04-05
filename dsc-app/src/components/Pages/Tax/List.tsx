@@ -8,8 +8,8 @@ import { useTax } from "@/actions/useTax";
 import Table from "@/components/Common/Table";
 import Submission from "./Modals/Submission";
 import Details from "./Modals/Details";
-import { dateFormats } from "@/utils/formatDate";
 import { Tag } from "primereact/tag";
+import { dateFormats } from "@/constants/dateFormats";
 
 const TaxConfigurationList: React.FC = () => {
   const { canEdit, canDelete } = usePermission();
@@ -157,7 +157,14 @@ const TaxConfigurationList: React.FC = () => {
           onClick: () => handleSubmission(),
           visible: canEdit(),
         }}
-        onRefresh={handleRefresh}
+        otherActions={[
+          {
+            icon: "pi pi-refresh",
+            tooltip: "Refresh list",
+            severity: "info",
+            onClick: handleRefresh,
+          },
+        ]}
         totalRecords={pagination.totalRecords}
         paginator={{
           currentPage: pagination.currentPage || 1,

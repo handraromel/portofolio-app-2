@@ -47,7 +47,7 @@ export const useProductBrand = (brandId: string) => {
       const response = await apiClient<ProductBrand>(
         `${productPrefix}/brands/${brandId}`,
       );
-      return response as ProductBrand;
+      return response as unknown as ProductBrand;
     },
     enabled: !!brandId,
   });

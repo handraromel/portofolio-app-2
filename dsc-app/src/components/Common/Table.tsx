@@ -40,6 +40,23 @@ export interface ActionButton<T> {
   tooltipOptions?: object;
 }
 
+export interface TableAction {
+  icon: string;
+  tooltip?: string;
+  severity?:
+    | "secondary"
+    | "success"
+    | "info"
+    | "warning"
+    | "danger"
+    | "help"
+    | "contrast";
+  onClick: () => void;
+  tooltipOptions?: object;
+  className?: string;
+  disabled?: boolean;
+}
+
 export interface TableProps<T> {
   data: T[];
   columns: ColumnDef<T>[];
@@ -51,7 +68,8 @@ export interface TableProps<T> {
     onClick: () => void;
     visible?: boolean;
   };
-  onRefresh?: () => void;
+  // New property for multiple action buttons
+  otherActions?: TableAction[];
   totalRecords?: number;
   paginator?: PaginatorProps;
   onSearch?: (search: string) => void;
@@ -69,7 +87,7 @@ const Table = <T extends { [key: string]: unknown }>({
   loading = false,
   globalSearchFields = [],
   actionButton,
-  onRefresh,
+  otherActions = [],
   totalRecords,
   paginator,
   onSearch,
@@ -216,19 +234,23 @@ const Table = <T extends { [key: string]: unknown }>({
                 onClick={actionButton.onClick}
               />
             )}
-            {onRefresh && (
+
+            {/* Render all other action buttons */}
+            {otherActions.map((action, index) => (
               <Button
-                icon="pi pi-refresh"
+                key={index}
+                icon={action.icon}
                 rounded
                 size="small"
-                severity="info"
-                aria-label="Refresh"
-                tooltip="Refresh list"
-                tooltipOptions={{ position: "top" }}
-                onClick={onRefresh}
-                className="h-11 p-1"
+                severity={action.severity || "info"}
+                aria-label={action.tooltip || action.icon}
+                tooltip={action.tooltip}
+                tooltipOptions={action.tooltipOptions || { position: "top" }}
+                onClick={action.onClick}
+                className={`h-11 p-1 ${action.className || ""}`}
+                disabled={action.disabled}
               />
-            )}
+            ))}
           </div>
         </div>
       </div>

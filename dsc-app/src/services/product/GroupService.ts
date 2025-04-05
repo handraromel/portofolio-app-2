@@ -47,7 +47,7 @@ export const useProductGroup = (groupId: string) => {
       const response = await apiClient<ProductGroup>(
         `${productPrefix}/groups/${groupId}`,
       );
-      return response as ProductGroup;
+      return response as unknown as ProductGroup;
     },
     enabled: !!groupId,
   });

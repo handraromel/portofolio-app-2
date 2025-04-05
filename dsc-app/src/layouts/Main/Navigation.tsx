@@ -25,6 +25,12 @@ const menuItems: MenuItem[] = [
     icon: "pi pi-user",
   },
   {
+    id: "sales",
+    label: "Sales",
+    icon: "pi pi-shopping-cart",
+    href: "/sales",
+  },
+  {
     id: "products",
     label: "Products",
     icon: "pi pi-tag",
