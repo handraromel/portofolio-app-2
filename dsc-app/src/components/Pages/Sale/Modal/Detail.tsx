@@ -2,6 +2,7 @@ import React from "react";
 import { Modal } from "@/components/Common";
 import { Sale } from "@/types/sale";
 import { formatDate } from "@/utils/formatDate";
+import { dateFormats } from "@/constants/dateFormats";
 import { Tag } from "primereact/tag";
 import { formatDistanceToNow } from "date-fns";
 import { Card } from "primereact/card";
@@ -46,7 +47,10 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
                 <i className="pi pi-shopping-cart text-lg"></i>
               </div>
               <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                Sale on {formatDate(sale.input_date)}
+                Sale on{" "}
+                {formatDate(sale.input_date, {
+                  format: dateFormats.CALENDAR_DATE,
+                })}
               </h2>
             </div>
             <Tag
@@ -132,6 +136,14 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
                   {formatCurrency(sale.nett_sales)}
                 </span>
               </div>
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-500">
+                  Net After Tax:
+                </span>
+                <span className="font-semibold">
+                  {formatCurrency(sale.nett_sales_after_tax)}
+                </span>
+              </div>
             </div>
           </Card>
 
@@ -148,14 +160,6 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
                   {formatCurrency(sale.tax_amount)}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">
-                  Net After Tax:
-                </span>
-                <span className="font-semibold">
-                  {formatCurrency(sale.nett_sales_after_tax)}
-                </span>
-              </div>
             </div>
           </Card>
 
@@ -164,11 +168,15 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">Input Date:</span>
-                <span className="font-semibold">
-                  {formatDate(sale.input_date)}
-                </span>
-                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {getTimeAgo(inputDate)}
+                <div className="text-right">
+                  <div>
+                    {formatDate(sale.input_date, {
+                      format: dateFormats.CALENDAR_DATE,
+                    })}
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {getTimeAgo(inputDate)}
+                  </div>
                 </div>
               </div>
               <div className="flex justify-between">

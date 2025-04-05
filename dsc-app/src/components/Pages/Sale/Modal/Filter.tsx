@@ -8,25 +8,15 @@ import { useGroup } from "@/actions/product/useGroup";
 import { useDivision } from "@/actions/product/useDivision";
 import { useCategory } from "@/actions/product/useCategory";
 import FieldSelect from "@/components/Inputs/InputSelect";
-import { getTodayFormatted } from "@/utils/formatDate";
 import { FilterData } from "@/types/sale";
+import { getTodayFormatted, formatDateForAPI } from "@/utils/formatDate";
 
 interface FilterProps {
   visible: boolean;
   onHide: () => void;
-  onApply: (filters: SaleFilters) => void;
-  currentFilters?: SaleFilters;
+  onApply: (filters: FilterData) => void;
+  currentFilters?: FilterData;
   filterType: "list" | "daily" | "mtd";
-}
-
-interface SaleFilters {
-  start_date?: string;
-  end_date?: string;
-  brand_id?: string;
-  group_id?: string;
-  division_id?: string;
-  category_id?: string;
-  date?: string; // For daily and mtd reports
 }
 
 const Filter: React.FC<FilterProps> = ({
@@ -42,42 +32,64 @@ const Filter: React.FC<FilterProps> = ({
   const { divisions } = useDivision();
   const { categories } = useCategory();
 
-  const filterForm = useForm<SaleFilters>({
-    defaultValues: {
-      start_date: "",
-      end_date: "",
-      brand_id: "",
-      group_id: "",
-      division_id: "",
-      category_id: "",
-      date: getTodayFormatted(),
-    },
+  const defaultValues: FilterData = {
+    start_date: "",
+    end_date: "",
+    brand_id: "",
+    group_id: "",
+    division_id: "",
+    category_id: "",
+    date: getTodayFormatted(),
+  };
+
+  const filterForm = useForm<FilterData>({
+    defaultValues,
   });
 
   const { handleSubmit, reset } = filterForm;
 
-  // Reset form when modal opens
+  // Reset form when modal opens with current filters
   useEffect(() => {
     if (visible) {
-      reset({
+      const initialValues = {
+        ...defaultValues,
         ...currentFilters,
-      });
+      };
+
+      // Reset with current filters or defaults
+      reset(initialValues);
     }
   }, [visible, reset, currentFilters]);
 
-  const onSubmit = (data: SaleFilters) => {
+  const onSubmit = (data: FilterData) => {
+    // Format dates properly before sending them to the API
+    const formattedData = { ...data };
+
+    if (formattedData.start_date) {
+      formattedData.start_date =
+        formatDateForAPI(formattedData.start_date) || "";
+    }
+
+    if (formattedData.end_date) {
+      formattedData.end_date = formatDateForAPI(formattedData.end_date) || "";
+    }
+
+    if (formattedData.date) {
+      formattedData.date = formatDateForAPI(formattedData.date) || "";
+    }
+
     // Clean up empty strings
-    const cleanData = Object.entries(data).reduce(
+    const cleanData = Object.entries(formattedData).reduce(
       (acc, [key, value]) => {
         if (value !== "") {
-          acc[key] = value;
+          acc[key as keyof FilterData] = value;
         }
         return acc;
       },
-      {} as Record<string, FilterData>,
+      {} as Partial<FilterData>,
     );
 
-    onApply(cleanData as SaleFilters);
+    onApply(cleanData);
     onHide();
   };
 
@@ -101,19 +113,28 @@ const Filter: React.FC<FilterProps> = ({
           };
 
     reset(emptyFilters);
+
+    // Apply the cleared filters
+    onApply({});
+    onHide();
+  };
+
+  // Handle cancel button to close modal without applying filters
+  const handleCancel = () => {
+    onHide();
   };
 
   // Transform arrays to dropdown options
   const brandOptions = brands.map((brand) => ({
-    label: brand.name,
+    label: `${brand.id} - ${brand.name}`,
     value: brand.uuid,
   }));
   const groupOptions = groups.map((group) => ({
-    label: group.name,
+    label: `${group.id} - ${group.name}`,
     value: group.uuid,
   }));
   const divisionOptions = divisions.map((division) => ({
-    label: division.name,
+    label: `${division.name} - ${division.alias}`,
     value: division.uuid,
   }));
   const categoryOptions = categories.map((category) => ({
@@ -131,7 +152,7 @@ const Filter: React.FC<FilterProps> = ({
   return (
     <Modal
       visible={visible}
-      onHide={onHide}
+      onHide={handleCancel}
       header={`${filterType === "list" ? "Sales" : filterType === "daily" ? "Daily Sales" : "MTD Sales"} Filters`}
       className="w-[600px]"
       blockOutsideClick
@@ -221,7 +242,7 @@ const Filter: React.FC<FilterProps> = ({
                 severity="secondary"
                 outlined
                 size="small"
-                onClick={onHide}
+                onClick={handleCancel}
               />
               <Button type="submit" label="Apply Filters" size="small" />
             </div>

@@ -121,8 +121,8 @@ export const useSale = () => {
   const handleDateRangeChange = (start_date?: string, end_date?: string) => {
     setFilters((prev) => ({
       ...prev,
-      start_date: start_date || undefined,
-      end_date: end_date || undefined,
+      start_date: start_date && start_date !== "" ? start_date : undefined,
+      end_date: end_date && end_date !== "" ? end_date : undefined,
       page: 1,
     }));
   };
@@ -135,10 +135,10 @@ export const useSale = () => {
   ) => {
     setFilters((prev) => ({
       ...prev,
-      brand_id,
-      group_id,
-      division_id,
-      category_id,
+      brand_id: brand_id && brand_id !== "" ? brand_id : undefined,
+      group_id: group_id && group_id !== "" ? group_id : undefined,
+      division_id: division_id && division_id !== "" ? division_id : undefined,
+      category_id: category_id && category_id !== "" ? category_id : undefined,
       page: 1,
     }));
   };

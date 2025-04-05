@@ -268,13 +268,14 @@ const Table = <T extends { [key: string]: unknown }>({
   const convertToColumnProps = (col: ColumnDef<T>): ColumnProps => {
     const style: React.CSSProperties = {
       ...(col.style || {}),
-      ...(col.width ? { width: col.width } : {}),
+      ...(col.width ? { width: col.width, maxWidth: col.width } : {}),
     };
 
     return {
       ...col,
       field: col.field as string,
       style: Object.keys(style).length > 0 ? style : undefined,
+      frozen: false,
     };
   };
 
@@ -323,9 +324,12 @@ const Table = <T extends { [key: string]: unknown }>({
       header={renderHeader}
       footer={footerTemplate}
       emptyMessage="No data found."
-      className="p-datatable-lg flex flex-1 flex-col [&_.p-datatable-scrollable-header]:!z-2 [&_.p-datatable-scrollable-table>.p-datatable-thead]:!z-2 [&_.p-datatable-thead]:!z-2"
-      scrollable
+      className="p-datatable-lg flex flex-1 flex-col [&_.p-column-header-content]:!w-full [&_.p-column-header-content]:!overflow-hidden [&_.p-column-title]:!whitespace-nowrap [&_.p-datatable-scrollable-header]:!z-2 [&_.p-datatable-scrollable-table>.p-datatable-thead]:!z-2 [&_.p-datatable-thead]:!z-2"
+      scrollable={true}
       scrollHeight="flex"
+      resizableColumns={false}
+      columnResizeMode="fit"
+      tableStyle={{ minWidth: "100%" }}
       totalRecords={totalRecords}
       lazy={!!paginator}
       first={paginator ? (paginator.currentPage - 1) * currentRows : 0}

@@ -67,7 +67,6 @@ const SaleList: React.FC = () => {
   }, [selectedSale, deleteSale, responseMsg, showWarning, showError]);
 
   const handleFilterApply = (filterData: FilterData) => {
-    // Extract date range if available
     const {
       start_date,
       end_date,
@@ -77,13 +76,11 @@ const SaleList: React.FC = () => {
       category_id,
     } = filterData;
 
-    // Apply date range filter if provided
-    if (start_date || end_date) {
-      changeDateRange(start_date, end_date);
-    }
+    changeDateRange(start_date, end_date);
 
-    // Apply product filters if provided
     changeProductFilters(brand_id, group_id, division_id, category_id);
+
+    fetchSales();
   };
 
   const handleView = (sale: Sale) => {
@@ -125,52 +122,45 @@ const SaleList: React.FC = () => {
     {
       header: "No",
       body: indexTemplate,
-      width: "30px",
     },
     {
       header: "Brand",
-      body: (rowData: Sale) => rowData.brand.name,
+      body: (rowData: Sale) => `${rowData.brand.id} - ${rowData.brand.name}`,
       sortable: true,
-      width: "200px",
     },
     {
       header: "Division",
-      body: (rowData: Sale) => rowData.division.name,
+      body: (rowData: Sale) =>
+        `${rowData.division.name} - ${rowData.division.alias}`,
       sortable: true,
-      width: "200px",
+      style: { whiteSpace: "nowrap" },
     },
     {
       header: "Group",
-      body: (rowData: Sale) => rowData.group.name,
+      body: (rowData: Sale) => `${rowData.group.id} - ${rowData.group.name}`,
       sortable: true,
-      width: "200px",
+      style: { whiteSpace: "nowrap" },
     },
     {
       header: "Category",
       body: (rowData: Sale) => rowData.category.name,
       sortable: true,
-      width: "200px",
+      style: { whiteSpace: "nowrap" },
     },
     {
       field: "description",
       header: "Description",
-      body: (rowData: Sale) => rowData.description || "-",
+      body: (rowData: Sale) =>
+        rowData.item_no
+          ? `${rowData.item_no} - ${rowData.description || "-"}`
+          : "-",
       sortable: true,
-      width: "200px",
     },
     {
       field: "sku",
       header: "SKU",
       body: (rowData: Sale) => rowData.sku || "-",
       sortable: true,
-      width: "200px",
-    },
-    {
-      field: "item_no",
-      header: "Item No",
-      body: (rowData: Sale) => rowData.item_no || "-",
-      sortable: true,
-      width: "200px",
     },
     {
       field: "input_date",
@@ -178,13 +168,11 @@ const SaleList: React.FC = () => {
       body: (rowData: Sale) =>
         formatDate(rowData.input_date, { format: "DD MMM YYYY" }),
       sortable: true,
-      width: "200px",
     },
     {
       field: "sale_qty",
       header: "Quantity",
       sortable: true,
-      width: "200px",
     },
     {
       field: "sale_amt",
@@ -195,7 +183,6 @@ const SaleList: React.FC = () => {
           currency: "IDR",
         }).format(rowData.sale_amt),
       sortable: true,
-      width: "200px",
     },
     {
       field: "gross_sales",
@@ -206,7 +193,6 @@ const SaleList: React.FC = () => {
           currency: "IDR",
         }).format(rowData.gross_sales),
       sortable: true,
-      width: "200px",
     },
     {
       field: "discounted_amt",
@@ -217,7 +203,6 @@ const SaleList: React.FC = () => {
           currency: "IDR",
         }).format(rowData.discounted_amt),
       sortable: true,
-      width: "200px",
     },
     {
       field: "nett_sales",
@@ -228,7 +213,6 @@ const SaleList: React.FC = () => {
           currency: "IDR",
         }).format(rowData.nett_sales),
       sortable: true,
-      width: "200px",
     },
     {
       field: "tax_amount",
@@ -239,7 +223,6 @@ const SaleList: React.FC = () => {
           currency: "IDR",
         }).format(rowData.tax_amount),
       sortable: true,
-      width: "200px",
     },
     {
       field: "nett_sales_after_tax",
@@ -250,7 +233,6 @@ const SaleList: React.FC = () => {
           currency: "IDR",
         }).format(rowData.nett_sales_after_tax),
       sortable: true,
-      width: "200px",
     },
   ];
 
@@ -366,7 +348,9 @@ const SaleList: React.FC = () => {
         onHide={filterModal.close}
         onApply={handleFilterApply}
         currentFilters={filters}
-        filterType="list"
+        filterType={
+          activeTab === 0 ? "list" : activeTab === 1 ? "daily" : "mtd"
+        }
       />
 
       <Detail
