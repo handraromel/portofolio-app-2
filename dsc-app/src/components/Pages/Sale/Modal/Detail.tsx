@@ -72,11 +72,11 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">SKU:</span>
-                <span className="font-semibold">{sale.sku || "N/A"}</span>
+                <span className="font-semibold">{sale.sku}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">Item No:</span>
-                <span className="font-semibold">{sale.item_no || "N/A"}</span>
+                <span className="font-semibold">{sale.item_no}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">Brand:</span>
