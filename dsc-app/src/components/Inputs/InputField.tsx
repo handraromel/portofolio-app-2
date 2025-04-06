@@ -10,6 +10,7 @@ import {
   ControllerRenderProps,
 } from "react-hook-form";
 import { css } from "./style";
+import { formatDateForAPI } from "@/utils/formatDate";
 
 type FieldValue = string | number | Date | null;
 
@@ -24,6 +25,7 @@ interface FieldInputProps {
   onBlur?: (value: string) => void | Promise<void>;
   disabled?: boolean;
   numericOnly?: boolean;
+  maxDate?: Date;
 }
 
 export const InputField: React.FC<FieldInputProps> = ({
@@ -37,6 +39,7 @@ export const InputField: React.FC<FieldInputProps> = ({
   onBlur,
   disabled = false,
   numericOnly = false,
+  maxDate,
 }) => {
   const {
     control,
@@ -92,13 +95,17 @@ export const InputField: React.FC<FieldInputProps> = ({
           <Calendar
             id={id}
             value={field.value ? new Date(field.value as string) : null}
-            onChange={(e) => field.onChange(e.value)}
-            onBlur={handleBlur}
+            onChange={(e) => {
+              const formattedDate = e.value ? formatDateForAPI(e.value) : null;
+              field.onChange(formattedDate);
+            }}
+            onBlur={field.onBlur}
             dateFormat="yy-mm-dd"
             placeholder={placeholder}
             invalid={hasError}
             className="p-inputtext-sm w-full"
             disabled={disabled}
+            maxDate={maxDate}
           />
         );
       case "number":

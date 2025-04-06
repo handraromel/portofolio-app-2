@@ -80,6 +80,8 @@ export const useDailySales = (
   group_id?: string,
   division_id?: string,
   category_id?: string,
+  page: number = 1,
+  per_page: number = 10,
   isActive: boolean = true,
 ) => {
   const queryParams = new URLSearchParams();
@@ -92,9 +94,12 @@ export const useDailySales = (
   if (group_id) queryParams.append("group_id", group_id);
   if (division_id) queryParams.append("division_id", division_id);
   if (category_id) queryParams.append("category_id", category_id);
+  queryParams.append("page", page.toString());
+  queryParams.append("per_page", per_page.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = `${salePrefix}/daily${queryString ? `?${queryString}` : ""}`;
+  // Update the endpoint to use the by-brand endpoint
+  const endpoint = `${salePrefix}/daily/by-brand${queryString ? `?${queryString}` : ""}`;
 
   const params = {
     date,
@@ -114,7 +119,7 @@ export const useDailySales = (
         const response = await apiClient<{ data?: DailySalesSummary }>(
           endpoint,
         );
-        return response.data || null;
+        return response.data;
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -134,6 +139,8 @@ export const useMtdSales = (
   group_id?: string,
   division_id?: string,
   category_id?: string,
+  page: number = 1,
+  per_page: number = 10,
   isActive: boolean = true,
 ) => {
   const queryParams = new URLSearchParams();
@@ -145,9 +152,11 @@ export const useMtdSales = (
   if (group_id) queryParams.append("group_id", group_id);
   if (division_id) queryParams.append("division_id", division_id);
   if (category_id) queryParams.append("category_id", category_id);
+  queryParams.append("page", page.toString());
+  queryParams.append("per_page", per_page.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = `${salePrefix}/mtd${queryString ? `?${queryString}` : ""}`;
+  const endpoint = `${salePrefix}/mtd/by-brand${queryString ? `?${queryString}` : ""}`;
 
   const params = {
     date,
@@ -157,6 +166,8 @@ export const useMtdSales = (
     group_id,
     division_id,
     category_id,
+    page,
+    per_page,
   };
 
   return useQuery<MtdSalesSummary | null, Error>({
@@ -164,7 +175,7 @@ export const useMtdSales = (
     queryFn: async (): Promise<MtdSalesSummary | null> => {
       try {
         const response = await apiClient<{ data?: MtdSalesSummary }>(endpoint);
-        return response.data || null;
+        return response.data;
       } catch (error) {
         if (error instanceof Error) {
           throw error;

@@ -37,7 +37,7 @@ const Details: React.FC<DetailsProps> = ({ visible, onHide, taxConfig }) => {
         <div className="mb-5">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-300">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-300">
                 <i className="pi pi-percentage text-lg"></i>
               </div>
               <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
@@ -58,7 +58,7 @@ const Details: React.FC<DetailsProps> = ({ visible, onHide, taxConfig }) => {
 
         <div className="mb-5 grid grid-cols-1 gap-6 sm:grid-cols-2">
           {/* Tax Rate card */}
-          <div className="rounded-lg bg-gradient-to-br from-green-50 to-blue-50 p-4 shadow-sm dark:from-green-900/20 dark:to-blue-900/20">
+          <div className="rounded-lg bg-gradient-to-br from-purple-50 to-blue-50 p-4 shadow-sm dark:from-purple-900/20 dark:to-blue-900/20">
             <div className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
               Tax Rate
             </div>
@@ -70,7 +70,7 @@ const Details: React.FC<DetailsProps> = ({ visible, onHide, taxConfig }) => {
           </div>
 
           {/* Effective period card */}
-          <div className="rounded-lg bg-gradient-to-br from-green-50 to-blue-50 p-4 shadow-sm dark:from-green-900/20 dark:to-blue-900/20">
+          <div className="rounded-lg bg-gradient-to-br from-purple-50 to-blue-50 p-4 shadow-sm dark:from-purple-900/20 dark:to-blue-900/20">
             <div className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
               Effective Period
             </div>
@@ -91,7 +91,7 @@ const Details: React.FC<DetailsProps> = ({ visible, onHide, taxConfig }) => {
           </div>
 
           {/* Created date card */}
-          <div className="rounded-lg bg-gradient-to-br from-green-50 to-blue-50 p-4 shadow-sm dark:from-green-900/20 dark:to-blue-900/20">
+          <div className="rounded-lg bg-gradient-to-br from-purple-50 to-blue-50 p-4 shadow-sm dark:from-purple-900/20 dark:to-blue-900/20">
             <div className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
               Created
             </div>
@@ -106,7 +106,7 @@ const Details: React.FC<DetailsProps> = ({ visible, onHide, taxConfig }) => {
           </div>
 
           {/* Updated date card */}
-          <div className="rounded-lg bg-gradient-to-br from-green-50 to-blue-50 p-4 shadow-sm dark:from-green-900/20 dark:to-blue-900/20">
+          <div className="rounded-lg bg-gradient-to-br from-purple-50 to-blue-50 p-4 shadow-sm dark:from-purple-900/20 dark:to-blue-900/20">
             <div className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">
               Updated
             </div>

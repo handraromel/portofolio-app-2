@@ -8,7 +8,11 @@ import { Tooltip } from "primereact/tooltip";
 import { useToast } from "@/context/Toast";
 import { useSale } from "@/actions/useSale";
 import { Sale, SaleSubmission } from "@/types/sale";
-import { getTodayFormatted, formatDateFromAPI } from "@/utils/formatDate";
+import {
+  formatDateForAPI,
+  formatDateFromAPI,
+  getTodayFormatted,
+} from "@/utils/formatDate";
 import { useBrand } from "@/actions/product/useBrand";
 import { useGroup } from "@/actions/product/useGroup";
 import { useDivision } from "@/actions/product/useDivision";
@@ -55,7 +59,7 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, sale }) => {
       sale_amt: sale.sale_amt,
       sku: sale.sku,
       item_no: sale.item_no,
-      input_date: formatDateFromAPI(sale.input_date) || getTodayFormatted(),
+      input_date: formatDateFromAPI(sale.input_date) || "",
       description: sale.description,
       product_brand_id: sale.brand.uuid,
       product_group_id: sale.group.uuid,
@@ -84,11 +88,16 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, sale }) => {
 
   const handleSubmit = async (values: SaleSubmission) => {
     try {
+      const submissionData = {
+        ...values,
+        input_date: formatDateForAPI(values.input_date) || "",
+      };
+
       if (sale) {
-        await updateSale(sale.uuid, values);
+        await updateSale(sale.uuid, submissionData);
         showSuccess("Sale record updated successfully");
       } else {
-        await createSale(values);
+        await createSale(submissionData);
         showSuccess("Sale record created successfully");
       }
       onHide();
@@ -181,6 +190,7 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, sale }) => {
               <InputField
                 id="input_date"
                 name="input_date"
+                maxDate={new Date()}
                 type="datepicker"
                 label="Input Date"
                 placeholder="Select sale input date"

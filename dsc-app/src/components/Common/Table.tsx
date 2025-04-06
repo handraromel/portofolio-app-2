@@ -69,16 +69,17 @@ export interface TableProps<T> {
     onClick: () => void;
     visible?: boolean;
   };
-  // New property for multiple action buttons
   otherActions?: TableAction[];
   totalRecords?: number;
   paginator?: PaginatorProps;
   onSearch?: (search: string) => void;
+  hideSearch?: boolean;
   actions?: {
     header?: string;
     buttons: ActionButton<T>[];
     align?: "left" | "center" | "right";
   };
+  dataKey?: string;
 }
 
 const Table = <T extends { [key: string]: unknown }>({
@@ -92,7 +93,9 @@ const Table = <T extends { [key: string]: unknown }>({
   totalRecords,
   paginator,
   onSearch,
+  hideSearch = false,
   actions,
+  dataKey,
 }: TableProps<T>) => {
   const [filters, setFilters] = useState({
     global: {
@@ -224,15 +227,17 @@ const Table = <T extends { [key: string]: unknown }>({
           <h2 className="text-xl font-bold">{title}</h2>
         </div>
         <div className="flex flex-col gap-4 sm:flex-row">
-          <span className="p-input-icon-left">
-            <i className="pi pi-search text-gray-500" />
-            <InputText
-              value={globalFilterValue}
-              onChange={onGlobalFilterChange}
-              placeholder="Search..."
-              className="h-12 w-full pl-8"
-            />
-          </span>
+          {!hideSearch && ( // Conditionally render the search input
+            <span className="p-input-icon-left">
+              <i className="pi pi-search text-gray-500" />
+              <InputText
+                value={globalFilterValue}
+                onChange={onGlobalFilterChange}
+                placeholder="Search..."
+                className="h-12 w-full pl-8"
+              />
+            </span>
+          )}
           <div className="flex items-center gap-3">
             {actionButton?.visible && (
               <Button
@@ -309,6 +314,26 @@ const Table = <T extends { [key: string]: unknown }>({
     }
   };
 
+  const getUniqueKeyField = () => {
+    if (dataKey && data.length > 0 && dataKey in data[0]) {
+      return dataKey;
+    }
+
+    if (data.length > 0 && "uuid" in data[0]) {
+      return "uuid";
+    }
+
+    const possibleKeys = ["id", "key", "uuid", "code"];
+
+    for (const key of possibleKeys) {
+      if (data.length > 0 && key in data[0]) {
+        return key;
+      }
+    }
+
+    return "id";
+  };
+
   return (
     <DataTable
       value={data}
@@ -316,7 +341,7 @@ const Table = <T extends { [key: string]: unknown }>({
       rows={currentRows}
       rowsPerPageOptions={[5, 10, 25, 50]}
       size="small"
-      dataKey="id"
+      dataKey={getUniqueKeyField()}
       filters={filters}
       filterDisplay="menu"
       loading={loading}

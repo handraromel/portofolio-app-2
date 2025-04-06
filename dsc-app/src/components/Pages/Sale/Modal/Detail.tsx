@@ -3,6 +3,7 @@ import { Modal } from "@/components/Common";
 import { Sale } from "@/types/sale";
 import { formatDate } from "@/utils/formatDate";
 import { dateFormats } from "@/constants/dateFormats";
+import { formatNumberToIDR } from "@/utils/formatCurrency";
 import { Tag } from "primereact/tag";
 import { formatDistanceToNow } from "date-fns";
 import { Card } from "primereact/card";
@@ -22,13 +23,6 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
 
   const getTimeAgo = (date: Date) => {
     return formatDistanceToNow(date, { addSuffix: true });
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(value);
   };
 
   return (
@@ -113,7 +107,7 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">Sale Amount:</span>
                 <span className="font-semibold">
-                  {formatCurrency(sale.sale_amt)}
+                  {formatNumberToIDR(sale.sale_amt)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -121,19 +115,19 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
                   Discount Amount:
                 </span>
                 <span className="font-semibold">
-                  {formatCurrency(sale.discounted_amt)}
+                  {formatNumberToIDR(sale.discounted_amt)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">Gross Sales:</span>
                 <span className="font-semibold">
-                  {formatCurrency(sale.gross_sales)}
+                  {formatNumberToIDR(sale.gross_sales)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">Net Sales:</span>
                 <span className="font-semibold">
-                  {formatCurrency(sale.nett_sales)}
+                  {formatNumberToIDR(sale.nett_sales)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -141,7 +135,7 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
                   Net After Tax:
                 </span>
                 <span className="font-semibold">
-                  {formatCurrency(sale.nett_sales_after_tax)}
+                  {formatNumberToIDR(sale.nett_sales_after_tax)}
                 </span>
               </div>
             </div>
@@ -157,7 +151,7 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">Tax Amount:</span>
                 <span className="font-semibold">
-                  {formatCurrency(sale.tax_amount)}
+                  {formatNumberToIDR(sale.tax_amount)}
                 </span>
               </div>
             </div>

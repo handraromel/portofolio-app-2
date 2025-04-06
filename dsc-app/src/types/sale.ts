@@ -49,7 +49,7 @@ export interface SaleSubmission {
   sale_amt: number;
   sku?: string | null;
   item_no?: string | null;
-  input_date: string;
+  input_date: string | Date;
   description?: string | null;
   product_brand_id: string;
   product_group_id: string;
@@ -70,7 +70,25 @@ export interface SaleDetailResponse extends ApiResponse {
   sale: Sale;
 }
 
-// Daily sales data structure
+export interface YearOverYearData {
+  sale_qty: number;
+  sale_amt: number;
+  discounted_amt: number;
+  gross_sales: number;
+  nett_sales: number;
+  tax_amount: number;
+  nett_sales_after_tax: number;
+  transaction_count: number;
+}
+
+export interface MtdYearOverYearData extends YearOverYearData {
+  days_with_sales: number;
+  total_days: number;
+  sales_coverage: number;
+  daily_avg_sales: number;
+}
+
+// Update DailySalesData with YoY fields
 export interface DailySalesData {
   date: string;
   sale_qty: number;
@@ -82,6 +100,9 @@ export interface DailySalesData {
   tax_amount: number;
   nett_sales_after_tax: number;
   transaction_count: number;
+  ly_data?: YearOverYearData | null;
+  growth_amt?: number | null;
+  growth_pct?: number | null;
 }
 
 // MTD sales data with additional metrics
@@ -94,36 +115,119 @@ export interface MtdSalesData extends DailySalesData {
   daily_avg_sales: number;
 }
 
-// YoY comparison metrics
-export interface YoYChanges {
-  sale_qty_change: number;
-  sale_amt_change: number;
-  discounted_amt_change: number;
-  gross_sales_change: number;
-  nett_sales_change: number;
-  nett_sales_after_tax_change: number;
-  transaction_count_change: number;
-}
-
-// Daily sales summary with YoY comparison
 export interface DailySalesSummary {
   date: string;
-  ty: DailySalesData; // This Year
-  ly: DailySalesData; // Last Year
-  yoy_changes: YoYChanges;
+  last_year_date: string; // Add this property
+  brands: {
+    brand_id: string;
+    brand_name: string;
+    group: {
+      id: string;
+      uuid: string;
+      name: string;
+    };
+    division: {
+      uuid: string;
+      name: string;
+      alias: string;
+    };
+    category: {
+      uuid: string;
+      name: string;
+    };
+    sale_qty: number;
+    sale_amt: number;
+    discounted_amt: number;
+    gross_sales: number;
+    nett_sales: number;
+    tax_rate: number;
+    tax_amount: number;
+    nett_sales_after_tax: number;
+    transaction_count: number;
+    ly_data?: YearOverYearData | null;
+    growth_amt?: number | null;
+    growth_pct?: number | null;
+  }[];
+  total: {
+    sale_qty: number;
+    sale_amt: number;
+    discounted_amt: number;
+    gross_sales: number;
+    nett_sales: number;
+    tax_amount: number;
+    nett_sales_after_tax: number;
+    transaction_count: number;
+    ly_data: YearOverYearData;
+    growth_amt: number | null;
+    growth_pct: number | null;
+  };
+  current_page: number;
+  pages: number;
+  total_records: number;
 }
 
-// MTD sales summary with YoY comparison
+// MTD sales summary
 export interface MtdSalesSummary {
   month: string;
   from_date: string;
   to_date: string;
-  ty: MtdSalesData; // This Year
-  ly: MtdSalesData; // Last Year
-  yoy_changes: YoYChanges;
+  brands: {
+    brand_id: string;
+    brand_name: string;
+    group: {
+      id: string;
+      uuid: string;
+      name: string;
+    };
+    division: {
+      uuid: string;
+      name: string;
+      alias: string;
+    };
+    category: {
+      uuid: string;
+      name: string;
+    };
+    sale_qty: number;
+    sale_amt: number;
+    discounted_amt: number;
+    gross_sales: number;
+    nett_sales: number;
+    tax_rate: number;
+    tax_amount: number;
+    nett_sales_after_tax: number;
+    transaction_count: number;
+    days_with_sales: number;
+    total_days: number;
+    sales_coverage: number;
+    daily_avg_sales: number;
+    from_date: string;
+    to_date: string;
+  }[];
+  total: {
+    sale_qty: number;
+    sale_amt: number;
+    discounted_amt: number;
+    gross_sales: number;
+    nett_sales: number;
+    tax_amount: number;
+    nett_sales_after_tax: number;
+    transaction_count: number;
+    days_with_sales: number;
+    total_days: number;
+    sales_coverage: number;
+    daily_avg_sales: number;
+    from_date: string;
+    to_date: string;
+    ly_data: MtdYearOverYearData;
+    growth_amt: number | null;
+    growth_pct: number | null;
+  };
+  current_page: number;
+  pages: number;
+  total_records: number;
 }
 
-// Query filters for sales data
 export interface SaleQueryFilters {
   page?: number;
   per_page?: number;

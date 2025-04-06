@@ -1,5 +1,6 @@
 import logging
 from flask import jsonify, request
+from datetime import date, datetime, timedelta
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.sale import SaleService
 from app.schemas.sale_schemas import SaleSchema
@@ -292,9 +293,10 @@ def delete(sale_id):
 
 
 @jwt_required()
-def get_daily_sales():
+def get_daily_sales_by_brand():
     current_user_id = get_jwt_identity()
-    logger.info(f"Daily sales summary requested by user ID: {current_user_id}")
+    logger.info(
+        f"Daily sales by brand summary requested by user ID: {current_user_id}")
 
     try:
         # Extract query parameters
@@ -307,27 +309,28 @@ def get_daily_sales():
         division_id = request.args.get('division_id')
         category_id = request.args.get('category_id')
 
-        # Get daily sales data
-        sales_data = SaleService.get_daily_sales(
+        # Get daily sales data grouped by brand
+        sales_data = SaleService.get_daily_sales_by_brand(
             date_value=date_str, year=year, month=month, day=day,
             brand_id=brand_id, group_id=group_id,
             division_id=division_id, category_id=category_id
         )
 
         logger.info(
-            f"Successfully retrieved daily sales summary for {sales_data['date']}")
-        return jsonify(sales_data), 200
+            f"Successfully retrieved daily sales by brand summary for {sales_data['date']}")
+        return jsonify({"data": sales_data, "success": True}), 200
 
     except Exception as e:
-        logger.exception(f"Error retrieving daily sales summary: {str(e)}")
-        return jsonify({"msg": "An error occurred while retrieving daily sales", "success": False}), 500
+        logger.exception(
+            f"Error retrieving daily sales by brand summary: {str(e)}")
+        return jsonify({"msg": "An error occurred while retrieving daily sales by brand", "success": False}), 500
 
 
 @jwt_required()
-def get_mtd_sales():
+def get_mtd_sales_by_brand():
     current_user_id = get_jwt_identity()
     logger.info(
-        f"Month-to-date sales summary requested by user ID: {current_user_id}")
+        f"Month-to-date sales by brand summary requested by user ID: {current_user_id}")
 
     try:
         # Extract query parameters
@@ -338,18 +341,22 @@ def get_mtd_sales():
         group_id = request.args.get('group_id')
         division_id = request.args.get('division_id')
         category_id = request.args.get('category_id')
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
 
-        # Get MTD sales data
-        sales_data = SaleService.get_mtd_sales(
+        # Get MTD sales data grouped by brand
+        sales_data = SaleService.get_mtd_sales_by_brand(
             date_value=date_str, year=year, month=month,
             brand_id=brand_id, group_id=group_id,
-            division_id=division_id, category_id=category_id
+            division_id=division_id, category_id=category_id,
+            page=page, per_page=per_page
         )
 
         logger.info(
-            f"Successfully retrieved MTD sales summary for {sales_data['month']}")
-        return jsonify(sales_data), 200
+            f"Successfully retrieved MTD sales by brand summary for {sales_data['month']}")
+        return jsonify({"data": sales_data, "success": True}), 200
 
     except Exception as e:
-        logger.exception(f"Error retrieving MTD sales summary: {str(e)}")
-        return jsonify({"msg": "An error occurred while retrieving MTD sales", "success": False}), 500
+        logger.exception(
+            f"Error retrieving MTD sales by brand summary: {str(e)}")
+        return jsonify({"msg": "An error occurred while retrieving MTD sales by brand", "success": False}), 500

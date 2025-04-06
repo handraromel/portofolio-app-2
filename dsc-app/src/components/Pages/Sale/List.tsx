@@ -1,6 +1,7 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { TabView, TabPanel } from "primereact/tabview";
 import { formatDate } from "@/utils/formatDate";
+import { formatNumberToIDR } from "@/utils/formatCurrency";
 import { Sale } from "@/types/sale";
 import { Confirmation, ColumnDef } from "@/components/Common";
 import { useModal, usePermission } from "@/hooks";
@@ -131,7 +132,7 @@ const SaleList: React.FC = () => {
     {
       header: "Division",
       body: (rowData: Sale) =>
-        `${rowData.division.name} - ${rowData.division.alias}`,
+        `${rowData.division.name}${rowData.division.alias ? ` - ${rowData.division.alias}` : ""}`,
       sortable: true,
       style: { whiteSpace: "nowrap" },
     },
@@ -177,66 +178,42 @@ const SaleList: React.FC = () => {
     {
       field: "sale_amt",
       header: "Sale Amount",
-      body: (rowData: Sale) =>
-        new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "IDR",
-        }).format(rowData.sale_amt),
+      body: (rowData: Sale) => formatNumberToIDR(rowData.sale_amt),
       sortable: true,
     },
     {
       field: "gross_sales",
       header: "Gross Sales",
-      body: (rowData: Sale) =>
-        new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "IDR",
-        }).format(rowData.gross_sales),
+      body: (rowData: Sale) => formatNumberToIDR(rowData.gross_sales),
       sortable: true,
     },
     {
       field: "discounted_amt",
       header: "Discount Amount",
-      body: (rowData: Sale) =>
-        new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "IDR",
-        }).format(rowData.discounted_amt),
+      body: (rowData: Sale) => formatNumberToIDR(rowData.discounted_amt),
       sortable: true,
     },
     {
       field: "nett_sales",
       header: "Net Sales",
-      body: (rowData: Sale) =>
-        new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "IDR",
-        }).format(rowData.nett_sales),
+      body: (rowData: Sale) => formatNumberToIDR(rowData.nett_sales),
       sortable: true,
     },
     {
       field: "tax_amount",
       header: "Tax Amount",
-      body: (rowData: Sale) =>
-        new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "IDR",
-        }).format(rowData.tax_amount),
+      body: (rowData: Sale) => formatNumberToIDR(rowData.tax_amount),
       sortable: true,
     },
     {
       field: "nett_sales_after_tax",
       header: "Net After Tax",
-      body: (rowData: Sale) =>
-        new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "IDR",
-        }).format(rowData.nett_sales_after_tax),
+      body: (rowData: Sale) => formatNumberToIDR(rowData.nett_sales_after_tax),
       sortable: true,
     },
   ];
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       showError(error instanceof Error ? error.message : "An error occurred");
     }
@@ -273,6 +250,7 @@ const SaleList: React.FC = () => {
               columns={columns}
               title="Sales Records"
               loading={isLoading}
+              key="uuid"
               globalSearchFields={["sku", "item_no", "description"]}
               actionButton={{
                 label: "Add Sale",

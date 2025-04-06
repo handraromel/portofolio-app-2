@@ -1,271 +1,347 @@
-import React, { useState, useEffect } from "react";
-import { Card } from "primereact/card";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
+import React, { useState } from "react";
 import { Button } from "primereact/button";
+import { TabView, TabPanel } from "primereact/tabview";
+import { formatNumberToIDR } from "@/utils/formatCurrency";
 import { useSale } from "@/actions/useSale";
-import { useModal } from "@/hooks";
+import { FilterData, MtdYearOverYearData } from "@/types/sale";
+import Table, { ColumnDef } from "@/components/Common/Table";
 import Filter from "../Modal/Filter";
-import { formatDate } from "@/utils/formatDate";
-import { MtdSalesSummary, FilterData } from "@/types/sale";
+import MtdSummary from "../Modal/MtdSummary";
+import { useModal } from "@/hooks";
+import GrowthIndicator from "../Components/GrowthIndicator";
 
 interface MtdSalesProps {
-  onRefresh?: () => void;
+  onRefresh: () => void;
+}
+
+interface BrandMtdSalesData {
+  brand_id: string;
+  brand_name: string;
+  group: {
+    id: string;
+    uuid: string;
+    name: string;
+  };
+  division: {
+    uuid: string;
+    name: string;
+    alias: string;
+  };
+  category: {
+    uuid: string;
+    name: string;
+  };
+  sale_qty: number;
+  sale_amt: number;
+  discounted_amt: number;
+  gross_sales: number;
+  nett_sales: number;
+  tax_rate: number;
+  tax_amount: number;
+  nett_sales_after_tax: number;
+  transaction_count: number;
+  from_date: string;
+  to_date: string;
+  days_with_sales: number;
+  total_days: number;
+  sales_coverage: number;
+  daily_avg_sales: number;
+  ly_data?: MtdYearOverYearData | null;
+  growth_amt?: number | null;
+  growth_pct?: number | null;
 }
 
 const MtdSales: React.FC<MtdSalesProps> = ({ onRefresh }) => {
-  const { mtdSalesSummary, fetchMtdSales, mtdReportParams } = useSale();
+  const {
+    mtdSalesSummary,
+    isMtdReportLoading,
+    fetchMtdSales,
+    mtdReportParams,
+  } = useSale();
 
-  const [summary, setSummary] = useState<MtdSalesSummary | null>(null);
   const filterModal = useModal();
+  const summaryModal = useModal();
 
-  useEffect(() => {
-    if (mtdSalesSummary) {
-      setSummary(mtdSalesSummary);
-    }
-  }, [mtdSalesSummary]);
+  const [activeComparisonTab, setActiveComparisonTab] = useState<number>(0);
 
   const handleFilterApply = (filters: FilterData) => {
-    fetchMtdSales(filters);
+    const { date, brand_id, group_id, division_id, category_id } = filters;
+
+    fetchMtdSales({
+      date,
+      brand_id,
+      group_id,
+      division_id,
+      category_id,
+    });
+
+    filterModal.close();
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(value);
+  const indexTemplate = (rowData: BrandMtdSalesData) => {
+    const index =
+      mtdSalesSummary?.brands.findIndex((item) => item === rowData) ?? -1;
+    return index + 1;
   };
 
-  const formatPercent = (value: number) => {
-    return `${value.toFixed(2)}%`;
+  const getStandardColumns = (): ColumnDef<BrandMtdSalesData>[] => {
+    return [
+      {
+        header: "No",
+        body: indexTemplate,
+        style: { textAlign: "center" },
+      },
+      {
+        header: "Department",
+        body: (rowData) => `${rowData.brand_id} - ${rowData.brand_name}`,
+        sortable: true,
+      },
+      {
+        field: "sale_qty",
+        header: "Quantity",
+        sortable: true,
+      },
+      {
+        field: "sale_amt",
+        header: "Sale Amount",
+        body: (rowData) => formatNumberToIDR(rowData.sale_amt),
+        sortable: true,
+      },
+      {
+        field: "discounted_amt",
+        header: "Discount",
+        body: (rowData) => formatNumberToIDR(rowData.discounted_amt),
+        sortable: true,
+      },
+      {
+        field: "gross_sales",
+        header: "Gross Sales",
+        body: (rowData) => formatNumberToIDR(rowData.gross_sales),
+        sortable: true,
+      },
+      {
+        field: "nett_sales",
+        header: "Net Sales",
+        body: (rowData) => formatNumberToIDR(rowData.nett_sales),
+        sortable: true,
+      },
+      {
+        field: "nett_sales_after_tax",
+        header: "Net After Tax",
+        body: (rowData) => formatNumberToIDR(rowData.nett_sales_after_tax),
+        sortable: true,
+      },
+      {
+        field: "transaction_count",
+        header: "Transactions",
+        sortable: true,
+      },
+      // {
+      //   field: "sales_coverage",
+      //   header: "Coverage",
+      //   body: (rowData) => `${rowData.sales_coverage.toFixed(1)}%`,
+      //   sortable: true,
+      // },
+      {
+        field: "daily_avg_sales",
+        header: "Daily Avg",
+        body: (rowData) => formatNumberToIDR(rowData.daily_avg_sales),
+        sortable: true,
+      },
+    ];
   };
 
-  const dateRange = summary
-    ? `${formatDate(summary.from_date)} - ${formatDate(summary.to_date)}`
-    : formatDate(new Date(), { format: "MMMM yyyy" });
-
-  // Format month display for header
-  const monthDisplay = summary?.month
-    ? formatDate(new Date(summary.month + "-01"), { format: "MMMM yyyy" })
-    : formatDate(new Date(), { format: "MMMM yyyy" });
-
-  // Calculate last year date range
-  const lastYearFromDate = summary
-    ? formatDate(
-        new Date(
-          new Date(summary.from_date).setFullYear(
-            new Date(summary.from_date).getFullYear() - 1,
-          ),
+  const getComparisonColumns = (): ColumnDef<BrandMtdSalesData>[] => {
+    return [
+      {
+        header: "No",
+        body: indexTemplate,
+        style: { textAlign: "center" },
+      },
+      {
+        header: "Department",
+        body: (rowData) => `${rowData.brand_id} - ${rowData.brand_name}`,
+        sortable: true,
+      },
+      {
+        header: "Quantity (TY)",
+        field: "sale_qty",
+        body: (rowData) => (
+          <div className="flex items-center justify-between">
+            <span>{rowData.sale_qty}</span>
+            {rowData.ly_data && (
+              <GrowthIndicator
+                growthValue={rowData.growth_pct ?? null}
+                isPercentage={true}
+                size="sm"
+                className="ml-2"
+              />
+            )}
+          </div>
         ),
-      )
-    : "";
-
-  const lastYearToDate = summary
-    ? formatDate(
-        new Date(
-          new Date(summary.to_date).setFullYear(
-            new Date(summary.to_date).getFullYear() - 1,
-          ),
+        sortable: true,
+      },
+      {
+        header: "Sales Amount (TY)",
+        body: (rowData) => (
+          <div className="flex items-center justify-between">
+            <span>{formatNumberToIDR(rowData.sale_amt)}</span>
+            {rowData.ly_data && (
+              <GrowthIndicator
+                growthValue={rowData.growth_pct ?? null}
+                isPercentage={true}
+                size="sm"
+                className="ml-2"
+              />
+            )}
+          </div>
         ),
-      )
-    : "";
+        sortable: true,
+      },
+      {
+        header: "Quantity (LY)",
+        body: (rowData) => (rowData.ly_data ? rowData.ly_data.sale_qty : "-"),
+        sortable: true,
+      },
+      {
+        header: "Sales Amount (LY)",
+        body: (rowData) =>
+          rowData.ly_data ? formatNumberToIDR(rowData.ly_data.sale_amt) : "-",
+        sortable: true,
+      },
+      // {
+      //   header: "Coverage (TY)",
+      //   body: (rowData) => `${rowData.sales_coverage.toFixed(1)}%`,
+      //   sortable: true,
+      // },
+      // {
+      //   header: "Coverage (LY)",
+      //   body: (rowData) =>
+      //     rowData.ly_data
+      //       ? `${rowData.ly_data.sales_coverage.toFixed(1)}%`
+      //       : "-",
+      //   sortable: true,
+      // },
+      {
+        header: "Growth (Amt)",
+        body: (rowData) => (
+          <GrowthIndicator
+            growthValue={rowData.growth_amt ?? null}
+            colorOnly={false}
+            size="md"
+          />
+        ),
+        sortable: true,
+      },
+      {
+        header: "Growth (%)",
+        body: (rowData) => (
+          <GrowthIndicator
+            growthValue={rowData.growth_pct ?? null}
+            isPercentage={true}
+            colorOnly={false}
+            size="md"
+          />
+        ),
+        sortable: true,
+      },
+    ];
+  };
 
-  const lastYearDateRange = summary
-    ? `${lastYearFromDate} - ${lastYearToDate}`
-    : "";
+  const columns =
+    activeComparisonTab === 0 ? getStandardColumns() : getComparisonColumns();
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-lg bg-white p-4 shadow-sm dark:bg-gray-900">
-        <h2 className="text-xl font-bold">
-          Month to Date Sales: {monthDisplay}
-        </h2>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Month-to-Date Sales by Brand</h2>
         <div className="flex gap-2">
           <Button
+            icon="pi pi-chart-bar"
+            label="Summary"
+            className="p-button-info p-button-outlined"
+            onClick={summaryModal.open}
+            disabled={!mtdSalesSummary}
+          />
+          <Button
             icon="pi pi-filter"
-            tooltip="Filter"
-            tooltipOptions={{ position: "left" }}
-            outlined
-            size="small"
+            label="Filter"
+            className="p-button-outlined"
             onClick={filterModal.open}
           />
-          {onRefresh && (
-            <Button
-              icon="pi pi-refresh"
-              tooltip="Refresh"
-              tooltipOptions={{ position: "left" }}
-              outlined
-              size="small"
-              onClick={onRefresh}
-            />
-          )}
+          <Button
+            icon="pi pi-refresh"
+            className="p-button-outlined"
+            onClick={() => onRefresh()}
+            tooltip="Refresh Data"
+            tooltipOptions={{ position: "top" }}
+          />
         </div>
       </div>
 
-      {summary ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {/* This Year Card */}
-          <Card title="This Year" subTitle={dateRange} className="shadow-sm">
-            <DataTable value={[summary.ty]} showGridlines stripedRows>
-              <Column field="sale_qty" header="Quantity" />
-              <Column
-                field="sale_amt"
-                header="Sale Amount"
-                body={(data) => formatCurrency(data.sale_amt)}
-              />
-              <Column
-                field="discounted_amt"
-                header="Discount Amount"
-                body={(data) => formatCurrency(data.discounted_amt)}
-              />
-              <Column
-                field="gross_sales"
-                header="Gross Sales"
-                body={(data) => formatCurrency(data.gross_sales)}
-              />
-              <Column
-                field="nett_sales"
-                header="Net Sales"
-                body={(data) => formatCurrency(data.nett_sales)}
-              />
-              <Column
-                field="tax_rate"
-                header="Tax Rate"
-                body={(data) => `${data.tax_rate}%`}
-              />
-              <Column
-                field="tax_amount"
-                header="Tax Amount"
-                body={(data) => formatCurrency(data.tax_amount)}
-              />
-              <Column
-                field="nett_sales_after_tax"
-                header="Net Sales After Tax"
-                body={(data) => formatCurrency(data.nett_sales_after_tax)}
-              />
-              <Column field="transaction_count" header="Transactions" />
-              <Column field="days_with_sales" header="Days with Sales" />
-              <Column field="total_days" header="Total Days" />
-              <Column
-                field="sales_coverage"
-                header="Sales Coverage"
-                body={(data) => formatPercent(data.sales_coverage)}
-              />
-              <Column
-                field="daily_avg_sales"
-                header="Daily Avg Sales"
-                body={(data) => formatCurrency(data.daily_avg_sales)}
-              />
-            </DataTable>
-          </Card>
+      {/* Add TabView for comparison toggle */}
+      <TabView
+        activeIndex={activeComparisonTab}
+        onTabChange={(e) => setActiveComparisonTab(e.index)}
+        className="border-none"
+        pt={{
+          root: { className: "border-0" },
+          nav: {
+            className: "flex flex-row flex-nowrap border-0 mb-8",
+            style: { border: "none", borderBottom: "none" },
+          },
+          navContainer: {
+            className: "border-0",
+            style: { borderBottom: "none" },
+          },
+          navContent: { className: "border-0" },
+          panelContainer: { className: "border-0" },
+          inkbar: {
+            style: {
+              display: "none",
+            },
+          },
+        }}
+      >
+        <TabPanel header="Standard View (TY)">
+          <div className="mt-4 text-sm text-gray-500">
+            Standard month-to-date sales metrics by brand
+          </div>
+        </TabPanel>
+        <TabPanel header="Year-over-Year Comparison (LY)">
+          <div className="mt-4 text-sm text-gray-500">
+            Comparing current month with the same period last year
+          </div>
+        </TabPanel>
+      </TabView>
 
-          {/* Last Year Card */}
-          <Card
-            title="Last Year"
-            subTitle={lastYearDateRange}
-            className="shadow-sm"
-          >
-            <DataTable value={[summary.ly]} showGridlines stripedRows>
-              <Column field="sale_qty" header="Quantity" />
-              <Column
-                field="sale_amt"
-                header="Sale Amount"
-                body={(data) => formatCurrency(data.sale_amt)}
-              />
-              <Column
-                field="discounted_amt"
-                header="Discount Amount"
-                body={(data) => formatCurrency(data.discounted_amt)}
-              />
-              <Column
-                field="gross_sales"
-                header="Gross Sales"
-                body={(data) => formatCurrency(data.gross_sales)}
-              />
-              <Column
-                field="nett_sales"
-                header="Net Sales"
-                body={(data) => formatCurrency(data.nett_sales)}
-              />
-              <Column
-                field="tax_rate"
-                header="Tax Rate"
-                body={(data) => `${data.tax_rate}%`}
-              />
-              <Column
-                field="tax_amount"
-                header="Tax Amount"
-                body={(data) => formatCurrency(data.tax_amount)}
-              />
-              <Column
-                field="nett_sales_after_tax"
-                header="Net Sales After Tax"
-                body={(data) => formatCurrency(data.nett_sales_after_tax)}
-              />
-              <Column field="transaction_count" header="Transactions" />
-              <Column field="days_with_sales" header="Days with Sales" />
-              <Column field="total_days" header="Total Days" />
-              <Column
-                field="sales_coverage"
-                header="Sales Coverage"
-                body={(data) => formatPercent(data.sales_coverage)}
-              />
-              <Column
-                field="daily_avg_sales"
-                header="Daily Avg Sales"
-                body={(data) => formatCurrency(data.daily_avg_sales)}
-              />
-            </DataTable>
-          </Card>
-        </div>
-      ) : (
-        <div className="rounded-lg bg-white p-8 text-center shadow-sm dark:bg-gray-900">
-          <p className="text-lg text-gray-500">No MTD sales data available.</p>
-        </div>
-      )}
-
-      {/* YoY Comparison */}
-      {summary && (
-        <Card title="Year over Year Comparison" className="shadow-sm">
-          <DataTable value={[summary.yoy_changes]} showGridlines stripedRows>
-            <Column
-              field="sale_qty_change"
-              header="Quantity Change"
-              body={(data) => formatPercent(data.sale_qty_change)}
-            />
-            <Column
-              field="sale_amt_change"
-              header="Sale Amount Change"
-              body={(data) => formatPercent(data.sale_amt_change)}
-            />
-            <Column
-              field="discounted_amt_change"
-              header="Discount Amount Change"
-              body={(data) => formatPercent(data.discounted_amt_change)}
-            />
-            <Column
-              field="gross_sales_change"
-              header="Gross Sales Change"
-              body={(data) => formatPercent(data.gross_sales_change)}
-            />
-            <Column
-              field="nett_sales_change"
-              header="Net Sales Change"
-              body={(data) => formatPercent(data.nett_sales_change)}
-            />
-            <Column
-              field="nett_sales_after_tax_change"
-              header="Net After Tax Change"
-              body={(data) => formatPercent(data.nett_sales_after_tax_change)}
-            />
-            <Column
-              field="transaction_count_change"
-              header="Transaction Count Change"
-              body={(data) => formatPercent(data.transaction_count_change)}
-            />
-          </DataTable>
-        </Card>
-      )}
+      <Table
+        title=""
+        data={mtdSalesSummary?.brands || []}
+        columns={columns}
+        loading={isMtdReportLoading}
+        hideSearch
+        dataKey="brand_id"
+        paginator={{
+          currentPage: mtdSalesSummary?.current_page || 1,
+          totalPages: mtdSalesSummary?.pages || 1,
+          onPageChange: (page) => {
+            fetchMtdSales({
+              ...mtdReportParams,
+              page,
+            });
+          },
+          rows: mtdReportParams.per_page,
+          onRowsPerPageChange: (rows) => {
+            fetchMtdSales({
+              ...mtdReportParams,
+              per_page: rows,
+              page: 1,
+            });
+          },
+        }}
+        totalRecords={mtdSalesSummary?.total_records}
+      />
 
       <Filter
         visible={filterModal.isOpen}
@@ -273,9 +349,16 @@ const MtdSales: React.FC<MtdSalesProps> = ({ onRefresh }) => {
         onApply={handleFilterApply}
         currentFilters={{
           ...mtdReportParams,
-          date: mtdReportParams.date ?? undefined,
+          date: mtdReportParams.date || undefined,
         }}
         filterType="mtd"
+      />
+
+      <MtdSummary
+        visible={summaryModal.isOpen}
+        onHide={summaryModal.close}
+        summaryData={mtdSalesSummary || null}
+        showYoY={activeComparisonTab === 1}
       />
     </div>
   );

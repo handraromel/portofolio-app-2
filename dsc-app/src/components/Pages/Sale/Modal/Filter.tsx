@@ -183,6 +183,7 @@ const Filter: React.FC<FilterProps> = ({
                   id="date"
                   name="date"
                   type="datepicker"
+                  maxDate={new Date()}
                   label={
                     filterType === "daily" ? "Select Date" : "Select Month"
                   }

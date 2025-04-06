@@ -24,6 +24,8 @@ export const useSale = () => {
     group_id: undefined as string | undefined,
     division_id: undefined as string | undefined,
     category_id: undefined as string | undefined,
+    page: 1,
+    per_page: 10,
   });
 
   const [mtdReportParams, setMtdReportParams] = useState({
@@ -32,6 +34,8 @@ export const useSale = () => {
     group_id: undefined as string | undefined,
     division_id: undefined as string | undefined,
     category_id: undefined as string | undefined,
+    page: 1,
+    per_page: 10,
   });
 
   // Queries
@@ -45,7 +49,6 @@ export const useSale = () => {
     dailyReportParams.group_id,
     dailyReportParams.division_id,
     dailyReportParams.category_id,
-    activeTab === 1,
   );
   const mtdSalesQuery = useMtdSales(
     mtdReportParams.date || undefined,
@@ -55,7 +58,6 @@ export const useSale = () => {
     mtdReportParams.group_id,
     mtdReportParams.division_id,
     mtdReportParams.category_id,
-    activeTab === 2,
   );
 
   // Mutations

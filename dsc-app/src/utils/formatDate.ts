@@ -2,13 +2,28 @@ import moment from "moment";
 import { format, parseISO, isValid } from "date-fns";
 import { dateFormats } from "../constants/dateFormats";
 
-type DateInput = string | number | Date | moment.Moment;
+type DateInput = string | number | Date | moment.Moment | null | undefined;
 
 interface FormatOptions {
   format?: string;
   fromNow?: boolean;
   defaultValue?: string;
+  strictParsing?: boolean;
 }
+
+/**
+ * Formats a date of any format into the desired output format
+ * Handles multiple input formats including:
+ * - ISO strings: '2023-04-06T10:30:00Z'
+ * - Date objects: new Date()
+ * - Timestamp numbers: 1680780600000
+ * - Date strings: '2023-04-06', '04/06/2023', etc.
+ * - moment objects
+ *
+ * @param date - The date to format (various formats accepted)
+ * @param options - Formatting options
+ * @returns Formatted date string or defaultValue if invalid
+ */
 
 export const formatDate = (
   date: DateInput,
@@ -18,16 +33,56 @@ export const formatDate = (
     format = dateFormats.CALENDAR_DATE_TIME,
     fromNow = false,
     defaultValue = "-",
+    strictParsing = false,
   } = options;
 
-  if (!date) {
+  if (date === null || date === undefined || date === "") {
     return defaultValue;
   }
 
-  const momentDate = moment(date);
+  if (typeof date === "number") {
+    if (date > 0 && date < 4102444800000) {
+      const momentDate = moment(date);
+      return fromNow ? momentDate.fromNow() : momentDate.format(format);
+    }
+    return defaultValue;
+  }
+
+  let momentDate: moment.Moment;
+
+  if (moment.isMoment(date)) {
+    momentDate = date;
+  } else {
+    momentDate = moment(date, undefined, strictParsing);
+  }
 
   if (!momentDate.isValid()) {
-    return defaultValue;
+    if (!strictParsing) {
+      const commonFormats = [
+        "YYYY-MM-DD",
+        "MM/DD/YYYY",
+        "DD/MM/YYYY",
+        "YYYY/MM/DD",
+        "DD-MM-YYYY",
+        "MM-DD-YYYY",
+        "YYYY.MM.DD",
+        "DD.MM.YYYY",
+        "MM.DD.YYYY",
+      ];
+
+      for (const fmt of commonFormats) {
+        const parsed = moment(date as string, fmt, true);
+        if (parsed.isValid()) {
+          momentDate = parsed;
+          break;
+        }
+      }
+    }
+
+    if (!momentDate.isValid()) {
+      console.warn(`Invalid date format encountered: ${date}`);
+      return defaultValue;
+    }
   }
 
   if (fromNow) {
