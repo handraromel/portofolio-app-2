@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Modal } from "@/components/Common";
 import { formatNumberToIDR } from "@/utils/formatCurrency";
 import { useTax } from "@/actions";
@@ -43,7 +43,7 @@ interface MtdSummaryProps {
       growth_pct: number | null;
     };
   } | null;
-  showYoY: boolean; // Add prop to control YoY display
+  showYoY: boolean;
 }
 
 const MtdSummary: React.FC<MtdSummaryProps> = ({
@@ -52,50 +52,83 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
   summaryData,
   showYoY,
 }) => {
-  if (!summaryData) return null;
-
   const { currentTaxRate } = useTax();
-  const totalData = summaryData.total || {}; // Ensure totalData is never undefined
-  const fromDate = summaryData.from_date
-    ? new Date(summaryData.from_date).toLocaleDateString()
-    : "N/A";
-  const toDate = summaryData.to_date
-    ? new Date(summaryData.to_date).toLocaleDateString()
-    : "N/A";
-  const monthTitle = summaryData.from_date
-    ? new Date(summaryData.from_date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-      })
-    : "N/A";
 
-  const lastYearMonthTitle =
-    totalData.ly_data && summaryData.from_date
-      ? new Date(
-          new Date(summaryData.from_date).setFullYear(
-            new Date(summaryData.from_date).getFullYear() - 1,
-          ),
-        ).toLocaleDateString("en-US", { year: "numeric", month: "long" })
-      : "";
+  // Process data with useMemo to avoid recalculation on renders
+  const processedData = useMemo(() => {
+    if (!summaryData) {
+      return {
+        fromDate: "N/A",
+        toDate: "N/A",
+        monthTitle: "N/A",
+        lastYearMonthTitle: "",
+        safeData: {
+          sale_qty: 0,
+          sale_amt: 0,
+          discounted_amt: 0,
+          gross_sales: 0,
+          nett_sales: 0,
+          tax_amount: 0,
+          nett_sales_after_tax: 0,
+          transaction_count: 0,
+          days_with_sales: 0,
+          total_days: 1,
+          sales_coverage: 0,
+          daily_avg_sales: 0,
+          growth_amt: 0,
+          growth_pct: 0,
+          ly_data: null,
+        },
+      };
+    }
 
-  // Add default values to prevent undefined errors
-  const safeData = {
-    sale_qty: totalData.sale_qty || 0,
-    sale_amt: totalData.sale_amt || 0,
-    discounted_amt: totalData.discounted_amt || 0,
-    gross_sales: totalData.gross_sales || 0,
-    nett_sales: totalData.nett_sales || 0,
-    tax_amount: totalData.tax_amount || 0,
-    nett_sales_after_tax: totalData.nett_sales_after_tax || 0,
-    transaction_count: totalData.transaction_count || 0,
-    days_with_sales: totalData.days_with_sales || 0,
-    total_days: totalData.total_days || 1, // Prevent division by zero
-    sales_coverage: totalData.sales_coverage || 0,
-    daily_avg_sales: totalData.daily_avg_sales || 0,
-    growth_amt: totalData.growth_amt || 0,
-    growth_pct: totalData.growth_pct || 0,
-    ly_data: totalData.ly_data || null,
-  };
+    const totalData = summaryData.total || {};
+    const fromDate = summaryData.from_date
+      ? new Date(summaryData.from_date).toLocaleDateString()
+      : "N/A";
+    const toDate = summaryData.to_date
+      ? new Date(summaryData.to_date).toLocaleDateString()
+      : "N/A";
+    const monthTitle = summaryData.from_date
+      ? new Date(summaryData.from_date).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+        })
+      : "N/A";
+
+    const lastYearMonthTitle =
+      totalData.ly_data && summaryData.from_date
+        ? new Date(
+            new Date(summaryData.from_date).setFullYear(
+              new Date(summaryData.from_date).getFullYear() - 1,
+            ),
+          ).toLocaleDateString("en-US", { year: "numeric", month: "long" })
+        : "";
+
+    // Add default values to prevent undefined errors
+    const safeData = {
+      sale_qty: totalData.sale_qty || 0,
+      sale_amt: totalData.sale_amt || 0,
+      discounted_amt: totalData.discounted_amt || 0,
+      gross_sales: totalData.gross_sales || 0,
+      nett_sales: totalData.nett_sales || 0,
+      tax_amount: totalData.tax_amount || 0,
+      nett_sales_after_tax: totalData.nett_sales_after_tax || 0,
+      transaction_count: totalData.transaction_count || 0,
+      days_with_sales: totalData.days_with_sales || 0,
+      total_days: totalData.total_days || 1,
+      sales_coverage: totalData.sales_coverage || 0,
+      daily_avg_sales: totalData.daily_avg_sales || 0,
+      growth_amt: totalData.growth_amt || 0,
+      growth_pct: totalData.growth_pct || 0,
+      ly_data: totalData.ly_data || null,
+    };
+
+    return { fromDate, toDate, monthTitle, lastYearMonthTitle, safeData };
+  }, [summaryData]);
+
+  const { fromDate, toDate, monthTitle, lastYearMonthTitle, safeData } =
+    processedData;
 
   return (
     <Modal
@@ -109,12 +142,6 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
           <h2 className="mb-2 text-lg font-medium">
             Period: {fromDate} - {toDate}
           </h2>
-          {/* <div className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-            <span>
-              Coverage: {safeData.days_with_sales}/{safeData.total_days} days (
-              {safeData.sales_coverage.toFixed(1)}%)
-            </span>
-          </div> */}
           {showYoY && safeData.ly_data && (
             <div className="mt-2 text-sm text-gray-500">
               Compared to {lastYearMonthTitle}

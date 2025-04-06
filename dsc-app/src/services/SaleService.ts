@@ -116,10 +116,9 @@ export const useDailySales = (
     queryKey: saleKeys.dailySales(params),
     queryFn: async (): Promise<DailySalesSummary | null> => {
       try {
-        const response = await apiClient<{ data?: DailySalesSummary }>(
-          endpoint,
-        );
-        return response.data;
+        const response = await apiClient<DailySalesSummary>(endpoint);
+
+        return response.data || null;
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -174,8 +173,9 @@ export const useMtdSales = (
     queryKey: saleKeys.mtdSales(params),
     queryFn: async (): Promise<MtdSalesSummary | null> => {
       try {
-        const response = await apiClient<{ data?: MtdSalesSummary }>(endpoint);
-        return response.data;
+        const response = await apiClient<MtdSalesSummary>(endpoint);
+
+        return response.data || null;
       } catch (error) {
         if (error instanceof Error) {
           throw error;

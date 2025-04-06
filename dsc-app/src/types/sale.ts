@@ -117,7 +117,7 @@ export interface MtdSalesData extends DailySalesData {
 
 export interface DailySalesSummary {
   date: string;
-  last_year_date: string; // Add this property
+  last_year_date: string;
   brands: {
     brand_id: string;
     brand_name: string;

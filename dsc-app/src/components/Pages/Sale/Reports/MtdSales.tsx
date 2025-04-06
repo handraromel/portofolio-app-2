@@ -287,7 +287,7 @@ const MtdSales: React.FC<MtdSalesProps> = ({ onRefresh }) => {
         pt={{
           root: { className: "border-0" },
           nav: {
-            className: "flex flex-row flex-nowrap border-0 mb-8",
+            className: "flex flex-row flex-nowrap border-0 -mb-8",
             style: { border: "none", borderBottom: "none" },
           },
           navContainer: {
@@ -303,16 +303,8 @@ const MtdSales: React.FC<MtdSalesProps> = ({ onRefresh }) => {
           },
         }}
       >
-        <TabPanel header="Standard View (TY)">
-          <div className="mt-4 text-sm text-gray-500">
-            Standard month-to-date sales metrics by brand
-          </div>
-        </TabPanel>
-        <TabPanel header="Year-over-Year Comparison (LY)">
-          <div className="mt-4 text-sm text-gray-500">
-            Comparing current month with the same period last year
-          </div>
-        </TabPanel>
+        <TabPanel header="Standard View (TY)" />
+        <TabPanel header="Year-over-Year Comparison (LY)" />
       </TabView>
 
       <Table

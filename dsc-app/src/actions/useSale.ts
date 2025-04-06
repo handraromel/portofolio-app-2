@@ -39,7 +39,7 @@ export const useSale = () => {
   });
 
   // Queries
-  const salesQuery = useSales(filters);
+  const salesQuery = useSales(filters, activeTab === 0);
   const dailySalesQuery = useDailySales(
     dailyReportParams.date || undefined,
     undefined,
@@ -49,6 +49,9 @@ export const useSale = () => {
     dailyReportParams.group_id,
     dailyReportParams.division_id,
     dailyReportParams.category_id,
+    dailyReportParams.page,
+    dailyReportParams.per_page,
+    activeTab === 1,
   );
   const mtdSalesQuery = useMtdSales(
     mtdReportParams.date || undefined,
@@ -58,6 +61,9 @@ export const useSale = () => {
     mtdReportParams.group_id,
     mtdReportParams.division_id,
     mtdReportParams.category_id,
+    mtdReportParams.page,
+    mtdReportParams.per_page,
+    activeTab === 2,
   );
 
   // Mutations

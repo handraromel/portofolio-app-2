@@ -271,7 +271,7 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
         pt={{
           root: { className: "border-0" },
           nav: {
-            className: "flex flex-row flex-nowrap border-0 mb-8",
+            className: "flex flex-row flex-nowrap border-0 -mb-8",
             style: { border: "none", borderBottom: "none" },
           },
           navContainer: {
@@ -287,20 +287,8 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
           },
         }}
       >
-        <TabPanel header="Standard View (TY)">
-          <div className="mt-4 text-sm text-gray-500">
-            Standard daily sales metrics by brand
-          </div>
-        </TabPanel>
-        <TabPanel header="Year-over-Year Comparison (LY)">
-          <div className="mt-4 text-sm text-gray-500">
-            Comparing current sales with the same date last year (
-            {dailySalesSummary?.last_year_date
-              ? new Date(dailySalesSummary.last_year_date).toLocaleDateString()
-              : ""}
-            )
-          </div>
-        </TabPanel>
+        <TabPanel header="Standard View (TY)" />
+        <TabPanel header="Year-over-Year Comparison (LY)" />
       </TabView>
 
       <Table

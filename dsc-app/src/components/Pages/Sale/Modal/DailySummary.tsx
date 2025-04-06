@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Modal } from "@/components/Common";
 import { formatNumberToIDR } from "@/utils/formatCurrency";
 import { useTax } from "@/actions";
@@ -43,27 +43,62 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   summaryData,
   showYoY,
 }) => {
-  if (!summaryData) return null;
-
   const { currentTaxRate } = useTax();
-  const totalData = summaryData.total;
-  const reportDate = new Date(summaryData.date).toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 
-  const lastYearDate = new Date(summaryData.last_year_date).toLocaleDateString(
-    "en-US",
-    {
+  // Process data with useMemo to avoid recalculation on renders
+  const processedData = useMemo(() => {
+    if (!summaryData) {
+      return {
+        totalData: {
+          sale_qty: 0,
+          sale_amt: 0,
+          discounted_amt: 0,
+          gross_sales: 0,
+          nett_sales: 0,
+          tax_amount: 0,
+          nett_sales_after_tax: 0,
+          transaction_count: 0,
+          ly_data: {
+            sale_qty: 0,
+            sale_amt: 0,
+            discounted_amt: 0,
+            gross_sales: 0,
+            nett_sales: 0,
+            tax_amount: 0,
+            nett_sales_after_tax: 0,
+            transaction_count: 0,
+          },
+          growth_amt: 0,
+          growth_pct: 0,
+        },
+        reportDate: "N/A",
+        lastYearDate: "N/A",
+      };
+    }
+
+    const totalData = summaryData.total;
+    const reportDate = new Date(summaryData.date).toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
-    },
-  );
+    });
 
+    const lastYearDate = new Date(
+      summaryData.last_year_date,
+    ).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    return { totalData, reportDate, lastYearDate };
+  }, [summaryData]);
+
+  const { totalData, reportDate, lastYearDate } = processedData;
+
+  // Always render the Modal but control visibility with the visible prop
   return (
     <Modal
       visible={visible}
