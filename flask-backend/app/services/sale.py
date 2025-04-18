@@ -56,7 +56,6 @@ class SaleService:
         # Process sale items
         sale_items = []
         for sale in sales.items:
-            # Calculate calculated fields
             gross_sales = float(sale.discounted_amt) + float(sale.sale_amt)
             nett_sales = float(sale.sale_amt)
 

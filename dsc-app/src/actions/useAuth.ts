@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import Cookies from "js-cookie";
 import { useAppDispatch } from "@/hooks/useStore";
 import {
   useLogin,
@@ -83,30 +84,37 @@ export const useAuth = () => {
   };
 
   const handleLogout = async () => {
-    return logoutMutation
-      .mutateAsync()
-      .catch(() => {})
-      .finally(() => {
-        dispatch(resetAuth());
-        queryClient.clear();
-      });
+    try {
+      await logoutMutation.mutateAsync();
+    } catch (error) {
+      console.error("Error during logout:", error);
+    } finally {
+      Cookies.remove("csrf_access_token");
+      Cookies.remove("csrf_refresh_token");
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("authUserData");
+
+      dispatch(resetAuth());
+
+      queryClient.clear();
+    }
   };
 
   const handleRefreshToken = async () => {
-    return await refreshTokenMutation
-      .mutateAsync()
-      .then((response) => {
-        if (response?.user) {
-          dispatch(updateAuthUser(response.user as User));
-          localStorage.setItem("authUserData", JSON.stringify(response.user));
-          return response;
-        }
-        throw new Error("Invalid refresh token response");
-      })
-      .catch(async (error) => {
-        await handleLogout();
-        throw error;
-      });
+    try {
+      const response = await refreshTokenMutation.mutateAsync();
+      if (response?.user) {
+        dispatch(updateAuthUser(response.user as User));
+        localStorage.setItem("authUserData", JSON.stringify(response.user));
+        return response;
+      }
+      await handleLogout();
+      throw new Error("Invalid refresh token response");
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      await handleLogout();
+      throw error;
+    }
   };
 
   const handleActivateAccount = async (token: string) => {

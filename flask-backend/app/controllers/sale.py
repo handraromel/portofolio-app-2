@@ -1,9 +1,11 @@
 import logging
-from flask import jsonify, request
+import os
+from flask import jsonify, request, send_file
 from datetime import date, datetime, timedelta
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.sale import SaleService
 from app.schemas.sale_schemas import SaleSchema
+from app.services.sale_import_export import SaleImportExportService
 from app.utils.decorators import admin_required, handle_validation_error
 
 logger = logging.getLogger('app.controllers.sale')
@@ -360,3 +362,127 @@ def get_mtd_sales_by_brand():
         logger.exception(
             f"Error retrieving MTD sales by brand summary: {str(e)}")
         return jsonify({"msg": "An error occurred while retrieving MTD sales by brand", "success": False}), 500
+
+
+@admin_required()
+@jwt_required()
+def import_sales():
+    """Import sales data from uploaded file"""
+    current_user_id = get_jwt_identity()
+    logger.info(f"Sales import initiated by admin ID: {current_user_id}")
+
+    try:
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            return jsonify({"msg": "No file part in the request", "success": False}), 400
+
+        file = request.files['file']
+
+        # If the user does not select a file, the browser submits an empty file without filename
+        if file.filename == '':
+            return jsonify({"msg": "No file selected", "success": False}), 400
+
+        # Check if the file is allowed
+        if not file.filename or '.' not in file.filename:
+            return jsonify({"msg": "Invalid filename", "success": False}), 400
+
+        extension = file.filename.rsplit('.', 1)[1].lower()
+        if extension not in ['csv', 'xlsx', 'xls']:
+            return jsonify({"msg": "File type not allowed. Please upload .xlsx, .xls or .csv file", "success": False}), 400
+
+        # Process the import
+        result = SaleImportExportService.import_sales_from_file(file)
+
+        # Return the import results
+        response = {
+            "success": True,
+            "message": f"Import completed: {result['success_count']} records imported successfully, {result['error_count']} failed",
+            "details": {
+                "total_records": result['total_count'],
+                "success_count": result['success_count'],
+                "error_count": result['error_count'],
+                "errors": result['errors'],
+                "has_more_errors": result['has_more_errors']
+            }
+        }
+
+        logger.info(
+            f"Sales import completed: {result['success_count']} successful, {result['error_count']} failed")
+        return jsonify(response), 200
+
+    except ValueError as ve:
+        logger.error(f"Validation error during sales import: {str(ve)}")
+        return jsonify({"msg": str(ve), "success": False}), 400
+    except Exception as e:
+        logger.exception(f"Error during sales import: {str(e)}")
+        return jsonify({"msg": "An error occurred during import", "success": False}), 500
+
+
+@jwt_required()
+def export_sales():
+    """Export sales data to Excel or CSV"""
+    current_user_id = get_jwt_identity()
+    logger.info(f"Sales export requested by user ID: {current_user_id}")
+
+    try:
+        # Get format from query parameters
+        export_format = request.args.get('format', 'xlsx')
+        if export_format not in ['xlsx', 'csv']:
+            return jsonify({"msg": "Invalid format. Use 'xlsx' or 'csv'", "success": False}), 400
+
+        # Extract filter parameters
+        filters = {
+            'search': request.args.get('search'),
+            'start_date': request.args.get('start_date'),
+            'end_date': request.args.get('end_date'),
+            'brand_id': request.args.get('brand_id'),
+            'group_id': request.args.get('group_id'),
+            'division_id': request.args.get('division_id'),
+            'category_id': request.args.get('category_id')
+        }
+
+        # Process the export
+        export_result = SaleImportExportService.export_sales(
+            format=export_format, filters=filters)
+
+        # No need to delete the file since it's in the user's home directory now
+
+        logger.info(
+            f"Sales export successful: {export_result['record_count']} records to {export_result['file_path']}")
+
+        return send_file(
+            export_result['file_path'],
+            as_attachment=True,
+            download_name=export_result['filename'],
+            mimetype=export_result['mimetype']
+        )
+
+    except Exception as e:
+        logger.exception(f"Error during sales export: {str(e)}")
+        return jsonify({"msg": "An error occurred during export", "success": False}), 500
+
+
+@jwt_required()
+def get_import_sample():
+    current_user_id = get_jwt_identity()
+    logger.info(f"Sample import file requested by user ID: {current_user_id}")
+
+    try:
+        sample_result = SaleImportExportService.get_sample_file()
+
+        logger.info(
+            f"Sample import file provided: {sample_result['filename']}")
+
+        return send_file(
+            sample_result['file_path'],
+            as_attachment=True,
+            download_name=sample_result['filename'],
+            mimetype=sample_result['mimetype']
+        )
+
+    except Exception as e:
+        logger.exception(f"Error providing sample import file: {str(e)}")
+        return jsonify({
+            "msg": "An error occurred while generating the sample file",
+            "success": False
+        }), 500

@@ -5,6 +5,7 @@ interface ToastContextType {
   showSuccess: (message: string) => void;
   showError: (message: string) => void;
   showWarning: (message: string) => void;
+  showInfo: (message: string) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -41,8 +42,19 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
+  const showInfo = (message: string) => {
+    toast.current?.show({
+      severity: "info",
+      summary: "Info",
+      detail: message,
+      life: 3000,
+    });
+  };
+
   return (
-    <ToastContext.Provider value={{ showSuccess, showError, showWarning }}>
+    <ToastContext.Provider
+      value={{ showSuccess, showError, showWarning, showInfo }}
+    >
       <Toast ref={toast} position="top-right" className="z-[9999]" />
       {children}
     </ToastContext.Provider>
