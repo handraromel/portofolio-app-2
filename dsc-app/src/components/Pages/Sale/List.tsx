@@ -47,6 +47,8 @@ const SaleList: React.FC = () => {
     downloadSample,
     exportSales,
     importSales,
+    setImportError,
+    setImportResult,
     isDownloading,
     isExporting,
     isImporting,
@@ -146,8 +148,20 @@ const SaleList: React.FC = () => {
 
   const handleImportDialogClose = () => {
     setShowImportDialog(false);
+
+    // Clear the file upload component
     if (fileUploadRef.current) {
       fileUploadRef.current.clear();
+    }
+
+    // Reset the import result and error states when closing the dialog
+    if (importResult || importError) {
+      // Use setTimeout to avoid state updates during render
+      setTimeout(() => {
+        // These state setters should be available from your useFileMgmt hook
+        setImportResult(null);
+        setImportError(null);
+      }, 0);
     }
   };
 
@@ -299,7 +313,7 @@ const SaleList: React.FC = () => {
 
           <div className="mb-4 grid grid-cols-3 gap-4">
             <div className="rounded-lg bg-blue-50 p-4 text-center">
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-slate-600">
                 {importResult.details.total_records}
               </div>
               <div className="text-sm text-gray-600">Total Records</div>

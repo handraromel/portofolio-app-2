@@ -130,5 +130,7 @@ export const useFileMgmt = () => {
     isImporting,
     importResult,
     importError,
+    setImportResult,
+    setImportError,
   };
 };

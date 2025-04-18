@@ -178,39 +178,39 @@ class FileMgmtService:
             filename = 'sales_import_sample.xlsx'
             file_path = os.path.join(sample_dir, filename)
 
-            # Create sample data
+            # Create sample data with EXACT column names expected by the importer
             sample_data = [
                 {
-                    'Sale Qty': 5,
-                    'Sale Amount': 1250000.00,
-                    'Discount Amount': 125000.00,
-                    'Input Date': '2025-04-20',
-                    'SKU': 'ABC123',
-                    'Item Number': 'ITEM001',
-                    'Brand': '123-BRANDNAME',
-                    'Group': '123-GROUPNAME',
-                    'Division': 'DIVISI 2-FOOTWEAR',
-                    'Category': 'NGESNELi',
-                    'Description': 'Sample product description'
+                    'sale_qty': 5,
+                    'sale_amt': 1250000.00,
+                    'discounted_amt': 125000.00,
+                    'input_date': '2025-04-20',
+                    'sku': 'ABC123',
+                    'item_no': 'ITEM001',
+                    'brand': '123-BRANDNAME',
+                    'group': '123-GROUPNAME',
+                    'division': 'DIVISI 2-FOOTWEAR',
+                    'category': 'NGESNELi',
+                    'description': 'Sample product description'
                 }
             ]
 
             # Create DataFrame
             df = pd.DataFrame(sample_data)
 
-            # Add column notes
+            # Add column notes with the exact column names
             notes = pd.DataFrame([{
-                'Sale Qty': 'Required: Number',
-                'Sale Amount': 'Required: Number',
-                'Discount Amount': 'Optional: Number, defaults to 0',
-                'Input Date': 'Required: YYYY-MM-DD format',
-                'SKU': 'Optional: Product SKU',
-                'Item Number': 'Optional: Product item number',
-                'Brand': 'Required: Format must be ID-NAME (e.g., 123-BRANDNAME)',
-                'Group': 'Required: Format must be ID-NAME (e.g., 123-GROUPNAME)',
-                'Division': 'Required: Format must be NAME-ALIAS (e.g., DIVISI 2-FOOTWEAR)',
-                'Category': 'Required: Name only (e.g., CATEGORY NAME)',
-                'Description': 'Optional: Product description'
+                'sale_qty': 'Required: Number',
+                'sale_amt': 'Required: Number',
+                'discounted_amt': 'Optional: Number, defaults to 0',
+                'input_date': 'Required: YYYY-MM-DD format',
+                'sku': 'Optional: Product SKU',
+                'item_no': 'Optional: Product item number',
+                'brand': 'Required: Format must be ID-NAME (e.g., 123-BRANDNAME)',
+                'group': 'Required: Format must be ID-NAME (e.g., 123-GROUPNAME)',
+                'division': 'Required: Format must be NAME-ALIAS (e.g., DIVISI 2-FOOTWEAR)',
+                'category': 'Required: Name only (e.g., CATEGORY NAME)',
+                'description': 'Optional: Product description'
             }])
 
             # Create Excel writer

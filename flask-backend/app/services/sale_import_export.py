@@ -27,9 +27,9 @@ class SaleImportExportService:
 
             # Map expected columns to their possible variations
             column_mapping = {
-                'sale_qty': ['quantity', 'qty', 'sale_qty', 'saleqty'],
-                'sale_amt': ['sale amount', 'saleamount', 'sale_amt', 'amount'],
-                'discounted_amt': ['discount', 'discount amount', 'discounted_amt', 'discountedamt'],
+                'sale_qty': ['quantity', 'qty', 'sale_qty', 'saleqty', 'sale qty'],
+                'sale_amt': ['sale amount', 'saleamount', 'sale_amt', 'amount', 'sale amt'],
+                'discounted_amt': ['discount', 'discount amount', 'discounted_amt', 'discountedamt', 'discounted amt'],
                 'input_date': ['input date', 'date', 'input_date', 'inputdate'],
                 'sku': ['sku', 'stockkeepingunit'],
                 'item_no': ['item number', 'item no', 'item_no', 'itemno', 'item'],
@@ -40,6 +40,9 @@ class SaleImportExportService:
                 'description': ['description', 'desc', 'product description']
             }
 
+            # Output the actual columns for debugging
+            logger.info(f"Actual columns in file: {list(df.columns)}")
+
             # Map actual columns to standardized columns
             actual_columns = {}
             for standard_col, possible_cols in column_mapping.items():
@@ -48,6 +51,8 @@ class SaleImportExportService:
                     if possible_col in df.columns:
                         actual_columns[standard_col] = possible_col
                         found = True
+                        logger.info(
+                            f"Mapped column '{possible_col}' to '{standard_col}'")
                         break
                 if not found:
                     # For required fields, raise error if missing
@@ -56,10 +61,14 @@ class SaleImportExportService:
                         raise ValueError(
                             f"Required column '{standard_col}' not found in file")
 
+            # Log the result of column mapping for debugging
+            logger.info(f"Column mapping result: {actual_columns}")
+
             # Rename columns to match our model
-            rename_mapping = {
-                actual_col: standard_col for standard_col, actual_col in actual_columns.items()}
+            rename_mapping = {actual_col: standard_col for standard_col,
+                              actual_col in actual_columns.items()}
             df = df.rename(columns=rename_mapping)
+            logger.info(f"Columns after renaming: {list(df.columns)}")
 
             # Process product relationships (brand, group, division, category)
             product_ids = SaleImportExportService._process_product_relationships(
