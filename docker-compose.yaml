@@ -21,22 +21,23 @@ services:
     networks:
       - dsc_app_network
 
-  db:
-    image: postgres:13
-    # environment:
-    #   - POSTGRES_DB=${DB_NAME}
-    #   - POSTGRES_USER=${DB_USER}
-    #   - POSTGRES_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - dsc_app_network
-    ports:
-      - "5432:5432"
+  # OLD DB SERVICE (BEFORE NEON)
+  # db:
+  #   image: postgres:13
+  # environment:
+  #   - POSTGRES_DB=${DB_NAME}
+  #   - POSTGRES_USER=${DB_USER}
+  #   - POSTGRES_PASSWORD=${DB_PASSWORD}
+  # volumes:
+  #   - postgres_data:/var/lib/postgresql/data
+  # networks:
+  #   - dsc_app_network
+  # ports:
+  #   - "5432:5432"
 
-volumes:
-  postgres_data:
-    external: true
+# volumes:
+#   postgres_data:
+#     external: true
 
 networks:
   dsc_app_network:
