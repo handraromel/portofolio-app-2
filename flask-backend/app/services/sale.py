@@ -62,8 +62,8 @@ class SaleService:
 
             # Get tax rate for the sale date
             tax_rate = SaleService._get_tax_rate_for_date(sale.input_date)
-            tax_amount = nett_sales * (tax_rate / 100)
-            nett_sales_after_tax = nett_sales - tax_amount
+            tax_amount = (tax_rate + 100) / 100
+            nett_sales_after_tax = nett_sales / tax_amount
 
             sale_data = {
                 'sale': sale,
@@ -96,8 +96,9 @@ class SaleService:
 
         # Get tax rate for the sale date
         tax_rate = SaleService._get_tax_rate_for_date(sale.input_date)
-        tax_amount = nett_sales * (tax_rate / 100)
-        nett_sales_after_tax = nett_sales - tax_amount
+
+        tax_amount = (tax_rate + 100) / 100
+        nett_sales_after_tax = nett_sales / tax_amount
 
         return {
             'sale': sale,
@@ -147,8 +148,8 @@ class SaleService:
 
             # Get tax rate for the sale date
             tax_rate = SaleService._get_tax_rate_for_date(new_sale.input_date)
-            tax_amount = nett_sales * (tax_rate / 100)
-            nett_sales_after_tax = nett_sales - tax_amount
+            tax_amount = (tax_rate + 100) / 100
+            nett_sales_after_tax = nett_sales / tax_amount
 
             logger.info(f"Sale created successfully: {new_sale.uuid}")
             return {
@@ -220,8 +221,8 @@ class SaleService:
 
             # Get tax rate for the sale date
             tax_rate = SaleService._get_tax_rate_for_date(sale.input_date)
-            tax_amount = nett_sales * (tax_rate / 100)
-            nett_sales_after_tax = nett_sales - tax_amount
+            tax_amount = (tax_rate + 100) / 100
+            nett_sales_after_tax = nett_sales / tax_amount
 
             logger.info(f"Sale updated successfully: {sale_id}")
             return {
@@ -578,15 +579,29 @@ class SaleService:
             totals['growth_pct'] = (
                 (totals['sale_amt'] / totals['ly_data']['sale_amt']) * 100 - 100)
 
-        # Add other fields needed for MTD reports if they exist in any brand
+            # Add other fields needed for MTD reports if they exist in any brand
         if any('days_with_sales' in data for data in brand_data.values()):
             # Find a record with MTD fields to copy the structure
             example_record = next(
                 (data for data in brand_data.values() if 'days_with_sales' in data), None)
             if example_record:
                 # Add MTD specific fields
-                # (implementation for MTD would go here, similar to the existing code)
-                pass
+                totals['days_with_sales'] = sum(data.get(
+                    'days_with_sales', 0) for data in brand_data.values() if data.get('days_with_sales'))
+                totals['total_days'] = example_record.get('total_days', 0)
+                totals['sales_coverage'] = (
+                    totals['days_with_sales'] / totals['total_days'] * 100) if totals['total_days'] > 0 else 0
+
+                # Add AUR calculation for this year
+                totals['aur'] = totals['sale_amt'] / \
+                    totals['sale_qty'] if totals['sale_qty'] > 0 else 0
+
+                # Add AUR calculation for last year
+                totals['ly_data']['aur'] = totals['ly_data']['sale_amt'] / \
+                    totals['ly_data']['sale_qty'] if totals['ly_data']['sale_qty'] > 0 else 0
+
+                totals['from_date'] = example_record.get('from_date')
+                totals['to_date'] = example_record.get('to_date')
 
         return totals
 
@@ -695,7 +710,7 @@ class SaleService:
             if not reference_record:
                 continue
 
-            # Calculate derived metrics
+                # Calculate derived metrics
             total_sale_amount = float(
                 brand_agg.total_sale_amount) if brand_agg.total_sale_amount else 0.0
             total_discount_amount = float(
@@ -704,11 +719,15 @@ class SaleService:
 
             # Get tax rate for the date
             tax_rate = SaleService._get_tax_rate_for_date(target_date)
-            tax_amount = total_sale_amount * (tax_rate / 100)
-            nett_sales_after_tax = total_sale_amount - tax_amount
+            tax_amount = (tax_rate + 100) / 100
+            nett_sales_after_tax = total_sale_amount / tax_amount
+
+            # Calculate AUR
+            total_qty = int(brand_agg.total_qty) if brand_agg.total_qty else 0
+            aur = nett_sales_after_tax / total_qty if total_qty > 0 else 0.0
 
             brand_data[brand_uuid] = {
-                'brand_uuid': brand_uuid,  # Now include both UUID and ID
+                'brand_uuid': brand_uuid,
                 'brand_id': brand_agg.brand_id,
                 'brand_name': brand_agg.brand_name,
                 'group': {
@@ -733,7 +752,8 @@ class SaleService:
                 'tax_rate': tax_rate,
                 'tax_amount': tax_amount,
                 'nett_sales_after_tax': nett_sales_after_tax,
-                'transaction_count': brand_agg.transaction_count or 0
+                'transaction_count': brand_agg.transaction_count or 0,
+                'aur': aur
             }
 
         return brand_data
@@ -823,18 +843,20 @@ class SaleService:
 
             # Get tax rate
             tax_rate = TaxConfigurationService.get_current_tax_rate()
-            tax_amount = total_sale_amount * (tax_rate / 100)
-            nett_sales_after_tax = total_sale_amount - tax_amount
+            tax_amount = (tax_rate + 100) / 100
+            nett_sales_after_tax = total_sale_amount / tax_amount
 
             # Calculate coverage and daily average
             days_with_sales = brand_agg.days_with_sales or 0
             sales_coverage = (days_with_sales / total_days *
                               100) if total_days > 0 else 0
-            daily_avg_sales = total_sale_amount / \
-                days_with_sales if days_with_sales > 0 else 0
+
+            aur = nett_sales_after_tax / \
+                int(brand_agg.total_qty) if brand_agg.total_qty and int(
+                    brand_agg.total_qty) > 0 else 0
 
             brand_data[brand_uuid] = {
-                'brand_uuid': brand_uuid,  # Now include both UUID and ID
+                'brand_uuid': brand_uuid,
                 'brand_id': brand_agg.brand_id,
                 'brand_name': brand_agg.brand_name,
                 'group': {
@@ -863,7 +885,7 @@ class SaleService:
                 'days_with_sales': days_with_sales,
                 'total_days': total_days,
                 'sales_coverage': sales_coverage,
-                'daily_avg_sales': daily_avg_sales,
+                'aur': aur,  # Add AUR instead of daily_avg_sales
                 'from_date': start_date.isoformat(),
                 'to_date': end_date.isoformat()
             }
@@ -908,7 +930,7 @@ class SaleService:
             totals['nett_sales_after_tax'] += data['nett_sales_after_tax']
             totals['transaction_count'] += data['transaction_count']
 
-        # For MTD reports, add additional calculated fields if they exist in any brand
+            # For MTD reports, add additional calculated fields if they exist in any brand
         if any('days_with_sales' in data for data in brand_data.values()):
             # Find the max for these values as they should be the same across brands
             example_brand = next(iter(brand_data.values()))
@@ -919,8 +941,10 @@ class SaleService:
             # Recalculate metrics
             totals['sales_coverage'] = (
                 totals['days_with_sales'] / totals['total_days'] * 100) if totals['total_days'] > 0 else 0
-            totals['daily_avg_sales'] = totals['sale_amt'] / \
-                totals['days_with_sales'] if totals['days_with_sales'] > 0 else 0
+
+            # Calculate overall AUR instead of daily_avg_sales
+            totals['aur'] = totals['sale_amt'] / \
+                totals['sale_qty'] if totals['sale_qty'] > 0 else 0
 
             # Add date ranges
             totals['from_date'] = example_brand.get('from_date')

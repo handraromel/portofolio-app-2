@@ -85,7 +85,7 @@ export interface MtdYearOverYearData extends YearOverYearData {
   days_with_sales: number;
   total_days: number;
   sales_coverage: number;
-  daily_avg_sales: number;
+  aur: number;
 }
 
 // Update DailySalesData with YoY fields
@@ -112,7 +112,7 @@ export interface MtdSalesData extends DailySalesData {
   days_with_sales: number;
   total_days: number;
   sales_coverage: number;
-  daily_avg_sales: number;
+  aur: number;
 }
 
 export interface DailySalesSummary {
@@ -200,7 +200,7 @@ export interface MtdSalesSummary {
     days_with_sales: number;
     total_days: number;
     sales_coverage: number;
-    daily_avg_sales: number;
+    aur: number;
     from_date: string;
     to_date: string;
   }[];
@@ -216,7 +216,7 @@ export interface MtdSalesSummary {
     days_with_sales: number;
     total_days: number;
     sales_coverage: number;
-    daily_avg_sales: number;
+    aur: number;
     from_date: string;
     to_date: string;
     ly_data: MtdYearOverYearData;

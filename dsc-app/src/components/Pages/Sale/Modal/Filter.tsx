@@ -95,27 +95,11 @@ const Filter: React.FC<FilterProps> = ({
 
   const handleClear = () => {
     const emptyFilters =
-      filterType === "list"
-        ? {
-            start_date: "",
-            end_date: "",
-            brand_id: "",
-            group_id: "",
-            division_id: "",
-            category_id: "",
-          }
-        : {
-            date: getTodayFormatted(),
-            brand_id: "",
-            group_id: "",
-            division_id: "",
-            category_id: "",
-          };
+      filterType === "list" ? {} : { date: getTodayFormatted() };
 
     reset(emptyFilters);
 
-    // Apply the cleared filters
-    onApply({});
+    onApply(emptyFilters);
     onHide();
   };
 

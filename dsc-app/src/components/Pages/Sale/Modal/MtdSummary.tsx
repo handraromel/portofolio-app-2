@@ -23,7 +23,7 @@ interface MtdSummaryProps {
       days_with_sales: number;
       total_days: number;
       sales_coverage: number;
-      daily_avg_sales: number;
+      aur: number;
       tax_rate?: number;
       ly_data?: {
         sale_qty: number;
@@ -37,7 +37,7 @@ interface MtdSummaryProps {
         days_with_sales: number;
         total_days: number;
         sales_coverage: number;
-        daily_avg_sales: number;
+        aur: number;
       };
       growth_amt: number | null;
       growth_pct: number | null;
@@ -74,7 +74,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
           days_with_sales: 0,
           total_days: 1,
           sales_coverage: 0,
-          daily_avg_sales: 0,
+          aur: 0,
           growth_amt: 0,
           growth_pct: 0,
           ly_data: null,
@@ -118,7 +118,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
       days_with_sales: totalData.days_with_sales || 0,
       total_days: totalData.total_days || 1,
       sales_coverage: totalData.sales_coverage || 0,
-      daily_avg_sales: totalData.daily_avg_sales || 0,
+      aur: totalData.aur || 0,
       growth_amt: totalData.growth_amt || 0,
       growth_pct: totalData.growth_pct || 0,
       ly_data: totalData.ly_data || null,
@@ -210,7 +210,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                       Daily Average
                     </div>
                     <div className="text-2xl font-bold">
-                      {formatNumberToIDR(safeData.daily_avg_sales)}
+                      {formatNumberToIDR(safeData.aur)}
                     </div>
                   </div>
                 </div>
@@ -275,9 +275,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                       Daily Average
                     </div>
                     <div className="text-2xl font-bold">
-                      {formatNumberToIDR(
-                        safeData.ly_data?.daily_avg_sales || 0,
-                      )}
+                      {formatNumberToIDR(safeData.ly_data?.aur || 0)}
                     </div>
                   </div>
                 </div>
@@ -303,8 +301,8 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
             <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
               <YearComparisonChart
                 title="Daily Average Sales Comparison"
-                currentYearValue={safeData.daily_avg_sales}
-                lastYearValue={safeData.ly_data?.daily_avg_sales || 0}
+                currentYearValue={safeData.aur}
+                lastYearValue={safeData.ly_data?.aur || 0}
                 formatValue={(value) => formatNumberToIDR(value)}
               />
 
@@ -395,21 +393,12 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
         ) : (
           // Standard view (no year-over-year comparison)
           <>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-2">
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                 <div className="text-sm font-medium text-gray-500">
                   Qty Sold
                 </div>
                 <div className="text-2xl font-bold">{safeData.sale_qty}</div>
-              </div>
-
-              <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
-                <div className="text-sm font-medium text-gray-500">
-                  Total Sales
-                </div>
-                <div className="text-2xl font-bold">
-                  {formatNumberToIDR(safeData.sale_amt)}
-                </div>
               </div>
 
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
@@ -420,33 +409,15 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                   {formatNumberToIDR(safeData.gross_sales)}
                 </div>
               </div>
-
-              <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
-                <div className="text-sm font-medium text-gray-500">
-                  Daily Average
-                </div>
-                <div className="text-2xl font-bold">
-                  {formatNumberToIDR(safeData.daily_avg_sales)}
-                </div>
-              </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                 <div className="text-sm font-medium text-gray-500">
                   Discount Amount
                 </div>
                 <div className="text-xl font-bold">
                   {formatNumberToIDR(safeData.discounted_amt)}
-                </div>
-              </div>
-
-              <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
-                <div className="text-sm font-medium text-gray-500">
-                  Tax Amount
-                </div>
-                <div className="text-xl font-bold">
-                  {formatNumberToIDR(safeData.tax_amount)}
                 </div>
               </div>
 
@@ -480,13 +451,12 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
 
               <div className="rounded-lg bg-green-50 p-4 shadow-sm dark:bg-green-900/20">
                 <div className="text-sm font-medium text-gray-500">
-                  Net Sales
+                  Net Before Tax
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-2xl font-bold">
                     {formatNumberToIDR(safeData.nett_sales)}
                   </div>
-                  <div className="text-sm text-gray-500">Before Tax</div>
                 </div>
               </div>
 
@@ -498,11 +468,11 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                   <div className="text-2xl font-bold">
                     {formatNumberToIDR(safeData.nett_sales_after_tax)}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  {/* <div className="text-sm text-gray-500">
                     {safeData.nett_sales > 0
                       ? `${((safeData.nett_sales_after_tax / safeData.nett_sales) * 100).toFixed(1)}% of net`
                       : "0% of net"}
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>

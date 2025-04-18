@@ -45,7 +45,7 @@ interface BrandMtdSalesData {
   days_with_sales: number;
   total_days: number;
   sales_coverage: number;
-  daily_avg_sales: number;
+  aur: number;
   ly_data?: MtdYearOverYearData | null;
   growth_amt?: number | null;
   growth_pct?: number | null;
@@ -119,23 +119,23 @@ const MtdSales: React.FC<MtdSalesProps> = ({ onRefresh }) => {
         body: (rowData) => formatNumberToIDR(rowData.gross_sales),
         sortable: true,
       },
-      {
-        field: "nett_sales",
-        header: "Net Sales",
-        body: (rowData) => formatNumberToIDR(rowData.nett_sales),
-        sortable: true,
-      },
+      // {
+      //   field: "nett_sales",
+      //   header: "Net Sales",
+      //   body: (rowData) => formatNumberToIDR(rowData.nett_sales),
+      //   sortable: true,
+      // },
       {
         field: "nett_sales_after_tax",
         header: "Net After Tax",
         body: (rowData) => formatNumberToIDR(rowData.nett_sales_after_tax),
         sortable: true,
       },
-      {
-        field: "transaction_count",
-        header: "Transactions",
-        sortable: true,
-      },
+      // {
+      //   field: "transaction_count",
+      //   header: "Transactions",
+      //   sortable: true,
+      // },
       // {
       //   field: "sales_coverage",
       //   header: "Coverage",
@@ -143,9 +143,9 @@ const MtdSales: React.FC<MtdSalesProps> = ({ onRefresh }) => {
       //   sortable: true,
       // },
       {
-        field: "daily_avg_sales",
-        header: "Daily Avg",
-        body: (rowData) => formatNumberToIDR(rowData.daily_avg_sales),
+        field: "aur",
+        header: "AUR",
+        body: (rowData) => formatNumberToIDR(rowData.aur),
         sortable: true,
       },
     ];

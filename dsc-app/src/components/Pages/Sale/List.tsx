@@ -171,8 +171,15 @@ const SaleList: React.FC = () => {
       sortable: true,
     },
     {
-      field: "sale_qty",
-      header: "Quantity",
+      field: "gross_sales",
+      header: "Gross Sales",
+      body: (rowData: Sale) => formatNumberToIDR(rowData.gross_sales),
+      sortable: true,
+    },
+    {
+      field: "discounted_amt",
+      header: "Discount",
+      body: (rowData: Sale) => formatNumberToIDR(rowData.discounted_amt),
       sortable: true,
     },
     {
@@ -182,29 +189,22 @@ const SaleList: React.FC = () => {
       sortable: true,
     },
     {
-      field: "gross_sales",
-      header: "Gross Sales",
-      body: (rowData: Sale) => formatNumberToIDR(rowData.gross_sales),
+      field: "sale_qty",
+      header: "Quantity",
       sortable: true,
     },
-    {
-      field: "discounted_amt",
-      header: "Discount Amount",
-      body: (rowData: Sale) => formatNumberToIDR(rowData.discounted_amt),
-      sortable: true,
-    },
-    {
-      field: "nett_sales",
-      header: "Net Sales",
-      body: (rowData: Sale) => formatNumberToIDR(rowData.nett_sales),
-      sortable: true,
-    },
-    {
-      field: "tax_amount",
-      header: "Tax Amount",
-      body: (rowData: Sale) => formatNumberToIDR(rowData.tax_amount),
-      sortable: true,
-    },
+    // {
+    //   field: "nett_sales",
+    //   header: "Net Sales",
+    //   body: (rowData: Sale) => formatNumberToIDR(rowData.nett_sales),
+    //   sortable: true,
+    // },
+    // {
+    //   field: "tax_amount",
+    //   header: "Tax Amount",
+    //   body: (rowData: Sale) => formatNumberToIDR(rowData.tax_amount),
+    //   sortable: true,
+    // },
     {
       field: "nett_sales_after_tax",
       header: "Net After Tax",

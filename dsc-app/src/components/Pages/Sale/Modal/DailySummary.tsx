@@ -387,7 +387,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
         ) : (
           // Original view without YoY
           <>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-2">
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                 <div className="text-sm font-medium text-gray-500">
                   Quantity Sold
@@ -397,28 +397,10 @@ const DailySummary: React.FC<DailySummaryProps> = ({
 
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                 <div className="text-sm font-medium text-gray-500">
-                  Total Sales
-                </div>
-                <div className="text-2xl font-bold">
-                  {formatNumberToIDR(totalData.sale_amt)}
-                </div>
-              </div>
-
-              <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
-                <div className="text-sm font-medium text-gray-500">
                   Gross Sales
                 </div>
                 <div className="text-2xl font-bold">
                   {formatNumberToIDR(totalData.gross_sales)}
-                </div>
-              </div>
-
-              <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
-                <div className="text-sm font-medium text-gray-500">
-                  Total Transactions
-                </div>
-                <div className="text-2xl font-bold">
-                  {totalData.transaction_count}
                 </div>
               </div>
             </div>
@@ -437,9 +419,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                 <div className="text-sm font-medium text-gray-500">
                   Tax Amount
                 </div>
-                <div className="text-xl font-bold">
-                  {formatNumberToIDR(totalData.tax_amount)}
-                </div>
+                <div className="text-xl font-bold">{totalData.tax_amount}</div>
               </div>
 
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
@@ -464,7 +444,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
 
               <div className="rounded-lg bg-green-50 p-4 shadow-sm dark:bg-green-900/20">
                 <div className="text-sm font-medium text-gray-500">
-                  Net Sales (Before Tax)
+                  Net Sales Before Tax
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-2xl font-bold">
@@ -481,11 +461,11 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                   <div className="text-2xl font-bold">
                     {formatNumberToIDR(totalData.nett_sales_after_tax)}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  {/* <div className="text-sm text-gray-500">
                     {totalData.nett_sales > 0
                       ? `${((totalData.nett_sales_after_tax / totalData.nett_sales) * 100).toFixed(1)}% of net`
                       : "0% of net"}
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>

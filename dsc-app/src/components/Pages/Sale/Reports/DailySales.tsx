@@ -100,14 +100,9 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
         sortable: true,
       },
       {
-        field: "sale_qty",
-        header: "Quantity",
-        sortable: true,
-      },
-      {
-        field: "sale_amt",
-        header: "Sale Amount",
-        body: (rowData) => formatNumberToIDR(rowData.sale_amt),
+        field: "gross_sales",
+        header: "Gross Sales",
+        body: (rowData) => formatNumberToIDR(rowData.gross_sales),
         sortable: true,
       },
       {
@@ -117,34 +112,39 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
         sortable: true,
       },
       {
-        field: "gross_sales",
-        header: "Gross Sales",
-        body: (rowData) => formatNumberToIDR(rowData.gross_sales),
+        field: "sale_amt",
+        header: "Sale Amount",
+        body: (rowData) => formatNumberToIDR(rowData.sale_amt),
         sortable: true,
       },
       {
-        field: "nett_sales",
-        header: "Net Sales",
-        body: (rowData) => formatNumberToIDR(rowData.nett_sales),
+        field: "sale_qty",
+        header: "Quantity",
         sortable: true,
       },
-      {
-        field: "tax_amount",
-        header: "Tax Amount",
-        body: (rowData) => formatNumberToIDR(rowData.tax_amount),
-        sortable: true,
-      },
+      // {
+      //   field: "nett_sales",
+      //   header: "Net Sales",
+      //   body: (rowData) => formatNumberToIDR(rowData.nett_sales),
+      //   sortable: true,
+      // },
+      // {
+      //   field: "tax_amount",
+      //   header: "Tax Amount",
+      //   body: (rowData) => formatNumberToIDR(rowData.tax_amount),
+      //   sortable: true,
+      // },
       {
         field: "nett_sales_after_tax",
         header: "Net After Tax",
         body: (rowData) => formatNumberToIDR(rowData.nett_sales_after_tax),
         sortable: true,
       },
-      {
-        field: "transaction_count",
-        header: "Transactions",
-        sortable: true,
-      },
+      // {
+      //   field: "transaction_count",
+      //   header: "Transactions",
+      //   sortable: true,
+      // },
     ];
   };
 
