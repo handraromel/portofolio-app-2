@@ -177,10 +177,6 @@ const SaleList: React.FC = () => {
   //   await exportSales("csv", filters);
   // };
 
-  const handleDownloadSample = async () => {
-    await downloadSample();
-  };
-
   const handleImport = async (file: File) => {
     await importSales(file);
   };
@@ -474,7 +470,7 @@ const SaleList: React.FC = () => {
         visible={triggerDelete}
         onHide={() => setTriggerDelete(false)}
         onConfirm={handleDeleteConfirm}
-        message={`Are you sure you want to delete this sale record from ${selectedSale?.input_date}?`}
+        message={`Are you sure you want to delete this sale record from ${formatDate(selectedSale?.input_date, { format: "DD MMM yy" })}?`}
         header="Delete Sale Record"
         icon="pi pi-exclamation-triangle"
         acceptLabel="Delete"
@@ -487,7 +483,9 @@ const SaleList: React.FC = () => {
         onImport={handleImport}
         onConfirmImport={handleConfirmImport}
         onCancelImport={handleCancelImport}
-        onDownloadSample={handleDownloadSample}
+        onDownloadSample={async () => {
+          await downloadSample();
+        }}
         isImporting={isImporting}
         isDownloading={isDownloading}
         isConfirming={isConfirming}

@@ -251,14 +251,14 @@ const ImportModal: React.FC<ImportModalProps> = ({
       <>
         <div className="p-4">
           <p className="mb-4">
-            Upload an Excel file with sales data. Please ensure your file
+            Upload a CSV or Excel file with group data. Please ensure your file
             follows the correct format.
           </p>
 
           <div className="mb-4">
             <Message
               severity="info"
-              text="For Group and Brand fields, use ID-NAME format (e.g., 123-NAME). For Division, use NAME-ALIAS format or could be NAME only (e.g., DIVISI 2-FOOTWEAR or DIVISI 2)."
+              text="Each group must be in the format 'ID-NAME' (e.g., '101-FOOTWEAR'). The ID must be a unique number not present in the database."
             />
           </div>
 
@@ -326,7 +326,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
     <>
       <Modal
         visible={visible && !importResult}
-        header="Import Sales Data"
+        header="Import Group Data"
         blockOutsideClick
         className="w-2/3 md:w-1/2"
       >

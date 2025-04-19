@@ -5,9 +5,11 @@ import { Confirmation, ColumnDef } from "@/components/Common";
 import { useModal, usePermission, useTableSelection } from "@/hooks";
 import { useToast } from "@/context/Toast";
 import { useGroup } from "@/actions/product/useGroup";
+import { useGroupFileMgmt } from "@/actions/product/useGroupFileMgmt";
 import Table from "@/components/Common/Table";
 import Submission from "./Modals/Submission";
 import Detail from "./Modals/Detail";
+import ImportModal from "./Modals/Import";
 
 const GroupList: React.FC = () => {
   const { canEdit, canDelete } = usePermission();
@@ -25,11 +27,26 @@ const GroupList: React.FC = () => {
     filters,
   } = useGroup();
 
+  const {
+    downloadSample,
+    importGroups,
+    confirmImport,
+    cancelImport,
+    isDownloading,
+    isImporting,
+    isConfirming,
+    importResult,
+    importError,
+    setImportResult,
+    setImportError,
+  } = useGroupFileMgmt();
+
   const { showWarning, showError } = useToast();
   const responseMsg = groupsQuery.data?.msg;
   const [selectedGroup, setSelectedGroup] = useState<ProductGroup | null>(null);
   const submissionModal = useModal();
   const detailModal = useModal();
+  const importModal = useModal();
   const [triggerDelete, setTriggerDelete] = useState(false);
 
   const selection = useTableSelection<ProductGroup>({
@@ -88,6 +105,29 @@ const GroupList: React.FC = () => {
   const handleRefresh = useCallback(() => {
     fetchGroups();
   }, [fetchGroups]);
+
+  // Group import handling functions
+  const handleImport = async (file: File) => {
+    await importGroups(file);
+  };
+
+  const handleConfirmImport = async () => {
+    const success = await confirmImport();
+    if (success) {
+      importModal.close();
+      fetchGroups();
+    }
+  };
+
+  const handleCancelImport = async () => {
+    await cancelImport();
+    importModal.close();
+  };
+
+  const handleClearImportStates = () => {
+    setImportResult(null);
+    setImportError(null);
+  };
 
   const columns: ColumnDef<ProductGroup>[] = [
     {
@@ -152,6 +192,13 @@ const GroupList: React.FC = () => {
             severity: "info",
             onClick: handleRefresh,
           },
+          {
+            icon: "pi pi-upload",
+            tooltip: "Import groups",
+            severity: "success",
+            onClick: importModal.open,
+            disabled: isImporting || isLoading,
+          },
         ]}
         totalRecords={pagination.totalRecords}
         paginator={{
@@ -203,6 +250,23 @@ const GroupList: React.FC = () => {
         visible={detailModal.isOpen}
         onHide={detailModal.close}
         group={selectedGroup}
+      />
+
+      <ImportModal
+        visible={importModal.isOpen}
+        onHide={importModal.close}
+        onImport={handleImport}
+        onConfirmImport={handleConfirmImport}
+        onCancelImport={handleCancelImport}
+        onDownloadSample={async () => {
+          await downloadSample();
+        }}
+        isImporting={isImporting}
+        isDownloading={isDownloading}
+        isConfirming={isConfirming}
+        importError={importError}
+        importResult={importResult}
+        onClearStates={handleClearImportStates}
       />
 
       <Confirmation

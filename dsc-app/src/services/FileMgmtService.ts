@@ -18,6 +18,7 @@ export interface ImportResponse extends ApiResponse {
 }
 
 const salePrefix = "/manage/sales";
+const productPrefix = "/manage/product";
 
 /**
  * Download a file from a URL with proper authorization
@@ -98,6 +99,24 @@ export const getSampleImportFile = async (): Promise<boolean> => {
 };
 
 /**
+ * Download the sample import file for brands
+ */
+export const getSampleBrandImportFile = async (): Promise<boolean> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${productPrefix}/brands/import/sample`;
+  return downloadFileFromUrl(url, "brand_import_sample.xlsx");
+};
+
+/**
+ * Download the sample import file for groups
+ */
+export const getSampleGroupImportFile = async (): Promise<boolean> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${productPrefix}/groups/import/sample`;
+  return downloadFileFromUrl(url, "group_import_sample.xlsx");
+};
+
+/**
  * Export sales data to file
  */
 export const exportSales = async (
@@ -124,6 +143,72 @@ export const exportSales = async (
 export const importSales = async (file: File): Promise<ImportResponse> => {
   const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${salePrefix}/import`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
+ * Import brand data from file
+ */
+export const importBrands = async (file: File): Promise<ImportResponse> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${productPrefix}/brands/import/validate`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
+ * Import group data from file
+ */
+export const importGroups = async (file: File): Promise<ImportResponse> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${productPrefix}/groups/import/validate`;
   const csrfToken = Cookies.get("csrf_access_token");
 
   const formData = new FormData();
@@ -185,6 +270,72 @@ export const confirmImportSales = async (
 };
 
 /**
+ * Confirm a pending brand import
+ */
+export const confirmImportBrands = async (
+  importId: string,
+): Promise<ApiResponse> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${productPrefix}/brands/import/confirm`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
+    body: JSON.stringify({ import_id: importId }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
+ * Confirm a pending group import
+ */
+export const confirmImportGroups = async (
+  importId: string,
+): Promise<ApiResponse> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${productPrefix}/groups/import/confirm`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
+    body: JSON.stringify({ import_id: importId }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
  * Cancel a pending import
  */
 export const cancelImportSales = async (
@@ -192,6 +343,72 @@ export const cancelImportSales = async (
 ): Promise<ApiResponse> => {
   const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${salePrefix}/import/cancel`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
+    body: JSON.stringify({ import_id: importId }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
+ * Cancel a pending brand import
+ */
+export const cancelImportBrands = async (
+  importId: string,
+): Promise<ApiResponse> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${productPrefix}/brands/import/cancel`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
+    body: JSON.stringify({ import_id: importId }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
+ * Cancel a pending group import
+ */
+export const cancelImportGroups = async (
+  importId: string,
+): Promise<ApiResponse> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${productPrefix}/groups/import/cancel`;
   const csrfToken = Cookies.get("csrf_access_token");
 
   const response = await fetch(url, {

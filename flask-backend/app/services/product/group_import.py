@@ -1,0 +1,302 @@
+import pandas as pd
+import logging
+import os
+import re
+import traceback
+from datetime import datetime
+from app import db
+from app.models.product import ProductGroup
+from app.models.temp_import import TempImport
+from app.services.file_mgmt import FileMgmtService
+from app.services.product.group import ProductGroupService
+
+logger = logging.getLogger('app.services.group_import_export')
+
+
+class GroupImportService:
+    @staticmethod
+    def validate_groups_from_file(file, user_id):
+        """Phase 1: Validate and temporarily store group data from Excel or CSV file"""
+        file_path = None
+
+        try:
+            # Save the uploaded file
+            file_path, filename = FileMgmtService.save_file(file)
+
+            # Read file into DataFrame
+            df = FileMgmtService.read_file(file_path)
+
+            # Get column names and log them
+            original_columns = list(df.columns)
+            logger.info(f"Original columns in file: {original_columns}")
+
+            # Normalize column names (case-insensitive)
+            df.columns = [col.lower().strip() for col in df.columns]
+
+            # Map expected columns to their possible variations
+            column_mapping = {
+                'group': ['group', 'name', 'group_name', 'groupname', 'group name', 'id-name']
+            }
+
+            # Find the group column
+            group_column = None
+            for possible_col in column_mapping['group']:
+                if possible_col in df.columns:
+                    group_column = possible_col
+                    logger.info(f"Found group column: '{possible_col}'")
+                    break
+
+            # If we didn't find a column, try using the first column
+            if not group_column and len(df.columns) > 0:
+                group_column = df.columns[0]
+                logger.info(
+                    f"Using first column as group column: '{group_column}'")
+
+            if not group_column:
+                FileMgmtService.delete_file(file_path)
+                raise ValueError("Could not identify a column for group data")
+
+            # Validate data (but don't insert into database yet)
+            valid_records = []
+            error_count = 0
+            errors = []
+
+            # Compile regex pattern for ID-NAME format
+            # Matches both "123-GROUPNAME" and "123 - GROUPNAME" formats
+            pattern = re.compile(r'^(\d+)\s*-\s*(.+)$')
+
+            # Get existing group IDs and names for validation
+            existing_group_ids = {
+                group.id for group in ProductGroup.query.all()}
+            existing_group_names = {group.name.lower()
+                                    for group in ProductGroup.query.all()}
+
+            for idx, row in df.iterrows():
+                try:
+                    row_index = idx + 2  # +2 for 1-based index and header row
+
+                    # Skip empty rows
+                    if pd.isna(row[group_column]) or str(row[group_column]).strip() == '':
+                        error_count += 1
+                        errors.append(f"Row {row_index}: Empty group value")
+                        continue
+
+                    group_value = str(row[group_column]).strip()
+
+                    # Match the ID-NAME pattern
+                    match = pattern.match(group_value)
+                    if not match:
+                        error_count += 1
+                        errors.append(
+                            f"Row {row_index}: Invalid format '{group_value}'. Must be 'ID-NAME' format (e.g., '123-GROUPNAME' or '123 - GROUPNAME')")
+                        continue
+
+                    # Extract ID and name from the match
+                    group_id_str, group_name = match.groups()
+
+                    try:
+                        group_id = int(group_id_str)
+                    except ValueError:
+                        error_count += 1
+                        errors.append(
+                            f"Row {row_index}: Group ID must be a number")
+                        continue
+
+                    group_name = group_name.strip()
+                    if not group_name:
+                        error_count += 1
+                        errors.append(
+                            f"Row {row_index}: Group name cannot be empty")
+                        continue
+
+                    # Check for duplicates within the file
+                    duplicate_id_count = 0
+                    for i, r in df.iterrows():
+                        if pd.isna(r[group_column]) or str(r[group_column]).strip() == '':
+                            continue
+
+                        value = str(r[group_column]).strip()
+                        m = pattern.match(value)
+                        if m and int(m.group(1)) == group_id:
+                            duplicate_id_count += 1
+
+                    if duplicate_id_count > 1:
+                        error_count += 1
+                        errors.append(
+                            f"Row {row_index}: Duplicate group ID ({group_id}) found in the file")
+                        continue
+
+                    # Check if ID already exists in database
+                    if group_id in existing_group_ids:
+                        error_count += 1
+                        errors.append(
+                            f"Row {row_index}: Group ID {group_id} already exists in the database")
+                        continue
+
+                    # Check if name already exists in database
+                    if group_name.lower() in existing_group_names:
+                        error_count += 1
+                        errors.append(
+                            f"Row {row_index}: Group name '{group_name}' already exists in the database")
+                        continue
+
+                    # If we get here, the record is valid
+                    valid_records.append({
+                        'id': group_id,
+                        'name': group_name
+                    })
+
+                except Exception as e:
+                    error_count += 1
+                    errors.append(f"Row {row_index}: {str(e)}")
+                    logger.error(
+                        f"Error processing row {row_index}: {traceback.format_exc()}")
+
+            # Create a temporary import record
+            import_data = {
+                'valid_records': valid_records,
+                'total_count': len(df),
+                'success_count': len(valid_records),
+                'error_count': error_count,
+                'errors': errors
+            }
+
+            temp_import = TempImport.create_import(
+                user_id=user_id,
+                import_type='group',
+                data=import_data
+            )
+
+            # Clean up the file after processing
+            if file_path:
+                FileMgmtService.delete_file(file_path)
+
+            return {
+                'import_id': temp_import.id,
+                'success_count': len(valid_records),
+                'error_count': error_count,
+                'total_count': len(df),
+                'errors': errors[:10],  # Limit the number of errors returned
+                'has_more_errors': len(errors) > 10
+            }
+
+        except Exception as e:
+            # Clean up the file even if there's an error
+            if file_path and os.path.exists(file_path):
+                FileMgmtService.delete_file(file_path)
+            logger.exception(f"Error validating group import: {str(e)}")
+            raise e
+
+    @staticmethod
+    def confirm_import(import_id, user_id):
+        """Phase 2: Commit a previously validated import to the database"""
+        try:
+            # Find the temporary import record
+            temp_import = TempImport.get_by_id(import_id, user_id)
+
+            if not temp_import:
+                return {
+                    'success': False,
+                    'error': 'Import not found or expired'
+                }
+
+            if temp_import.import_type != 'group':
+                return {
+                    'success': False,
+                    'error': 'Invalid import type'
+                }
+
+            # Get the validated records
+            valid_records = temp_import.data.get('valid_records', [])
+
+            if not valid_records:
+                return {
+                    'success': False,
+                    'error': 'No valid records to import'
+                }
+
+            # Insert all records into the database
+            success_count = 0
+            errors = []
+
+            for record in valid_records:
+                try:
+                    # Use the existing ProductGroupService to create the record
+                    group, error = ProductGroupService.create(record)
+                    if error:
+                        errors.append(
+                            f"Error creating group ID {record['id']}: {error}")
+                    else:
+                        success_count += 1
+                except Exception as e:
+                    errors.append(
+                        f"Error creating group ID {record['id']}: {str(e)}")
+                    logger.error(
+                        f"Error creating group during import confirmation: {str(e)}")
+
+            # Delete the temporary import record after processing
+            db.session.delete(temp_import)
+            db.session.commit()
+
+            # Return the result
+            return {
+                'success': True,
+                'count': success_count,
+                'total': len(valid_records),
+                'failed': len(valid_records) - success_count,
+                'errors': errors[:10] if errors else []
+            }
+
+        except Exception as e:
+            logger.exception(f"Error confirming import: {str(e)}")
+            db.session.rollback()
+            return {
+                'success': False,
+                'error': str(e)
+            }
+
+    @staticmethod
+    def create_sample_file():
+        """Generate a sample Excel file for group import"""
+        try:
+            download_dir = FileMgmtService.get_download_dir()
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f'group_import_sample_{timestamp}.xlsx'
+            file_path = os.path.join(download_dir, filename)
+
+            # Create sample data with the expected ID-NAME format
+            sample_data = [
+                {'Group': '101-FOOTWEAR'},
+                {'Group': '102-APPAREL'},
+                {'Group': '103-ACCESSORIES'},
+                # With space to show both formats are accepted
+                {'Group': '104 - EQUIPMENT'}
+            ]
+
+            # Create DataFrame
+            df = pd.DataFrame(sample_data)
+
+            # Add instructions sheet
+            instructions = pd.DataFrame([{
+                'Format': 'ID-NAME Format:',
+                'Description': 'Each group must be in the format "ID-NAME" or "ID - NAME" (e.g., "101-FOOTWEAR" or "101 - FOOTWEAR")'
+            }, {
+                'Format': 'ID:',
+                'Description': 'Must be a unique numeric identifier that does not exist in the database'
+            }, {
+                'Format': 'NAME:',
+                'Description': 'Must be a unique group name that does not exist in the database'
+            }])
+
+            # Create Excel writer
+            with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+                df.to_excel(writer, sheet_name='Sample Data', index=False)
+                instructions.to_excel(
+                    writer, sheet_name='Instructions', index=False)
+
+            logger.info(f"Sample group import file created: {file_path}")
+            return file_path, filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
+        except Exception as e:
+            logger.exception(f"Error creating sample file: {str(e)}")
+            raise e
