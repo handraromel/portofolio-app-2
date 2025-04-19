@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import { Modal } from "@/components/Common";
 import { formatNumberToIDR } from "@/utils/formatCurrency";
-import { useTax } from "@/actions";
 import YearComparisonChart from "../Components/YearComparisonChart";
 import GrowthIndicator from "../Components/GrowthIndicator";
 
@@ -43,7 +42,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   summaryData,
   showYoY,
 }) => {
-  const { currentTaxRate } = useTax();
+  // const { currentTaxRate } = useTax();
 
   // Process data with useMemo to avoid recalculation on renders
   const processedData = useMemo(() => {
@@ -353,7 +352,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                   <div className="mb-2 text-sm font-medium text-gray-500">
                     Tax Amount
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* <div className="grid grid-cols-2 gap-4">
                     <div>
                       <div className="text-sm text-gray-500">This Year</div>
                       <div className="text-lg font-semibold">
@@ -366,7 +365,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                         {totalData.ly_data.tax_amount}
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                   <div className="mt-2 flex items-center justify-end">
                     <GrowthIndicator
                       growthValue={
@@ -387,7 +386,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
         ) : (
           // Original view without YoY
           <>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                 <div className="text-sm font-medium text-gray-500">
                   Quantity Sold
@@ -403,9 +402,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                   {formatNumberToIDR(totalData.gross_sales)}
                 </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                 <div className="text-sm font-medium text-gray-500">
                   Discount Amount
@@ -414,7 +411,9 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                   {formatNumberToIDR(totalData.discounted_amt)}
                 </div>
               </div>
+            </div>
 
+            {/* <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                 <div className="text-sm font-medium text-gray-500">
                   Tax Amount
@@ -428,10 +427,10 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                 </div>
                 <div className="text-xl font-bold">{currentTaxRate ?? 0}%</div>
               </div>
-            </div>
+            </div> */}
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="rounded-lg bg-blue-50 p-4 shadow-sm dark:bg-blue-900/20">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {/* <div className="rounded-lg bg-blue-50 p-4 shadow-sm dark:bg-blue-900/20">
                 <div className="text-sm font-medium text-gray-500">
                   Transactions
                 </div>
@@ -440,7 +439,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                     {totalData.transaction_count}
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               <div className="rounded-lg bg-green-50 p-4 shadow-sm dark:bg-green-900/20">
                 <div className="text-sm font-medium text-gray-500">

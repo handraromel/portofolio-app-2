@@ -1,12 +1,16 @@
 import React from "react";
+import { BrowserRouter as Router } from "react-router-dom";
 import AppRouter from "@/routes/AppRouter";
-import { useAuthCheck } from "@/hooks/useAuthCheck";
 import { useTheme } from "@/hooks/useTheme";
 
 const App: React.FC = () => {
-  useAuthCheck();
   useTheme();
-  return <AppRouter />;
+
+  return (
+    <Router>
+      <AppRouter />
+    </Router>
+  );
 };
 
 export default App;

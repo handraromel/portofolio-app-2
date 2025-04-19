@@ -45,12 +45,12 @@ export interface ProductCategoryResponse extends ApiResponse {
 
 // Types for create/update operations
 export interface ProductBrandSubmission {
-  id: number | null;
+  id: number | null | string;
   name: string;
 }
 
 export interface ProductGroupSubmission {
-  id: number | null;
+  id: number | null | string;
   name: string;
 }
 

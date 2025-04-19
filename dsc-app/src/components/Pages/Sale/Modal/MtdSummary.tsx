@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import { Modal } from "@/components/Common";
 import { formatNumberToIDR } from "@/utils/formatCurrency";
-import { useTax } from "@/actions";
 import YearComparisonChart from "../Components/YearComparisonChart";
 import GrowthIndicator from "../Components/GrowthIndicator";
 
@@ -52,7 +51,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
   summaryData,
   showYoY,
 }) => {
-  const { currentTaxRate } = useTax();
+  // const { currentTaxRate } = useTax();
 
   // Process data with useMemo to avoid recalculation on renders
   const processedData = useMemo(() => {
@@ -393,7 +392,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
         ) : (
           // Standard view (no year-over-year comparison)
           <>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                 <div className="text-sm font-medium text-gray-500">
                   Qty Sold
@@ -409,9 +408,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                   {formatNumberToIDR(safeData.gross_sales)}
                 </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                 <div className="text-sm font-medium text-gray-500">
                   Discount Amount
@@ -420,17 +417,19 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                   {formatNumberToIDR(safeData.discounted_amt)}
                 </div>
               </div>
-
+            </div>
+            {/* 
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                 <div className="text-sm font-medium text-gray-500">
                   Tax Rate
                 </div>
                 <div className="text-xl font-bold">{currentTaxRate ?? 0}%</div>
               </div>
-            </div>
+            </div> */}
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="rounded-lg bg-blue-50 p-4 shadow-sm dark:bg-blue-900/20">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {/* <div className="rounded-lg bg-blue-50 p-4 shadow-sm dark:bg-blue-900/20">
                 <div className="text-sm font-medium text-gray-500">
                   Transactions
                 </div>
@@ -447,7 +446,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                     per day
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               <div className="rounded-lg bg-green-50 p-4 shadow-sm dark:bg-green-900/20">
                 <div className="text-sm font-medium text-gray-500">

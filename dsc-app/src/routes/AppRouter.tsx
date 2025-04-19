@@ -1,13 +1,8 @@
 import React, { Suspense } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route as ReactRoute,
-  Navigate,
-} from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAppSelector } from "@/hooks/useStore";
 import { routes } from ".";
-import { Route } from "./types";
+import { Route as RouteType } from "./types";
 import MainLayout from "@/layouts";
 import {
   NotFound,
@@ -16,6 +11,7 @@ import {
   Unauthorized,
 } from "@/components/Pages";
 import { checkRole } from "./middleware";
+import { useAuthCheck } from "@/hooks/useAuthCheck";
 
 const ProtectedRoute: React.FC<{
   element: React.ComponentType;
@@ -26,6 +22,8 @@ const ProtectedRoute: React.FC<{
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
   if (!isAuthenticated) {
+    // Save current location for redirect after login
+    localStorage.setItem("redirectAfterLogin", window.location.pathname);
     return <Navigate to="/login" replace />;
   }
 
@@ -41,63 +39,66 @@ const ProtectedRoute: React.FC<{
 };
 
 const AppRouter: React.FC = () => {
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const { isAuthenticated, isChecking } = useAuthCheck();
+
+  // Show loading screen while checking auth
+  if (isChecking) {
+    return <LoadingScreen />;
+  }
 
   return (
-    <Router>
-      <Suspense fallback={<LoadingScreen />}>
-        <Routes>
-          <ReactRoute
-            path="/"
-            element={
-              isAuthenticated ? (
-                <Navigate to="/dashboard" replace />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
 
-          <ReactRoute path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {routes.map((route: Route) => {
-            const Element = route.element;
-            const Layout = route.layout || MainLayout;
-            const allowedRoles = route.allowedRoles || ["superadmin"];
+        {routes.map((route: RouteType) => {
+          const Element = route.element;
+          const Layout = route.layout || MainLayout;
+          const allowedRoles = route.allowedRoles || ["superadmin"];
 
-            if (route.protected) {
-              return (
-                <ReactRoute
-                  key={route.path}
-                  path={route.path}
-                  element={
-                    <ProtectedRoute
-                      element={Element}
-                      layout={Layout}
-                      allowedRoles={allowedRoles}
-                    />
-                  }
-                />
-              );
-            }
-
+          if (route.protected) {
             return (
-              <ReactRoute
+              <Route
                 key={route.path}
                 path={route.path}
                 element={
-                  <Layout>
-                    <Element />
-                  </Layout>
+                  <ProtectedRoute
+                    element={Element}
+                    layout={Layout}
+                    allowedRoles={allowedRoles}
+                  />
                 }
               />
             );
-          })}
-          <ReactRoute path="/502" element={<BadGateway />} />
-          <ReactRoute path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-    </Router>
+          }
+
+          return (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={
+                <Layout>
+                  <Element />
+                </Layout>
+              }
+            />
+          );
+        })}
+        <Route path="/502" element={<BadGateway />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 };
 

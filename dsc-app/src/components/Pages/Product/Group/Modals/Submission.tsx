@@ -18,7 +18,7 @@ interface SubmissionProps {
 }
 
 const defaultValues: ProductGroupSubmission = {
-  id: null,
+  id: "",
   name: "",
 };
 

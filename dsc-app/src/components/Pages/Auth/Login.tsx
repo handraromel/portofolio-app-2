@@ -17,6 +17,7 @@ type MessageType = "success" | "error" | "info";
 const Login: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const location = useLocation();
   const { login, isLoading } = useAuth();
   const { message } = useAppSelector((state) => state.auth);
@@ -63,6 +64,15 @@ const Login: React.FC = () => {
       );
     }
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const redirectPath =
+        localStorage.getItem("redirectAfterLogin") || "/dashboard";
+      localStorage.removeItem("redirectAfterLogin");
+      navigate(redirectPath);
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <div>

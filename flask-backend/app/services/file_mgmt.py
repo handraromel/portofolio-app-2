@@ -170,13 +170,10 @@ class FileMgmtService:
     def create_sample_sales_file(directory='samples'):
         """Create a sample sales import file"""
         try:
-            # Create directory if it doesn't exist
-            sample_dir = os.path.join(current_app.root_path, directory)
-            os.makedirs(sample_dir, exist_ok=True)
-
-            # Define the filename
-            filename = 'sales_import_sample.xlsx'
-            file_path = os.path.join(sample_dir, filename)
+            download_dir = FileMgmtService.get_download_dir()
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f'sales_import_sample_{timestamp}.xlsx'
+            file_path = os.path.join(download_dir, filename)
 
             # Create sample data with EXACT column names expected by the importer
             sample_data = [
@@ -187,10 +184,10 @@ class FileMgmtService:
                     'input_date': '2025-04-20',
                     'sku': 'ABC123',
                     'item_no': 'ITEM001',
-                    'brand': '123-BRANDNAME',
-                    'group': '123-GROUPNAME',
-                    'division': 'DIVISI 2-FOOTWEAR',
-                    'category': 'NGESNELi',
+                    'brand': 'ID-BRANDNAME',
+                    'group': 'ID-GROUPNAME',
+                    'division': 'NAME-ALIAS',
+                    'category': 'CATEGORYNAME',
                     'description': 'Sample product description'
                 }
             ]

@@ -18,7 +18,7 @@ interface SubmissionProps {
 }
 
 const defaultValues: ProductBrandSubmission = {
-  id: null,
+  id: "",
   name: "",
 };
 

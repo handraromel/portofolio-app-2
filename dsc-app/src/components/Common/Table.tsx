@@ -290,7 +290,7 @@ const Table = <T extends { [key: string]: unknown }>({
         <div className="flex flex-col">
           <h2 className="text-xl font-bold">
             {title}
-            {totalRecords && (
+            {totalRecords !== undefined && totalRecords > 0 && (
               <p className="text-sm text-gray-500">
                 {totalRecords} Record{`${totalRecords === 1 ? "" : "s"}`} found
               </p>
