@@ -229,9 +229,18 @@ export const useDeleteSale = () => {
     mutationFn: (saleId: string) =>
       apiClient(`${salePrefix}/${saleId}`, { method: "DELETE" }),
     onSuccess: (_, saleId) => {
+      // Get current query data to determine pagination state
+      const queryData = queryClient.getQueryData(saleKeys.lists()) as
+        | SalesResponse
+        | undefined;
+
       queryClient.removeQueries({ queryKey: saleKeys.detail(saleId) });
       queryClient.invalidateQueries({ queryKey: saleKeys.lists() });
       queryClient.invalidateQueries({ queryKey: saleKeys.reports() });
+
+      return {
+        previousTotalRecords: queryData?.total || 0,
+      };
     },
   });
 };

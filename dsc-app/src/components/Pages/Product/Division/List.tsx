@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { formatDate } from "@/utils/formatDate";
 import { ProductDivision } from "@/types/product";
 import { Confirmation, ColumnDef } from "@/components/Common";
-import { useModal, usePermission } from "@/hooks";
+import { useModal, usePermission, useTableSelection } from "@/hooks";
 import { useToast } from "@/context/Toast";
 import { useDivision } from "@/actions/product/useDivision";
 import Table from "@/components/Common/Table";
@@ -33,14 +33,35 @@ const DivisionList: React.FC = () => {
   const detailModal = useModal();
   const [triggerDelete, setTriggerDelete] = useState(false);
 
+  const selection = useTableSelection<ProductDivision>({
+    idField: "uuid",
+    onSelectionChange: (items, current) => {
+      if (current) {
+        setSelectedDivision(current);
+      }
+    },
+  });
+
   const handleSubmission = (division?: ProductDivision) => {
     setSelectedDivision(division ?? null);
+    if (division) {
+      selection.selectItem(division);
+    } else {
+      selection.clearSelection();
+    }
     submissionModal.open();
   };
 
   const handleView = (division: ProductDivision) => {
     setSelectedDivision(division);
+    selection.selectItem(division);
     detailModal.open();
+  };
+
+  const handleDelete = (division: ProductDivision) => {
+    setSelectedDivision(division);
+    selection.selectItem(division);
+    setTriggerDelete(true);
   };
 
   const handleDeleteConfirm = useCallback(async () => {
@@ -80,24 +101,32 @@ const DivisionList: React.FC = () => {
       field: "name",
       header: "Division Name",
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "20%",
     },
     {
       field: "alias",
       header: "Alias",
       body: (rowData: ProductDivision) => rowData.alias || "-",
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "20%",
     },
     {
       field: "created_at",
       header: "Created At",
       body: (rowData: ProductDivision) => formatDate(rowData.created_at),
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "20%",
     },
     {
       field: "updated_at",
       header: "Updated At",
       body: (rowData: ProductDivision) => formatDate(rowData.updated_at),
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "20%",
     },
   ];
 
@@ -152,10 +181,7 @@ const DivisionList: React.FC = () => {
               icon: "pi pi-trash",
               tooltip: "Delete",
               severity: "danger",
-              onClick: (rowData) => {
-                setSelectedDivision(rowData);
-                setTriggerDelete(true);
-              },
+              onClick: (rowData) => handleDelete(rowData),
               visible: () => canDelete(),
             },
             {
@@ -163,10 +189,12 @@ const DivisionList: React.FC = () => {
               tooltip: "View",
               severity: "info",
               onClick: (rowData) => handleView(rowData),
-              visible: () => true,
             },
           ],
         }}
+        onSelectionChange={selection.handleSelectionChange}
+        selectionMode="multiple"
+        selectedItem={selection.selectedItems}
       />
 
       <Submission

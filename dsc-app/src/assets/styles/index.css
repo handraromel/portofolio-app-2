@@ -1,2 +1,10 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
+
+.p-datatable .p-datatable-tbody > tr.p-highlight {
+  @apply bg-indigo-500/10;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  @apply bg-indigo-500/5;
+}

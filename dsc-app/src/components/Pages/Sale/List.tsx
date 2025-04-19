@@ -4,7 +4,7 @@ import { formatDate } from "@/utils/formatDate";
 import { formatNumberToIDR } from "@/utils/formatCurrency";
 import { Sale } from "@/types/sale";
 import { Confirmation, ColumnDef } from "@/components/Common";
-import { useModal, usePermission } from "@/hooks";
+import { useModal, usePermission, useTableSelection } from "@/hooks";
 import { useToast } from "@/context/Toast";
 import { useSale } from "@/actions/useSale";
 import Table from "@/components/Common/Table";
@@ -78,13 +78,38 @@ const SaleList: React.FC = () => {
     if (selectedSale) {
       try {
         await deleteSale(selectedSale.uuid);
+
+        const currentTotalRecords = pagination.totalRecords || 0;
+        const currentPage = pagination.currentPage || 1;
+        const itemsPerPage = filters.per_page || 10;
+
+        if (
+          currentPage > 1 &&
+          currentTotalRecords - 1 <= (currentPage - 1) * itemsPerPage
+        ) {
+          changePage(currentPage - 1);
+        } else {
+          fetchSales();
+        }
+
         showWarning(responseMsg || "Sale record deleted successfully");
         setTriggerDelete(false);
       } catch {
         showError(responseMsg || "Failed to delete sale record");
       }
     }
-  }, [selectedSale, deleteSale, responseMsg, showWarning, showError]);
+  }, [
+    selectedSale,
+    deleteSale,
+    responseMsg,
+    showWarning,
+    showError,
+    pagination.totalRecords,
+    pagination.currentPage,
+    filters.per_page,
+    changePage,
+    fetchSales,
+  ]);
 
   const handleFilterApply = (filterData: FilterData) => {
     const {
@@ -103,6 +128,15 @@ const SaleList: React.FC = () => {
     fetchSales();
   };
 
+  const selection = useTableSelection<Sale>({
+    idField: "uuid",
+    onSelectionChange: (items, current) => {
+      if (current) {
+        setSelectedSale(current);
+      }
+    },
+  });
+
   const handleView = (sale: Sale) => {
     setSelectedSale(sale);
     detailModal.open();
@@ -110,12 +144,19 @@ const SaleList: React.FC = () => {
 
   const handleEdit = (sale: Sale) => {
     setSelectedSale(sale);
+    selection.selectItem(sale);
     submissionModal.open();
   };
 
   const handleAdd = () => {
     setSelectedSale(null);
     submissionModal.open();
+  };
+
+  const handleDelete = (sale: Sale) => {
+    setSelectedSale(sale);
+    selection.selectItem(sale);
+    setTriggerDelete(true);
   };
 
   const handleRefresh = useCallback(() => {
@@ -140,18 +181,15 @@ const SaleList: React.FC = () => {
     await downloadSample();
   };
 
-  // Handle import function
   const handleImport = async (file: File) => {
     await importSales(file);
-    // Don't refresh the list yet - wait for confirmation
   };
 
-  // Handle confirmation function
   const handleConfirmImport = async () => {
     const success = await confirmImport();
     if (success) {
       importModal.close();
-      fetchSales(); // Refresh the list after import confirmation
+      fetchSales();
     }
   };
 
@@ -186,25 +224,26 @@ const SaleList: React.FC = () => {
       header: "Brand",
       body: (rowData: Sale) => `${rowData.brand.id} - ${rowData.brand.name}`,
       sortable: true,
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       header: "Division",
       body: (rowData: Sale) =>
         `${rowData.division.name}${rowData.division.alias ? ` - ${rowData.division.alias}` : ""}`,
       sortable: true,
-      style: { whiteSpace: "nowrap" },
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       header: "Group",
       body: (rowData: Sale) => `${rowData.group.id} - ${rowData.group.name}`,
       sortable: true,
-      style: { whiteSpace: "nowrap" },
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       header: "Category",
       body: (rowData: Sale) => rowData.category.name,
       sortable: true,
-      style: { whiteSpace: "nowrap" },
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       field: "description",
@@ -214,12 +253,14 @@ const SaleList: React.FC = () => {
           ? `${rowData.item_no} - ${rowData.description || "-"}`
           : "-",
       sortable: true,
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       field: "sku",
       header: "SKU",
       body: (rowData: Sale) => rowData.sku || "-",
       sortable: true,
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       field: "input_date",
@@ -227,29 +268,34 @@ const SaleList: React.FC = () => {
       body: (rowData: Sale) =>
         formatDate(rowData.input_date, { format: "DD MMM YYYY" }),
       sortable: true,
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       field: "gross_sales",
       header: "Gross Sales",
       body: (rowData: Sale) => formatNumberToIDR(rowData.gross_sales),
       sortable: true,
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       field: "discounted_amt",
       header: "Discount",
       body: (rowData: Sale) => formatNumberToIDR(rowData.discounted_amt),
       sortable: true,
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       field: "sale_amt",
       header: "Sale Amount",
       body: (rowData: Sale) => formatNumberToIDR(rowData.sale_amt),
       sortable: true,
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       field: "sale_qty",
       header: "Quantity",
       sortable: true,
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     // {
     //   field: "nett_sales",
@@ -268,6 +314,7 @@ const SaleList: React.FC = () => {
       header: "Net After Tax",
       body: (rowData: Sale) => formatNumberToIDR(rowData.nett_sales_after_tax),
       sortable: true,
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
   ];
 
@@ -285,7 +332,7 @@ const SaleList: React.FC = () => {
         pt={{
           root: { className: "border-0" },
           nav: {
-            className: "flex flex-row flex-nowrap border-0 mb-8",
+            className: "flex flex-row flex-nowrap border-0",
             style: { border: "none", borderBottom: "none" },
           },
           navContainer: {
@@ -363,6 +410,7 @@ const SaleList: React.FC = () => {
               onSearch={searchSales}
               actions={{
                 header: "Actions",
+                align: "center",
                 buttons: [
                   {
                     icon: "pi pi-pencil",
@@ -375,10 +423,7 @@ const SaleList: React.FC = () => {
                     icon: "pi pi-trash",
                     tooltip: "Delete",
                     severity: "danger",
-                    onClick: (rowData) => {
-                      setSelectedSale(rowData);
-                      setTriggerDelete(true);
-                    },
+                    onClick: handleDelete,
                     visible: () => canDelete(),
                   },
                   {
@@ -390,6 +435,9 @@ const SaleList: React.FC = () => {
                   },
                 ],
               }}
+              selectionMode="multiple"
+              selectedItem={selection.selectedItems}
+              onSelectionChange={selection.handleSelectionChange}
             />
           </div>
         </TabPanel>

@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { formatDate } from "@/utils/formatDate";
 import { ProductGroup } from "@/types/product";
 import { Confirmation, ColumnDef } from "@/components/Common";
-import { useModal, usePermission } from "@/hooks";
+import { useModal, usePermission, useTableSelection } from "@/hooks";
 import { useToast } from "@/context/Toast";
 import { useGroup } from "@/actions/product/useGroup";
 import Table from "@/components/Common/Table";
@@ -32,13 +32,34 @@ const GroupList: React.FC = () => {
   const detailModal = useModal();
   const [triggerDelete, setTriggerDelete] = useState(false);
 
+  const selection = useTableSelection<ProductGroup>({
+    idField: "uuid",
+    onSelectionChange: (items, current) => {
+      if (current) {
+        setSelectedGroup(current);
+      }
+    },
+  });
+
   const handleSubmission = (group?: ProductGroup) => {
     setSelectedGroup(group ?? null);
+    if (group) {
+      selection.selectItem(group);
+    } else {
+      selection.clearSelection();
+    }
     submissionModal.open();
+  };
+
+  const handleDelete = (group: ProductGroup) => {
+    setSelectedGroup(group);
+    selection.selectItem(group);
+    setTriggerDelete(true);
   };
 
   const handleView = (group: ProductGroup) => {
     setSelectedGroup(group);
+    selection.selectItem(group);
     detailModal.open();
   };
 
@@ -77,23 +98,31 @@ const GroupList: React.FC = () => {
       field: "id",
       header: "ID",
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "20%",
     },
     {
       field: "name",
       header: "Group Name",
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "20%",
     },
     {
       field: "created_at",
       header: "Created At",
       body: (rowData: ProductGroup) => formatDate(rowData.created_at),
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "20%",
     },
     {
       field: "updated_at",
       header: "Updated At",
       body: (rowData: ProductGroup) => formatDate(rowData.updated_at),
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "20%",
     },
   ];
 
@@ -148,10 +177,7 @@ const GroupList: React.FC = () => {
               icon: "pi pi-trash",
               tooltip: "Delete",
               severity: "danger",
-              onClick: (rowData) => {
-                setSelectedGroup(rowData);
-                setTriggerDelete(true);
-              },
+              onClick: (rowData) => handleDelete(rowData),
               visible: () => canDelete(),
             },
             {
@@ -159,10 +185,12 @@ const GroupList: React.FC = () => {
               tooltip: "View",
               severity: "info",
               onClick: (rowData) => handleView(rowData),
-              visible: () => true,
             },
           ],
         }}
+        onSelectionChange={selection.handleSelectionChange}
+        selectionMode="multiple"
+        selectedItem={selection.selectedItems}
       />
 
       <Submission

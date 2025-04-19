@@ -100,7 +100,7 @@ export const InputField: React.FC<FieldInputProps> = ({
               field.onChange(formattedDate);
             }}
             onBlur={field.onBlur}
-            dateFormat="yy-mm-dd"
+            dateFormat="yy MM dd"
             placeholder={placeholder}
             invalid={hasError}
             className="p-inputtext-sm w-full"

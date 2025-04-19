@@ -5,3 +5,4 @@ export * from "./useTheme";
 export * from "./usePermission";
 export * from "./useNavigation";
 export * from "./useDismissMessage";
+export * from "./useTableSelection";

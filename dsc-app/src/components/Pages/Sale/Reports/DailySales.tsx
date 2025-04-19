@@ -92,7 +92,6 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
       {
         header: "No",
         body: indexTemplate,
-        style: { width: "60px", textAlign: "center" },
       },
       {
         header: "Department",
@@ -154,7 +153,6 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
       {
         header: "No",
         body: indexTemplate,
-        style: { textAlign: "center" },
       },
       {
         header: "Department",
@@ -239,7 +237,7 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
   return (
     <div className="space-y-4">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Daily Sales by Brand</h2>
+        <h2 className="text-xl font-bold">Daily Sales by Brand</h2>
         <div className="flex gap-2">
           <Button
             icon="pi pi-chart-bar"

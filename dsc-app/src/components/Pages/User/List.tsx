@@ -159,40 +159,54 @@ const UserList: React.FC = () => {
       field: "email",
       header: "Email",
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "15%",
     },
     {
       field: "username",
       header: "Username",
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "15%",
     },
     {
       header: "Full Name",
       body: fullNameTemplate,
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "15%",
     },
     {
       field: "role",
       header: "Role",
       body: roleBodyTemplate,
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "15%",
     },
     {
       field: "is_active",
       header: "Status",
       body: statusBodyTemplate,
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "15%",
     },
     {
       field: "created_at",
       header: "Created At",
       body: (rowData: User) => formatDate(rowData.created_at),
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "15%",
     },
     {
       field: "updated_at",
       header: "Updated At",
       body: (rowData: User) => formatDate(rowData.updated_at),
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "15%",
     },
   ];
 
@@ -234,6 +248,7 @@ const UserList: React.FC = () => {
         onSearch={searchUsers}
         actions={{
           header: "Actions",
+          align: "center",
           buttons: [
             {
               icon: "pi pi-pencil",

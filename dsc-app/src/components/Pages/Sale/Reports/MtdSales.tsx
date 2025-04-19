@@ -89,7 +89,6 @@ const MtdSales: React.FC<MtdSalesProps> = ({ onRefresh }) => {
       {
         header: "No",
         body: indexTemplate,
-        style: { textAlign: "center" },
       },
       {
         header: "Department",
@@ -156,7 +155,6 @@ const MtdSales: React.FC<MtdSalesProps> = ({ onRefresh }) => {
       {
         header: "No",
         body: indexTemplate,
-        style: { textAlign: "center" },
       },
       {
         header: "Department",

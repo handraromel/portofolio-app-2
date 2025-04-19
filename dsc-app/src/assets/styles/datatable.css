@@ -1,0 +1,41 @@
+.table-with-fixed-paginator {
+  display: flex;
+  flex-direction: column;
+  min-height: 550px; /* Minimum height for the table container */
+  height: 100%;
+}
+
+/* Make the table wrapper expand */
+.table-with-fixed-paginator .p-datatable-wrapper {
+  flex: 1;
+  min-height: 200px; /* Ensure some minimum space for the table */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Add space at the bottom when few records */
+.table-with-fixed-paginator .p-datatable-table {
+  margin-bottom: auto;
+}
+
+/* Style and position the paginator */
+.fixed-bottom-paginator {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 10 !important;
+  margin-top: auto !important;
+}
+
+/* PrimeReact's PT API styling */
+.sticky-paginator {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 10 !important;
+}
+
+/* When there's very little data, add phantom space */
+.table-with-fixed-paginator .p-datatable-tbody:empty::after {
+  content: "";
+  display: block;
+  min-height: 550px;
+}

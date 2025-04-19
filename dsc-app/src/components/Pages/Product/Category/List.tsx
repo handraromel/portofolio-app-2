@@ -2,7 +2,7 @@ import React, { useCallback, useState, useEffect } from "react";
 import { formatDate } from "@/utils/formatDate";
 import { ProductCategory } from "@/types/product";
 import { Confirmation, ColumnDef } from "@/components/Common";
-import { useModal, usePermission } from "@/hooks";
+import { useModal, usePermission, useTableSelection } from "@/hooks";
 import { useToast } from "@/context/Toast";
 import { useCategory } from "@/actions/product/useCategory";
 import Table from "@/components/Common/Table";
@@ -33,13 +33,34 @@ const CategoryList: React.FC = () => {
   const detailModal = useModal();
   const [triggerDelete, setTriggerDelete] = useState(false);
 
+  const selection = useTableSelection<ProductCategory>({
+    idField: "uuid",
+    onSelectionChange: (items, current) => {
+      if (current) {
+        setSelectedCategory(current);
+      }
+    },
+  });
+
   const handleSubmission = (category?: ProductCategory) => {
     setSelectedCategory(category ?? null);
+    if (category) {
+      selection.selectItem(category);
+    } else {
+      selection.clearSelection();
+    }
     submissionModal.open();
+  };
+
+  const handleDelete = (category: ProductCategory) => {
+    setSelectedCategory(category);
+    selection.selectItem(category);
+    setTriggerDelete(true);
   };
 
   const handleView = (category: ProductCategory) => {
     setSelectedCategory(category);
+    selection.selectItem(category);
     detailModal.open();
   };
 
@@ -80,18 +101,24 @@ const CategoryList: React.FC = () => {
       field: "name",
       header: "Category Name",
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "30%",
     },
     {
       field: "created_at",
       header: "Created At",
       body: (rowData: ProductCategory) => formatDate(rowData.created_at),
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "30%",
     },
     {
       field: "updated_at",
       header: "Updated At",
       body: (rowData: ProductCategory) => formatDate(rowData.updated_at),
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "30%",
     },
   ];
 
@@ -133,6 +160,7 @@ const CategoryList: React.FC = () => {
         onSearch={searchCategories}
         actions={{
           header: "Actions",
+          align: "center",
           buttons: [
             {
               icon: "pi pi-pencil",
@@ -145,10 +173,7 @@ const CategoryList: React.FC = () => {
               icon: "pi pi-trash",
               tooltip: "Delete",
               severity: "danger",
-              onClick: (rowData) => {
-                setSelectedCategory(rowData);
-                setTriggerDelete(true);
-              },
+              onClick: (rowData) => handleDelete(rowData),
               visible: () => canDelete(),
             },
             {
@@ -156,10 +181,12 @@ const CategoryList: React.FC = () => {
               tooltip: "View",
               severity: "info",
               onClick: (rowData) => handleView(rowData),
-              visible: () => true,
             },
           ],
         }}
+        onSelectionChange={selection.handleSelectionChange}
+        selectionMode="multiple"
+        selectedItem={selection.selectedItems}
       />
 
       <Submission

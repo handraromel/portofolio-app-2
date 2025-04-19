@@ -1,10 +1,18 @@
 import React, { JSX, useCallback, useEffect, useState } from "react";
-import { DataTable, DataTablePageEvent } from "primereact/datatable";
+import {
+  DataTable,
+  DataTablePageEvent,
+  DataTableValueArray,
+  DataTableSelectionMultipleChangeEvent,
+  DataTableRowClickEvent,
+} from "primereact/datatable";
 import { Column, ColumnProps } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { FilterMatchMode } from "primereact/api";
 import { debounce } from "lodash";
+import { useRef, useLayoutEffect } from "react";
+import "@/assets/styles/datatable.css";
 
 export interface ColumnDef<T> extends Omit<ColumnProps, "field" | "body"> {
   field?: keyof T;
@@ -58,6 +66,8 @@ export interface TableAction {
   disabled?: boolean;
 }
 
+type DataTableSelection<T> = T[] | null;
+
 export interface TableProps<T> {
   data: T[];
   columns: ColumnDef<T>[];
@@ -80,6 +90,9 @@ export interface TableProps<T> {
     align?: "left" | "center" | "right";
   };
   dataKey?: string;
+  selectionMode?: "multiple" | "checkbox" | null;
+  selectedItem?: DataTableSelection<T>;
+  onSelectionChange?: (selection: DataTableSelection<T>) => void;
 }
 
 const Table = <T extends { [key: string]: unknown }>({
@@ -96,6 +109,9 @@ const Table = <T extends { [key: string]: unknown }>({
   hideSearch = false,
   actions,
   dataKey,
+  selectionMode = "multiple",
+  selectedItem,
+  onSelectionChange,
 }: TableProps<T>) => {
   const [filters, setFilters] = useState({
     global: {
@@ -124,6 +140,36 @@ const Table = <T extends { [key: string]: unknown }>({
     debouncedSearch(value);
   };
 
+  const handleRowClick = (event: DataTableRowClickEvent) => {
+    if (!selectionMode || !onSelectionChange) return;
+
+    const clickedRow = event.data as T;
+    const keyField = getUniqueKeyField() as keyof T;
+
+    // Get current selection
+    const current = selectedItem || [];
+
+    // Check if already selected
+    const isSelected = current.some(
+      (item) => item[keyField] === clickedRow[keyField],
+    );
+
+    let newSelection: T[];
+
+    if (isSelected) {
+      // Remove from selection
+      newSelection = current.filter(
+        (item) => item[keyField] !== clickedRow[keyField],
+      );
+    } else {
+      // Add to selection
+      newSelection = [...current, clickedRow];
+    }
+
+    // Update selection (null if empty)
+    onSelectionChange(newSelection.length > 0 ? newSelection : null);
+  };
+
   const renderActions = useCallback(
     (rowData: T) => {
       if (!actions?.buttons.length) return null;
@@ -136,7 +182,7 @@ const Table = <T extends { [key: string]: unknown }>({
 
       return (
         <div
-          className={`flex gap-2 ${actions.align === "center" ? "justify-center" : actions.align === "right" ? "justify-end" : "justify-start"}`}
+          className={`flex gap-2 px-8 ${actions.align === "center" ? "justify-center" : actions.align === "right" ? "justify-end" : "justify-start"}`}
           style={{ minWidth: actionWidth }}
         >
           {actions.buttons.map((button, index) => {
@@ -202,7 +248,8 @@ const Table = <T extends { [key: string]: unknown }>({
       const actionColumn: ColumnDef<T> = {
         header: actions.header || "Actions",
         body: renderActions,
-        width: actions.buttons.length * 40 + "px",
+        align: "center",
+        width: "100%",
       };
 
       const updatedColumns = [...columns, actionColumn];
@@ -213,6 +260,23 @@ const Table = <T extends { [key: string]: unknown }>({
   }, [columns, actions, renderActions]);
 
   const [displayColumns, setDisplayColumns] = useState<ColumnDef<T>[]>(columns);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [tableHeight, setTableHeight] = useState("500px");
+
+  useLayoutEffect(() => {
+    if (tableContainerRef.current) {
+      const calculateHeight = () => {
+        const containerTop =
+          tableContainerRef.current?.getBoundingClientRect().top || 0;
+        const availableHeight = window.innerHeight - containerTop - 296;
+        setTableHeight(`${Math.max(300, availableHeight)}px`);
+      };
+
+      calculateHeight();
+      window.addEventListener("resize", calculateHeight);
+      return () => window.removeEventListener("resize", calculateHeight);
+    }
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -222,9 +286,16 @@ const Table = <T extends { [key: string]: unknown }>({
 
   const renderHeader = () => {
     return (
-      <div className="flex flex-col justify-between max-sm:space-y-3 sm:flex-row">
-        <div className="flex gap-4">
-          <h2 className="text-xl font-bold">{title}</h2>
+      <div className="mb-5 flex flex-col justify-between max-sm:space-y-3 sm:flex-row">
+        <div className="flex flex-col">
+          <h2 className="text-xl font-bold">
+            {title}
+            {totalRecords && (
+              <p className="text-sm text-gray-500">
+                {totalRecords} Record{`${totalRecords === 1 ? "" : "s"}`} found
+              </p>
+            )}
+          </h2>
         </div>
         <div className="flex flex-col gap-4 sm:flex-row">
           {!hideSearch && ( // Conditionally render the search input
@@ -284,17 +355,6 @@ const Table = <T extends { [key: string]: unknown }>({
     };
   };
 
-  const footerTemplate = () => {
-    if (totalRecords !== undefined) {
-      return (
-        <div className="px-4 py-2">
-          <div>Total records: {totalRecords}</div>
-        </div>
-      );
-    }
-    return null;
-  };
-
   // Handle pagination events (page change and rows per page change)
   const handlePage = (event: DataTablePageEvent) => {
     if (paginator) {
@@ -335,35 +395,56 @@ const Table = <T extends { [key: string]: unknown }>({
   };
 
   return (
-    <DataTable
-      value={data}
-      paginator={true}
-      rows={currentRows}
-      rowsPerPageOptions={[5, 10, 25, 50]}
-      size="small"
-      dataKey={getUniqueKeyField()}
-      filters={filters}
-      filterDisplay="menu"
-      loading={loading}
-      globalFilterFields={globalSearchFields as string[]}
-      header={renderHeader}
-      footer={footerTemplate}
-      emptyMessage="No data found."
-      className="p-datatable-lg flex flex-1 flex-col [&_.p-column-header-content]:!w-full [&_.p-column-header-content]:!overflow-hidden [&_.p-column-title]:!whitespace-nowrap [&_.p-datatable-scrollable-header]:!z-2 [&_.p-datatable-scrollable-table>.p-datatable-thead]:!z-2 [&_.p-datatable-thead]:!z-2"
-      scrollable={true}
-      scrollHeight="flex"
-      resizableColumns={false}
-      columnResizeMode="fit"
-      tableStyle={{ minWidth: "100%" }}
-      totalRecords={totalRecords}
-      lazy={!!paginator}
-      first={paginator ? (paginator.currentPage - 1) * currentRows : 0}
-      onPage={handlePage}
+    <div
+      ref={tableContainerRef}
+      className="flex h-full flex-col overflow-hidden"
     >
-      {displayColumns.map((col, index) => (
-        <Column key={index} {...convertToColumnProps(col)} />
-      ))}
-    </DataTable>
+      <DataTable
+        value={data}
+        paginator={true}
+        paginatorClassName="fixed-bottom-paginator border-t border-gray-200" // Add custom class
+        paginatorPosition="bottom"
+        rows={currentRows}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        size="small"
+        dataKey={getUniqueKeyField()}
+        filters={filters}
+        filterDisplay="menu"
+        loading={loading}
+        globalFilterFields={globalSearchFields as string[]}
+        header={renderHeader}
+        emptyMessage="No data found."
+        scrollHeight={tableHeight}
+        scrollable={true}
+        resizableColumns={false}
+        columnResizeMode="fit"
+        tableStyle={{ minWidth: "100%" }}
+        totalRecords={totalRecords}
+        lazy={!!paginator}
+        first={paginator ? (paginator.currentPage - 1) * currentRows : 0}
+        onPage={handlePage}
+        selectionMode={selectionMode}
+        selection={selectedItem as unknown as DataTableValueArray}
+        onSelectionChange={(e: DataTableSelectionMultipleChangeEvent<T[]>) =>
+          onSelectionChange &&
+          onSelectionChange(e.value as DataTableSelection<T>)
+        }
+        onRowClick={handleRowClick}
+        rowClassName={() => "cursor-pointer hover:bg-gray-50"}
+        className="table-with-fixed-paginator"
+        pt={{
+          tbody: { className: "text-[13px]" },
+          headerRow: { className: "text-[14px] font-semibold" },
+          paginator: { root: { className: "sticky-paginator" } },
+          root: { className: "flex flex-col h-full" },
+          wrapper: { className: "flex-grow" },
+        }}
+      >
+        {displayColumns.map((col, index) => (
+          <Column key={index} {...convertToColumnProps(col)} />
+        ))}
+      </DataTable>
+    </div>
   );
 };
 

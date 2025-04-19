@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { formatDate } from "@/utils/formatDate";
 import { ProductBrand } from "@/types/product";
 import { Confirmation, ColumnDef } from "@/components/Common";
-import { useModal, usePermission } from "@/hooks";
+import { useModal, usePermission, useTableSelection } from "@/hooks";
 import { useToast } from "@/context/Toast";
 import { useBrand } from "@/actions/product/useBrand";
 import Table from "@/components/Common/Table";
@@ -32,13 +32,34 @@ const BrandList: React.FC = () => {
   const detailModal = useModal();
   const [triggerDelete, setTriggerDelete] = useState(false);
 
+  const selection = useTableSelection<ProductBrand>({
+    idField: "uuid",
+    onSelectionChange: (items, current) => {
+      if (current) {
+        setSelectedBrand(current);
+      }
+    },
+  });
+
   const handleSubmission = (brand?: ProductBrand) => {
     setSelectedBrand(brand ?? null);
+    if (brand) {
+      selection.selectItem(brand);
+    } else {
+      selection.clearSelection();
+    }
     submissionModal.open();
+  };
+
+  const handleDelete = (brand: ProductBrand) => {
+    setSelectedBrand(brand);
+    selection.selectItem(brand);
+    setTriggerDelete(true);
   };
 
   const handleView = (brand: ProductBrand) => {
     setSelectedBrand(brand);
+    selection.selectItem(brand);
     detailModal.open();
   };
 
@@ -77,23 +98,31 @@ const BrandList: React.FC = () => {
       field: "id",
       header: "ID",
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "20%",
     },
     {
       field: "name",
       header: "Brand Name",
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "20%",
     },
     {
       field: "created_at",
       header: "Created At",
       body: (rowData: ProductBrand) => formatDate(rowData.created_at),
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "20%",
     },
     {
       field: "updated_at",
       header: "Updated At",
       body: (rowData: ProductBrand) => formatDate(rowData.updated_at),
       sortable: true,
+      style: { whiteSpace: "nowrap" },
+      width: "20%",
     },
   ];
 
@@ -135,6 +164,7 @@ const BrandList: React.FC = () => {
         onSearch={searchBrands}
         actions={{
           header: "Actions",
+          align: "center",
           buttons: [
             {
               icon: "pi pi-pencil",
@@ -147,10 +177,7 @@ const BrandList: React.FC = () => {
               icon: "pi pi-trash",
               tooltip: "Delete",
               severity: "danger",
-              onClick: (rowData) => {
-                setSelectedBrand(rowData);
-                setTriggerDelete(true);
-              },
+              onClick: (rowData) => handleDelete(rowData),
               visible: () => canDelete(),
             },
             {
@@ -158,10 +185,12 @@ const BrandList: React.FC = () => {
               tooltip: "View",
               severity: "info",
               onClick: (rowData) => handleView(rowData),
-              visible: () => true,
             },
           ],
         }}
+        selectionMode="multiple"
+        selectedItem={selection.selectedItems}
+        onSelectionChange={selection.handleSelectionChange}
       />
 
       <Submission
