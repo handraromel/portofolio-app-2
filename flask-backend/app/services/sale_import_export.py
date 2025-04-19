@@ -2,9 +2,11 @@ import pandas as pd
 import logging
 from datetime import datetime
 import uuid
+import traceback
 from app import db
 from app.models.sale import Sale
 from app.models.product import ProductBrand, ProductGroup, ProductDivision, ProductCategory
+from app.models.temp_import import TempImport
 from app.services.file_mgmt import FileMgmtService
 from app.services.sale import SaleService
 
@@ -289,7 +291,6 @@ class SaleImportExportService:
 
                 # Format data for export
                 sale_data = {
-                    'UUID': str(sale.uuid),
                     'Sale Quantity': sale.sale_qty,
                     'Sale Amount': float(sale.sale_amt),
                     'Discount Amount': float(sale.discounted_amt),
@@ -301,13 +302,10 @@ class SaleImportExportService:
                     'SKU': sale.sku or '',
                     'Item Number': sale.item_no or '',
                     'Description': sale.description or '',
-                    'Brand ID': sale.brand.id,
-                    'Brand Name': sale.brand.name,
-                    'Group ID': sale.group.id,
-                    'Group Name': sale.group.name,
-                    'Division Name': sale.division.name,
-                    'Division Alias': sale.division.alias or '',
-                    'Category Name': sale.category.name,
+                    'Department': str(sale.brand.id) + '-' + sale.brand.name,
+                    'Group': str(sale.group.id) + '-' + sale.group.name,
+                    'Division': sale.division.name + '-' + (sale.division.alias or ''),
+                    'Category': sale.category.name,
                     'Created At': sale.created_at.strftime('%Y-%m-%d %H:%M:%S') if sale.created_at else '',
                     'Updated At': sale.updated_at.strftime('%Y-%m-%d %H:%M:%S') if sale.updated_at else ''
                 }
@@ -351,3 +349,244 @@ class SaleImportExportService:
         except Exception as e:
             logger.exception(f"Error generating sample file: {str(e)}")
             raise e
+
+    @staticmethod
+    def validate_sales_from_file(file, user_id):
+        """Phase 1: Validate and temporarily store sales data from Excel or CSV file"""
+        file_path = None
+
+        try:
+            # Save the uploaded file
+            file_path, filename = FileMgmtService.save_file(file)
+
+            # Read file into DataFrame
+            df = FileMgmtService.read_file(file_path)
+
+            # Normalize column names (case-insensitive) - reuse existing code
+            df.columns = [col.lower().strip() for col in df.columns]
+
+            # Map expected columns to their possible variations - reuse existing code
+            column_mapping = {
+                'sale_qty': ['quantity', 'qty', 'sale_qty', 'saleqty', 'sale qty'],
+                'sale_amt': ['sale amount', 'saleamount', 'sale_amt', 'amount', 'sale amt'],
+                'discounted_amt': ['discount', 'discount amount', 'discounted_amt', 'discountedamt', 'discounted amt'],
+                'input_date': ['input date', 'date', 'input_date', 'inputdate'],
+                'sku': ['sku', 'stockkeepingunit'],
+                'item_no': ['item number', 'item no', 'item_no', 'itemno', 'item'],
+                'brand': ['brand', 'brand_name', 'brandname', 'product brand'],
+                'group': ['group', 'group_name', 'groupname', 'product group'],
+                'division': ['division', 'division_name', 'divisionname', 'product division'],
+                'category': ['category', 'category_name', 'categoryname', 'product category'],
+                'description': ['description', 'desc', 'product description']
+            }
+
+            # Output the actual columns for debugging
+            logger.info(f"Actual columns in file: {list(df.columns)}")
+
+            # Map actual columns to standardized columns - reuse existing code
+            actual_columns = {}
+            for standard_col, possible_cols in column_mapping.items():
+                found = False
+                for possible_col in possible_cols:
+                    if possible_col in df.columns:
+                        actual_columns[standard_col] = possible_col
+                        found = True
+                        logger.info(
+                            f"Mapped column '{possible_col}' to '{standard_col}'")
+                        break
+                if not found and standard_col in ['sale_qty', 'sale_amt', 'input_date', 'brand', 'group', 'division', 'category']:
+                    # Required field is missing
+                    FileMgmtService.delete_file(file_path)
+                    raise ValueError(
+                        f"Required column '{standard_col}' not found in file")
+
+            # Rename columns to match our model
+            rename_mapping = {actual_col: standard_col for standard_col,
+                              actual_col in actual_columns.items()}
+            df = df.rename(columns=rename_mapping)
+
+            # Process product relationships (brand, group, division, category)
+            product_ids = SaleImportExportService._process_product_relationships(
+                df)
+
+            # Convert date format
+            df['input_date'] = pd.to_datetime(df['input_date']).dt.date
+
+            # Validate and convert numeric fields
+            for field in ['sale_qty', 'sale_amt', 'discounted_amt']:
+                if field in df.columns:
+                    df[field] = pd.to_numeric(df[field], errors='coerce')
+                    df[field] = df[field].fillna(0)
+
+            # Set defaults for missing optional fields
+            if 'discounted_amt' not in df.columns:
+                df['discounted_amt'] = 0
+            if 'sku' not in df.columns:
+                df['sku'] = None
+            if 'item_no' not in df.columns:
+                df['item_no'] = None
+            if 'description' not in df.columns:
+                df['description'] = None
+
+            # Validate data (but don't insert into database yet)
+            valid_records = []
+            error_count = 0
+            errors = []
+
+            for idx, row in df.iterrows():
+                try:
+                    row_index = idx + 2  # +2 for 1-based index and header row
+
+                    # Skip row if any required relationship is missing
+                    missing_relationships = []
+                    if idx not in product_ids['brand']:
+                        missing_relationships.append('brand')
+                    if idx not in product_ids['group']:
+                        missing_relationships.append('group')
+                    if idx not in product_ids['division']:
+                        missing_relationships.append('division')
+                    if idx not in product_ids['category']:
+                        missing_relationships.append('category')
+
+                    if missing_relationships:
+                        error_count += 1
+                        errors.append(
+                            f"Row {row_index}: Missing or invalid product relationships: {', '.join(missing_relationships)}")
+                        continue
+
+                    # Create a valid record dictionary (but don't save to database yet)
+                    sale_data = {
+                        'sale_qty': int(row['sale_qty']),
+                        'sale_amt': float(row['sale_amt']),
+                        'discounted_amt': float(row['discounted_amt']),
+                        'input_date': row['input_date'].isoformat() if hasattr(row['input_date'], 'isoformat') else str(row['input_date']),
+                        'sku': row['sku'] if pd.notna(row['sku']) else None,
+                        'item_no': row['item_no'] if pd.notna(row['item_no']) else None,
+                        'description': row['description'] if pd.notna(row['description']) else None,
+                        'product_brand_id': product_ids['brand'][idx],
+                        'product_group_id': product_ids['group'][idx],
+                        'product_division_id': product_ids['division'][idx],
+                        'product_category_id': product_ids['category'][idx]
+                    }
+
+                    # Basic validation
+                    if sale_data['sale_qty'] <= 0:
+                        error_count += 1
+                        errors.append(
+                            f"Row {row_index}: Sale quantity must be positive")
+                        continue
+
+                    if sale_data['sale_amt'] < 0:
+                        error_count += 1
+                        errors.append(
+                            f"Row {row_index}: Sale amount cannot be negative")
+                        continue
+
+                    # If we get here, the record is valid
+                    valid_records.append(sale_data)
+
+                except Exception as e:
+                    error_count += 1
+                    errors.append(f"Row {row_index}: {str(e)}")
+                    logger.error(
+                        f"Error processing row {row_index}: {traceback.format_exc()}")
+
+            # Create a temporary import record
+            import_data = {
+                'valid_records': valid_records,
+                'total_count': len(df),
+                'success_count': len(valid_records),
+                'error_count': error_count,
+                'errors': errors
+            }
+
+            temp_import = TempImport.create_import(
+                user_id=user_id,
+                import_type='sale',
+                data=import_data
+            )
+
+            # Clean up the file after processing
+            if file_path:
+                FileMgmtService.delete_file(file_path)
+
+            return {
+                'import_id': temp_import.id,
+                'success_count': len(valid_records),
+                'error_count': error_count,
+                'total_count': len(df),
+                'errors': errors[:10],  # Limit the number of errors returned
+                'has_more_errors': len(errors) > 10
+            }
+
+        except Exception as e:
+            # Clean up the file even if there's an error
+            if file_path and os.path.exists(file_path):
+                FileMgmtService.delete_file(file_path)
+            logger.exception(f"Error validating sales import: {str(e)}")
+            raise e
+
+    @staticmethod
+    def confirm_import(import_id, user_id):
+        """Phase 2: Commit a previously validated import to the database"""
+        try:
+            # Find the temporary import record
+            temp_import = TempImport.get_by_id(import_id, user_id)
+
+            if not temp_import:
+                return {
+                    'success': False,
+                    'error': 'Import not found or expired'
+                }
+
+            if temp_import.import_type != 'sale':
+                return {
+                    'success': False,
+                    'error': 'Invalid import type'
+                }
+
+            # Get the validated records
+            valid_records = temp_import.data.get('valid_records', [])
+
+            if not valid_records:
+                return {
+                    'success': False,
+                    'error': 'No valid records to import'
+                }
+
+            # Insert all records into the database
+            success_count = 0
+            for record in valid_records:
+                try:
+                    # Convert ISO date string back to date object for database insertion
+                    if 'input_date' in record and isinstance(record['input_date'], str):
+                        record['input_date'] = datetime.fromisoformat(
+                            record['input_date']).date()
+
+                    # Use the existing SaleService to create the record
+                    result, error = SaleService.create(record)
+                    if not error:
+                        success_count += 1
+                except Exception as e:
+                    logger.error(
+                        f"Error creating sale during import confirmation: {str(e)}")
+                    # Continue with other records even if one fails
+
+            # Delete the temporary import record after processing
+            db.session.delete(temp_import)
+            db.session.commit()
+
+            # Return the result
+            return {
+                'success': True,
+                'count': success_count,
+                'total': len(valid_records)
+            }
+
+        except Exception as e:
+            logger.exception(f"Error confirming import: {str(e)}")
+            db.session.rollback()
+            return {
+                'success': False,
+                'error': str(e)
+            }

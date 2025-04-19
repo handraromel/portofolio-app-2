@@ -80,15 +80,21 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">Brand:</span>
-                <span className="font-semibold">{sale.brand.name}</span>
+                <span className="font-semibold">
+                  {sale.brand.id} - {sale.brand.name}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">Group:</span>
-                <span className="font-semibold">{sale.group.name}</span>
+                <span className="font-semibold">
+                  {sale.group.id} - {sale.group.name}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">Division:</span>
-                <span className="font-semibold">{sale.division.name}</span>
+                <span className="font-semibold">
+                  {sale.division.name} - {sale.division.alias || ""}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">Category:</span>
@@ -150,9 +156,7 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
               </div>
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">Tax Amount:</span>
-                <span className="font-semibold">
-                  {formatNumberToIDR(sale.tax_amount)}
-                </span>
+                <span className="font-semibold">{sale.tax_amount}</span>
               </div>
             </div>
           </Card>

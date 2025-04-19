@@ -445,17 +445,19 @@ def export_sales():
         export_result = SaleImportExportService.export_sales(
             format=export_format, filters=filters)
 
-        # No need to delete the file since it's in the user's home directory now
-
         logger.info(
             f"Sales export successful: {export_result['record_count']} records to {export_result['file_path']}")
 
-        return send_file(
+        response = send_file(
             export_result['file_path'],
             as_attachment=True,
             download_name=export_result['filename'],
             mimetype=export_result['mimetype']
         )
+
+        response.headers['Access-Control-Expose-Headers'] = 'Content-Disposition'
+
+        return response
 
     except Exception as e:
         logger.exception(f"Error during sales export: {str(e)}")
@@ -473,16 +475,145 @@ def get_import_sample():
         logger.info(
             f"Sample import file provided: {sample_result['filename']}")
 
-        return send_file(
+        response = send_file(
             sample_result['file_path'],
             as_attachment=True,
             download_name=sample_result['filename'],
             mimetype=sample_result['mimetype']
         )
 
+        response.headers['Access-Control-Expose-Headers'] = 'Content-Disposition'
+
+        return response
+
     except Exception as e:
         logger.exception(f"Error providing sample import file: {str(e)}")
         return jsonify({
             "msg": "An error occurred while generating the sample file",
+            "success": False
+        }), 500
+
+
+@jwt_required()
+def validate_import():
+    """Phase 1: Validate sales data from uploaded file"""
+    current_user_id = get_jwt_identity()
+    logger.info(
+        f"Sales import validation initiated by admin ID: {current_user_id}")
+
+    try:
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            return jsonify({"msg": "No file part in the request", "success": False}), 400
+
+        file = request.files['file']
+
+        # If user doesn't select a file
+        if file.filename == '':
+            return jsonify({"msg": "No file selected", "success": False}), 400
+
+        # Check if the file is allowed
+        if not file.filename or '.' not in file.filename:
+            return jsonify({"msg": "Invalid filename", "success": False}), 400
+
+        extension = file.filename.rsplit('.', 1)[1].lower()
+        if extension not in ['csv', 'xlsx', 'xls']:
+            return jsonify({"msg": "File type not allowed. Please upload .xlsx, .xls or .csv file", "success": False}), 400
+
+        # Process the validation (doesn't save to final database)
+        result = SaleImportExportService.validate_sales_from_file(
+            file, current_user_id)
+
+        # Return the validation results
+        response = {
+            "success": True,
+            "message": f"Import validation completed: {result['success_count']} records valid, {result['error_count']} failed",
+            "details": {
+                "import_id": str(result['import_id']),
+                "total_records": result['total_count'],
+                "success_count": result['success_count'],
+                "error_count": result['error_count'],
+                "errors": result['errors'],
+                "has_more_errors": result['has_more_errors']
+            }
+        }
+
+        logger.info(
+            f"Sales import validation completed: {result['success_count']} valid, {result['error_count']} invalid")
+        return jsonify(response), 200
+
+    except ValueError as ve:
+        logger.error(f"Validation error during sales import: {str(ve)}")
+        return jsonify({"msg": str(ve), "success": False}), 400
+    except Exception as e:
+        logger.exception(f"Error during sales import validation: {str(e)}")
+        return jsonify({"msg": "An error occurred during import validation", "success": False}), 500
+
+
+@jwt_required()
+def confirm_import():
+    """Phase 2: Confirm and apply previously validated import data"""
+    current_user_id = get_jwt_identity()
+    logger.info(
+        f"Import confirmation requested by admin ID: {current_user_id}")
+
+    try:
+        # Get the import ID from the request
+        data = request.get_json()
+        if not data or 'import_id' not in data:
+            return jsonify({"msg": "Import ID is required", "success": False}), 400
+
+        import_id = data['import_id']
+
+        # Confirm the import
+        result = SaleImportExportService.confirm_import(
+            import_id, current_user_id)
+
+        if not result['success']:
+            return jsonify({"msg": result['error'], "success": False}), 400
+
+        return jsonify({
+            "success": True,
+            "msg": f"Successfully imported {result['count']} records",
+            "imported_count": result['count']
+        }), 200
+
+    except Exception as e:
+        logger.exception(f"Error confirming import: {str(e)}")
+        return jsonify({"msg": f"An error occurred while confirming import: {str(e)}", "success": False}), 500
+
+
+@jwt_required()
+def cancel_import():
+    """Cancel a pending import and clean up temporary data"""
+    current_user_id = get_jwt_identity()
+    logger.info(
+        f"Import cancellation requested by admin ID: {current_user_id}")
+
+    try:
+        # Get the import ID from the request
+        data = request.get_json()
+        if not data or 'import_id' not in data:
+            return jsonify({"msg": "Import ID is required", "success": False}), 400
+
+        import_id = data['import_id']
+
+        # Delete the temporary import from the TempImport model
+        from app.models.temp_import import TempImport
+        if TempImport.delete_import(import_id, current_user_id):
+            return jsonify({
+                "success": True,
+                "msg": "Import cancelled successfully"
+            }), 200
+        else:
+            return jsonify({
+                "success": False,
+                "msg": "Import not found or already processed"
+            }), 404
+
+    except Exception as e:
+        logger.exception(f"Error cancelling import: {str(e)}")
+        return jsonify({
+            "msg": f"An error occurred while cancelling import: {str(e)}",
             "success": False
         }), 500

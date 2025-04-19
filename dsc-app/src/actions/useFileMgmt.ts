@@ -7,6 +7,8 @@ import {
   getSampleImportFile,
   exportSales,
   importSales,
+  confirmImportSales,
+  cancelImportSales,
   ImportResponse,
 } from "@/services/FileMgmtService";
 import { ApiError } from "@/types/api";
@@ -15,9 +17,11 @@ export const useFileMgmt = () => {
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [isImporting, setIsImporting] = useState<boolean>(false);
+  const [isConfirming, setIsConfirming] = useState<boolean>(false);
   const [importResult, setImportResult] = useState<ImportResponse | null>(null);
   const [importError, setImportError] = useState<ApiError | null>(null);
-  const { showSuccess, showError, showInfo } = useToast();
+  const [importId, setImportId] = useState<string | null>(null);
+  const { showSuccess, showError, showInfo, showWarning } = useToast();
   const queryClient = useQueryClient();
 
   /**
@@ -77,7 +81,7 @@ export const useFileMgmt = () => {
   };
 
   /**
-   * Import sales data from file
+   * Import sales data from file (validation phase)
    */
   const handleImportSales = async (
     file: File,
@@ -86,30 +90,36 @@ export const useFileMgmt = () => {
     setImportError(null);
 
     try {
-      showInfo("Importing sales data, please wait...");
+      showInfo("Validating sales data, please wait...");
 
       const result = await importSales(file);
       setImportResult(result);
+      setImportId(result.details.import_id || null);
 
-      if (result.success) {
-        showSuccess(result.message || "Sales data imported successfully");
-
-        // Invalidate relevant queries to refresh data
-        queryClient.invalidateQueries({ queryKey: saleKeys.lists() });
-        queryClient.invalidateQueries({ queryKey: saleKeys.reports() });
-        queryClient.invalidateQueries({ queryKey: saleKeys.dailySales({}) });
-        queryClient.invalidateQueries({ queryKey: saleKeys.mtdSales({}) });
-
+      if (result.details.error_count > 0) {
+        if (result.details.success_count > 0) {
+          showWarning(
+            `Import validation completed with ${result.details.error_count} error${
+              result.details.error_count > 1 ? "s" : ""
+            }. ${result.details.success_count} records are ready to import.`,
+          );
+        } else {
+          showError(
+            `Import validation failed with ${result.details.error_count} error${
+              result.details.error_count > 1 ? "s" : ""
+            }. No records are valid for import.`,
+          );
+        }
         return result;
-      } else {
-        showError(result.msg || "Failed to import sales data");
-        return null;
       }
+
+      showSuccess("Data validation successful. Ready to apply changes.");
+      return result;
     } catch (error) {
       const apiError = error as ApiError;
-      console.error("Error importing sales:", error);
+      console.error("Error validating import data:", error);
       const errorMessage =
-        apiError?.response?.data?.msg || "Failed to import sales data";
+        apiError?.response?.data?.msg || "Failed to validate import data";
       showError(errorMessage);
       setImportError(apiError);
       return null;
@@ -118,19 +128,97 @@ export const useFileMgmt = () => {
     }
   };
 
+  const handleConfirmImport = async (): Promise<boolean> => {
+    if (!importId) {
+      showError("No valid import ID found");
+      return false;
+    }
+
+    setIsConfirming(true);
+    try {
+      showInfo("Applying changes to database, please wait...");
+
+      const result = await confirmImportSales(importId);
+
+      if (result.success) {
+        showSuccess(result.msg || "Sales data imported successfully");
+
+        // Invalidate relevant queries to refresh data
+        queryClient.invalidateQueries({ queryKey: saleKeys.lists() });
+        queryClient.invalidateQueries({ queryKey: saleKeys.reports() });
+        queryClient.invalidateQueries({ queryKey: saleKeys.dailySales({}) });
+        queryClient.invalidateQueries({ queryKey: saleKeys.mtdSales({}) });
+
+        // Clear import states after successful confirmation
+        setImportResult(null);
+        setImportId(null);
+
+        return true;
+      } else {
+        showError(result.msg || "Failed to apply changes");
+        return false;
+      }
+    } catch (error) {
+      const apiError = error as ApiError;
+      console.error("Error confirming import:", error);
+      const errorMessage =
+        apiError?.response?.data?.msg || "Failed to apply changes";
+      showError(errorMessage);
+      return false;
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
+  /**
+   * Cancel a pending import
+   */
+  const handleCancelImport = async (): Promise<boolean> => {
+    if (!importId) {
+      showError("No valid import ID found");
+      return false;
+    }
+
+    try {
+      showInfo("Cancelling import...");
+
+      await cancelImportSales(importId);
+
+      showSuccess("Import cancelled successfully");
+
+      // Clear import states
+      setImportResult(null);
+      setImportId(null);
+      setImportError(null);
+
+      return true;
+    } catch (error) {
+      const apiError = error as ApiError;
+      console.error("Error cancelling import:", error);
+      const errorMessage =
+        apiError?.response?.data?.msg || "Failed to cancel import";
+      showError(errorMessage);
+      return false;
+    }
+  };
+
   return {
     // Methods
     downloadSample: handleDownloadSample,
     exportSales: handleExportSales,
     importSales: handleImportSales,
+    confirmImport: handleConfirmImport,
+    cancelImport: handleCancelImport,
+    setImportResult,
+    setImportError,
 
     // State
     isDownloading,
     isExporting,
     isImporting,
+    isConfirming,
     importResult,
     importError,
-    setImportResult,
-    setImportError,
+    importId,
   };
 };

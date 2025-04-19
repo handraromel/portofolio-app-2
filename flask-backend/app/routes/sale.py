@@ -15,6 +15,8 @@ bp.route('/daily/by-brand', methods=['GET'])(sale.get_daily_sales_by_brand)
 bp.route('/mtd/by-brand', methods=['GET'])(sale.get_mtd_sales_by_brand)
 
 # Import/Export routes
-bp.route('/import', methods=['POST'])(sale.import_sales)
+bp.route('/import', methods=['POST'])(sale.validate_import)
+bp.route('/import/confirm', methods=['POST'])(sale.confirm_import)
+bp.route('/import/cancel', methods=['POST'])(sale.cancel_import)
 bp.route('/export', methods=['GET'])(sale.export_sales)
 bp.route('/import/sample', methods=['GET'])(sale.get_import_sample)

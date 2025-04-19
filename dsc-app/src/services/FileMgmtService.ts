@@ -8,6 +8,7 @@ export interface ImportResult {
   error_count: number;
   errors: string[];
   has_more_errors: boolean;
+  import_id?: string;
 }
 
 export interface ImportResponse extends ApiResponse {
@@ -23,7 +24,7 @@ const salePrefix = "/manage/sales";
  */
 export const downloadFileFromUrl = async (
   url: string,
-  filename?: string,
+  defaultFilename?: string,
 ): Promise<boolean> => {
   try {
     const csrfToken = Cookies.get("csrf_access_token");
@@ -44,20 +45,27 @@ export const downloadFileFromUrl = async (
     const blob = await response.blob();
     const downloadUrl = window.URL.createObjectURL(blob);
 
-    // Get filename from Content-Disposition header if not provided
-    if (!filename) {
-      const contentDisposition = response.headers.get("Content-Disposition");
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-        if (filenameMatch) {
-          filename = filenameMatch[1];
+    // Extract filename from Content-Disposition header
+    let filename = defaultFilename;
+    const contentDisposition = response.headers.get("Content-Disposition");
+
+    if (contentDisposition) {
+      const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+      const matches = filenameRegex.exec(contentDisposition);
+
+      if (matches && matches[1]) {
+        filename = matches[1].replace(/['"]/g, "");
+
+        try {
+          filename = decodeURIComponent(filename);
+        } catch (e) {
+          console.warn("Could not decode filename", e);
         }
       }
+    }
 
-      // Fallback filename
-      if (!filename) {
-        filename = "download";
-      }
+    if (!filename) {
+      filename = defaultFilename || "download";
     }
 
     // Create a temporary link and trigger download
@@ -128,6 +136,72 @@ export const importSales = async (file: File): Promise<ImportResponse> => {
       "X-CSRF-TOKEN": csrfToken || "",
     },
     body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
+ * Confirm a pending import
+ */
+export const confirmImportSales = async (
+  importId: string,
+): Promise<ApiResponse> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${salePrefix}/import/confirm`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
+    body: JSON.stringify({ import_id: importId }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
+ * Cancel a pending import
+ */
+export const cancelImportSales = async (
+  importId: string,
+): Promise<ApiResponse> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${salePrefix}/import/cancel`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
+    body: JSON.stringify({ import_id: importId }),
   });
 
   if (!response.ok) {

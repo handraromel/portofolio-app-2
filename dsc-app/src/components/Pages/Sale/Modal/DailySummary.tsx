@@ -357,13 +357,13 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                     <div>
                       <div className="text-sm text-gray-500">This Year</div>
                       <div className="text-lg font-semibold">
-                        {formatNumberToIDR(totalData.tax_amount)}
+                        {totalData.tax_amount}
                       </div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Last Year</div>
                       <div className="text-lg font-semibold">
-                        {formatNumberToIDR(totalData.ly_data.tax_amount)}
+                        {totalData.ly_data.tax_amount}
                       </div>
                     </div>
                   </div>
