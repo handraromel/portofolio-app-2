@@ -288,6 +288,12 @@ const SaleList: React.FC = () => {
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
+      field: "item_no",
+      header: "Item No.",
+      body: (rowData: Sale) => rowData.item_no || "-",
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
+    },
+    {
       field: "input_date",
       header: "Input Date",
       body: (rowData: Sale) =>

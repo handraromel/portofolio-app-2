@@ -40,7 +40,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
   const fileUploadRef = useRef<FileUpload>(null);
   const resultModal = useModal(false);
 
-  const [statusColor, setStatusColor] = useState<string>("emerald");
+  const [importStatus, setImportStatus] = useState<string>("success");
   const [statusIcon, setStatusIcon] = useState<string>("pi-check");
   const [successPercentage, setSuccessPercentage] = useState<number>(0);
 
@@ -70,16 +70,14 @@ const ImportModal: React.FC<ImportModalProps> = ({
 
       setSuccessPercentage(percentage);
 
-      // Set status color based on success rate
-      if (importResult.details.error_count === 0) {
-        setStatusColor("emerald");
-      } else if (percentage >= 80) {
-        setStatusColor("indigo");
-      } else if (percentage >= 50) {
-        setStatusColor("amber");
-      } else {
-        setStatusColor("rose");
-      }
+      // Set status color based on success rate (using the same logic as in Sale)
+      setImportStatus(
+        importResult.details.error_count === 0
+          ? "success"
+          : percentage > 0 && percentage < 100
+            ? "warning"
+            : "error",
+      );
 
       // Set icon based on error count
       setStatusIcon(
@@ -127,7 +125,13 @@ const ImportModal: React.FC<ImportModalProps> = ({
         {/* Status indicator */}
         <div className="mb-6 flex items-center justify-center">
           <div
-            className={`flex h-20 w-20 items-center justify-center rounded-full bg-${statusColor}-500`}
+            className={`flex h-20 w-20 items-center justify-center rounded-full ${
+              importStatus === "success"
+                ? "bg-emerald-500"
+                : importStatus === "warning"
+                  ? "bg-amber-500"
+                  : "bg-rose-500"
+            }`}
           >
             <i
               className={`pi ${statusIcon} text-white`}
@@ -194,7 +198,13 @@ const ImportModal: React.FC<ImportModalProps> = ({
           </div>
           <div className="h-2 w-full rounded-full bg-gray-200">
             <div
-              className={`h-2 rounded-full bg-${statusColor}-500`}
+              className={`h-2 rounded-full ${
+                importStatus === "success"
+                  ? "bg-emerald-500"
+                  : importStatus === "warning"
+                    ? "bg-amber-500"
+                    : "bg-rose-500"
+              }`}
               style={{ width: `${successPercentage}%` }}
             ></div>
           </div>
@@ -235,7 +245,6 @@ const ImportModal: React.FC<ImportModalProps> = ({
             <Button
               label="Apply Changes"
               icon="pi pi-check"
-              className={`p-button-${statusColor}`}
               onClick={onConfirmImport}
               loading={isConfirming}
               disabled={isConfirming}
