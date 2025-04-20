@@ -40,6 +40,18 @@ export const useProductDivisions = (filters: ProductQueryFilters = {}) => {
   });
 };
 
+export const useAllProductDivisions = () => {
+  return useQuery<ProductDivisionResponse, Error>({
+    queryKey: [...productDivisionKeys.all, "all"],
+    queryFn: async (): Promise<ProductDivisionResponse> => {
+      const response = await apiClient<ProductDivisionResponse>(
+        `${productPrefix}/divisions?per_page=1000`,
+      );
+      return response as unknown as ProductDivisionResponse;
+    },
+  });
+};
+
 export const useProductDivision = (divisionId: string) => {
   return useQuery<ProductDivision, Error>({
     queryKey: productDivisionKeys.detail(divisionId),

@@ -45,10 +45,10 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, sale }) => {
   const { showSuccess, showError } = useToast();
   const { createSale, updateSale, isLoading } = useSale();
 
-  const { brands } = useBrand();
-  const { groups } = useGroup();
-  const { divisions } = useDivision();
-  const { categories } = useCategory();
+  const { allBrands } = useBrand();
+  const { allGroups } = useGroup();
+  const { allDivisions } = useDivision();
+  const { allCategories } = useCategory();
 
   const extractSaleValues = (sale: Sale | null): SaleSubmission => {
     if (!sale) return defaultValues;
@@ -127,19 +127,19 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, sale }) => {
     submissionForm.reset(defaultValues);
   };
 
-  const brandOptions = brands.map((brand) => ({
+  const brandOptions = allBrands.map((brand) => ({
     label: `${brand.id} - ${brand.name}`,
     value: brand.uuid,
   }));
-  const groupOptions = groups.map((group) => ({
+  const groupOptions = allGroups.map((group) => ({
     label: `${group.id} - ${group.name}`,
     value: group.uuid,
   }));
-  const divisionOptions = divisions.map((division) => ({
+  const divisionOptions = allDivisions.map((division) => ({
     label: `${division.name} - ${division.alias}`,
     value: division.uuid,
   }));
-  const categoryOptions = categories.map((category) => ({
+  const categoryOptions = allCategories.map((category) => ({
     label: category.name,
     value: category.uuid,
   }));

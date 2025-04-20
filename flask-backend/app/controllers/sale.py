@@ -6,6 +6,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.sale import SaleService
 from app.schemas.sale_schemas import SaleSchema
 from app.services.sale_import_export import SaleImportExportService
+from app.services.activity import ActivityService
 from app.utils.decorators import admin_required, handle_validation_error
 
 logger = logging.getLogger('app.controllers.sale')
@@ -72,6 +73,10 @@ def get_all():
                 'category': {
                     'uuid': str(item['sale'].category.uuid),
                     'name': item['sale'].category.name
+                },
+                'user': {
+                    'uuid': str(item['sale'].user.id) if item['sale'].user else None,
+                    'name': f"{item['sale'].user.first_name} {item['sale'].user.last_name}" if item['sale'].user else "Unknown"
                 }
             } for item in sales_data['items']],
             'total': sales_data['total'],
@@ -156,12 +161,25 @@ def create():
 
     try:
         data = sale_schema.load(request.json)
+
+        # Add the current user ID to the sale data
+        data['user_id'] = current_user_id
+
         sale_data, error = SaleService.create(data)
 
         if error:
             return jsonify({"msg": error, "success": False}), 400
 
         sale = sale_data['sale']
+
+        # Log activity AFTER the sale is created (moved from before the creation)
+        ActivityService.log_activity(
+            user_id=current_user_id,
+            type="sale_created",
+            message=f"New sale {sale.sku or 'item'} added for {sale.brand.name}",
+            entity_id=str(sale.uuid),
+            entity_type="sale"
+        )
 
         result = {
             'uuid': str(sale.uuid),
@@ -197,6 +215,11 @@ def create():
             'category': {
                 'uuid': str(sale.category.uuid),
                 'name': sale.category.name
+            },
+            # Add user information
+            'user': {
+                'uuid': str(sale.user.id) if sale.user else None,
+                'name': f"{sale.user.first_name} {sale.user.last_name}" if sale.user else "Unknown"
             }
         }
 

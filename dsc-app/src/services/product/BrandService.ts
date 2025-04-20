@@ -40,6 +40,18 @@ export const useProductBrands = (filters: ProductQueryFilters = {}) => {
   });
 };
 
+export const useAllProductBrands = () => {
+  return useQuery<ProductBrandResponse, Error>({
+    queryKey: [...productBrandKeys.all, "all"],
+    queryFn: async (): Promise<ProductBrandResponse> => {
+      const response = await apiClient<ProductBrandResponse>(
+        `${productPrefix}/brands?per_page=1000`,
+      );
+      return response as ProductBrandResponse;
+    },
+  });
+};
+
 export const useProductBrand = (brandId: string) => {
   return useQuery<ProductBrand, Error>({
     queryKey: productBrandKeys.detail(brandId),

@@ -19,6 +19,10 @@ export interface Sale {
   tax_rate: number;
   tax_amount: number;
   nett_sales_after_tax: number;
+  user: {
+    id: string;
+    name: string;
+  };
 
   // Related product data
   brand: {
@@ -192,6 +196,9 @@ export interface MtdSalesSummary {
     sale_amt: number;
     discounted_amt: number;
     gross_sales: number;
+    ly_data: MtdYearOverYearData;
+    growth_pct: number;
+    growth_amt: number;
     nett_sales: number;
     tax_rate: number;
     tax_amount: number;

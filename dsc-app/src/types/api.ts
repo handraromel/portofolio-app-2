@@ -15,6 +15,7 @@ export interface ApiResponse<T = unknown> {
   pages?: number;
   total?: number;
   isSame?: boolean;
+  activities?: T;
 }
 
 export interface ApiError {

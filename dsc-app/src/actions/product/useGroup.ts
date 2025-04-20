@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   useProductGroups,
+  useAllProductGroups,
   useCreateProductGroup,
   useUpdateProductGroup,
   useDeleteProductGroup,
@@ -16,6 +17,7 @@ export const useGroup = () => {
 
   // Queries
   const groupsQuery = useProductGroups(filters);
+  const allGroupsQuery = useAllProductGroups();
 
   // Mutations
   const createGroupMutation = useCreateProductGroup();
@@ -26,6 +28,10 @@ export const useGroup = () => {
     if (newFilters) {
       setFilters((prev) => ({ ...prev, ...newFilters }));
     }
+    return await groupsQuery.refetch();
+  };
+
+  const fetchAllGroups = async () => {
     return await groupsQuery.refetch();
   };
 
@@ -78,6 +84,7 @@ export const useGroup = () => {
   return {
     // Data
     groups: groupsQuery.data?.groups || [],
+    allGroups: allGroupsQuery.data?.groups || [],
     pagination: groupsQuery.data
       ? {
           currentPage: groupsQuery.data.current_page,
@@ -101,6 +108,7 @@ export const useGroup = () => {
 
     // Actions
     fetchGroups,
+    fetchAllGroups,
     createGroup: handleCreateGroup,
     updateGroup: handleUpdateGroup,
     deleteGroup: handleDeleteGroup,

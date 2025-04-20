@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   useProductCategories,
+  useAllProductCategories,
   useCreateProductCategory,
   useUpdateProductCategory,
   useDeleteProductCategory,
@@ -19,6 +20,7 @@ export const useCategory = () => {
 
   // Queries
   const categoriesQuery = useProductCategories(filters);
+  const allCategoriesQuery = useAllProductCategories();
 
   // Mutations
   const createCategoryMutation = useCreateProductCategory();
@@ -30,6 +32,10 @@ export const useCategory = () => {
       setFilters((prev) => ({ ...prev, ...newFilters }));
     }
     return await categoriesQuery.refetch();
+  };
+
+  const fetchAllCategories = async () => {
+    return await allCategoriesQuery.refetch();
   };
 
   const handleCreateCategory = async (data: ProductCategorySubmission) => {
@@ -84,6 +90,7 @@ export const useCategory = () => {
   return {
     // Data
     categories: categoriesQuery.data?.categories || [],
+    allCategories: allCategoriesQuery.data?.categories || [],
     pagination: categoriesQuery.data
       ? {
           currentPage: categoriesQuery.data.current_page,
@@ -107,6 +114,7 @@ export const useCategory = () => {
 
     // Actions
     fetchCategories,
+    fetchAllCategories,
     createCategory: handleCreateCategory,
     updateCategory: handleUpdateCategory,
     deleteCategory: handleDeleteCategory,

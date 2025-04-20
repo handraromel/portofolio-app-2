@@ -25,6 +25,8 @@ class Sale(db.Model):
         "product_divisions.uuid"), nullable=False)
     product_category_id = db.Column(UUID(as_uuid=True), db.ForeignKey(
         "product_categories.uuid"), nullable=False)
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey(
+        "users.id"), nullable=True)
 
     created_at = db.Column(db.DateTime, default=func.now())
     updated_at = db.Column(
@@ -39,6 +41,7 @@ class Sale(db.Model):
         "ProductDivision", backref=db.backref("sales", lazy=True))
     category = db.relationship(
         "ProductCategory", backref=db.backref("sales", lazy=True))
+    user = db.relationship("User", backref=db.backref("sales", lazy=True))
 
     def __repr__(self):
         return f"<Sale {self.uuid} - {self.sku}>"

@@ -4,6 +4,7 @@ import {
   useCreateProductBrand,
   useUpdateProductBrand,
   useDeleteProductBrand,
+  useAllProductBrands,
 } from "@/services/product/BrandService";
 import { ProductBrandSubmission, ProductQueryFilters } from "@/types/product";
 
@@ -16,6 +17,7 @@ export const useBrand = () => {
 
   // Queries
   const brandsQuery = useProductBrands(filters);
+  const allBrandsQuery = useAllProductBrands();
 
   // Mutations
   const createBrandMutation = useCreateProductBrand();
@@ -27,6 +29,10 @@ export const useBrand = () => {
       setFilters((prev) => ({ ...prev, ...newFilters }));
     }
     return await brandsQuery.refetch();
+  };
+
+  const fetchAllBrands = async () => {
+    return await allBrandsQuery.refetch();
   };
 
   const handleCreateBrand = async (data: ProductBrandSubmission) => {
@@ -78,6 +84,7 @@ export const useBrand = () => {
   return {
     // Data
     brands: brandsQuery.data?.brands || [],
+    allBrands: allBrandsQuery.data?.brands || [],
     pagination: brandsQuery.data
       ? {
           currentPage: brandsQuery.data.current_page,
@@ -101,6 +108,7 @@ export const useBrand = () => {
 
     // Actions
     fetchBrands,
+    fetchAllBrands,
     createBrand: handleCreateBrand,
     updateBrand: handleUpdateBrand,
     deleteBrand: handleDeleteBrand,

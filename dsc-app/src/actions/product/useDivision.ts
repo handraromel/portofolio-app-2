@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   useProductDivisions,
+  useAllProductDivisions,
   useCreateProductDivision,
   useUpdateProductDivision,
   useDeleteProductDivision,
@@ -19,6 +20,7 @@ export const useDivision = () => {
 
   // Queries
   const divisionsQuery = useProductDivisions(filters);
+  const allDivisionsQuery = useAllProductDivisions();
 
   // Mutations
   const createDivisionMutation = useCreateProductDivision();
@@ -30,6 +32,10 @@ export const useDivision = () => {
       setFilters((prev) => ({ ...prev, ...newFilters }));
     }
     return await divisionsQuery.refetch();
+  };
+
+  const fetchAllDivisions = async () => {
+    return await allDivisionsQuery.refetch();
   };
 
   const handleCreateDivision = async (data: ProductDivisionSubmission) => {
@@ -84,6 +90,7 @@ export const useDivision = () => {
   return {
     // Data
     divisions: divisionsQuery.data?.divisions || [],
+    allDivisions: allDivisionsQuery.data?.divisions || [],
     pagination: divisionsQuery.data
       ? {
           currentPage: divisionsQuery.data.current_page,
@@ -107,6 +114,7 @@ export const useDivision = () => {
 
     // Actions
     fetchDivisions,
+    fetchAllDivisions,
     createDivision: handleCreateDivision,
     updateDivision: handleUpdateDivision,
     deleteDivision: handleDeleteDivision,

@@ -4,6 +4,7 @@ from sqlalchemy import func, cast, extract, case, distinct, and_, or_, desc, asc
 from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from app import db
 from app.models.sale import Sale
+from app.models.user import User
 from app.models.product import ProductBrand, ProductGroup, ProductDivision, ProductCategory
 from app.models.tax_config import TaxConfiguration
 from app.services.tax_config import TaxConfigurationService
@@ -110,9 +111,7 @@ class SaleService:
 
     @staticmethod
     def create(sale_data):
-        """
-        Create a new sale record
-        """
+        """Create a new sale record"""
         try:
             # Validate product relationship IDs exist
             if not SaleService._validate_product_relationships(
@@ -121,7 +120,7 @@ class SaleService:
                 sale_data.get('product_division_id'),
                 sale_data.get('product_category_id')
             ):
-                return None, "One or more product relationships do not exist"
+                return None, "Invalid product relationships"
 
             new_sale = Sale(
                 sale_qty=sale_data.get('sale_qty', 0),
@@ -134,7 +133,8 @@ class SaleService:
                 product_brand_id=sale_data.get('product_brand_id'),
                 product_group_id=sale_data.get('product_group_id'),
                 product_division_id=sale_data.get('product_division_id'),
-                product_category_id=sale_data.get('product_category_id')
+                product_category_id=sale_data.get('product_category_id'),
+                user_id=sale_data.get('user_id')
             )
 
             db.session.add(new_sale)
@@ -717,14 +717,12 @@ class SaleService:
     def _get_sales_for_date_by_brand(target_date, filter_brand_id=None, filter_group_id=None,
                                      filter_division_id=None, filter_category_id=None):
         """Get aggregated sales data grouped by brand for a specific date"""
+        # First, run the main brand-level aggregation query
         base_query = db.session.query(
             # Key grouping fields
             Sale.product_brand_id,
             ProductBrand.name.label('brand_name'),
-            # Include the brand ID (numeric)
             ProductBrand.id.label('brand_id'),
-
-            # We'll group by these fields to get proper aggregation
             func.count(distinct(Sale.uuid)).label('transaction_count'),
             func.sum(Sale.sale_qty).label('total_qty'),
             func.sum(Sale.sale_amt).label('total_sale_amount'),
@@ -754,11 +752,13 @@ class SaleService:
         brand_aggregates = base_query.group_by(
             Sale.product_brand_id,
             ProductBrand.name,
-            ProductBrand.id  # Add brand_id to the GROUP BY clause
+            ProductBrand.id
         ).all()
 
-        # Now get additional reference data for each brand
+        # Initialize brand_data dictionary
         brand_data = {}
+
+        # Process each brand aggregate
         for brand_agg in brand_aggregates:
             brand_uuid = str(brand_agg.product_brand_id)
 
@@ -786,7 +786,7 @@ class SaleService:
             if not reference_record:
                 continue
 
-                # Calculate derived metrics
+            # Calculate derived metrics
             total_sale_amount = float(
                 brand_agg.total_sale_amount) if brand_agg.total_sale_amount else 0.0
             total_discount_amount = float(
@@ -802,6 +802,35 @@ class SaleService:
             total_qty = int(brand_agg.total_qty) if brand_agg.total_qty else 0
             aur = total_sale_amount / total_qty if total_qty > 0 else 0.0
 
+            # Get users who contributed to this brand on this date
+            user_query = db.session.query(
+                User.id.label('user_id'),
+                User.first_name.label('first_name'),
+                User.last_name.label('last_name'),
+                func.count(Sale.uuid).label('sales_count'),
+                func.sum(Sale.sale_amt).label('user_sale_amount')
+            ).join(
+                Sale, Sale.user_id == User.id
+            ).filter(
+                Sale.product_brand_id == brand_agg.product_brand_id,
+                Sale.input_date == target_date
+            ).group_by(
+                User.id,
+                User.first_name,
+                User.last_name
+            ).all()
+
+            # Create a list of user contributors
+            contributors = []
+            for user in user_query:
+                contributors.append({
+                    'user_id': str(user.user_id) if user.user_id else None,
+                    'name': f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else "Unknown",
+                    'sales_count': user.sales_count,
+                    'amount': float(user.user_sale_amount) if user.user_sale_amount else 0.0
+                })
+
+            # Create the brand data entry with all the aggregated info
             brand_data[brand_uuid] = {
                 'brand_uuid': brand_uuid,
                 'brand_id': brand_agg.brand_id,
@@ -829,7 +858,8 @@ class SaleService:
                 'tax_amount': tax_amount,
                 'nett_sales_after_tax': nett_sales_after_tax,
                 'transaction_count': brand_agg.transaction_count or 0,
-                'aur': aur
+                'aur': aur,
+                'contributors': contributors  # Add the list of contributors
             }
 
         return brand_data

@@ -40,6 +40,18 @@ export const useProductGroups = (filters: ProductQueryFilters = {}) => {
   });
 };
 
+export const useAllProductGroups = () => {
+  return useQuery<ProductGroupResponse, Error>({
+    queryKey: [...productGroupKeys.all, "all"],
+    queryFn: async (): Promise<ProductGroupResponse> => {
+      const response = await apiClient<ProductGroupResponse>(
+        `${productPrefix}/groups?per_page=1000`,
+      );
+      return response as unknown as ProductGroupResponse;
+    },
+  });
+};
+
 export const useProductGroup = (groupId: string) => {
   return useQuery<ProductGroup, Error>({
     queryKey: productGroupKeys.detail(groupId),

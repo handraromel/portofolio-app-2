@@ -301,6 +301,13 @@ const SaleList: React.FC = () => {
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
+      field: "user",
+      header: "Input By",
+      body: (rowData: Sale) =>
+        rowData.user.name === "Unknown" ? "-" : rowData.user.name,
+      style: { whiteSpace: "nowrap", padding: "0 20px" },
+    },
+    {
       field: "gross_sales",
       header: "Gross Sales",
       body: (rowData: Sale) => formatNumberToIDR(rowData.gross_sales),

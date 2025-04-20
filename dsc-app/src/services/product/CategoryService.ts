@@ -40,6 +40,18 @@ export const useProductCategories = (filters: ProductQueryFilters = {}) => {
   });
 };
 
+export const useAllProductCategories = () => {
+  return useQuery<ProductCategoryResponse, Error>({
+    queryKey: [...productCategoryKeys.all, "all"],
+    queryFn: async (): Promise<ProductCategoryResponse> => {
+      const response = await apiClient<ProductCategoryResponse>(
+        `${productPrefix}/categories?per_page=1000`,
+      );
+      return response as unknown as ProductCategoryResponse;
+    },
+  });
+};
+
 export const useProductCategory = (categoryId: string) => {
   return useQuery<ProductCategory, Error>({
     queryKey: productCategoryKeys.detail(categoryId),
