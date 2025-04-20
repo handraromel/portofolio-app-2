@@ -23,7 +23,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
   return (
     <div className="overflow-hidden rounded-lg bg-white shadow-md dark:bg-gray-800">
       <div className="p-5">
-        <div className="flex items-center">
+        <div className="flex">
           <div className={`flex h-12 w-12 justify-center rounded-lg`}>
             <i
               className={`${icon} ${iconColorClass}`}
