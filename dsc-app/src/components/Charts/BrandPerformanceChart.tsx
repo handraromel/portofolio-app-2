@@ -206,62 +206,64 @@ const BrandPerformanceChart: React.FC<BrandPerformanceChartProps> = ({
       )}
 
       {/* Enhanced Brand Performance Cards */}
-      <div className="mt-7">
-        <h4 className="mb-3 text-sm font-semibold text-gray-600 dark:text-gray-300">
-          {viewMode === "mtd" ? "Month to Date" : "Daily"} Brand Performance
-        </h4>
+      {data.length > 0 && (
+        <div className="mt-7">
+          <h4 className="mb-3 text-sm font-semibold text-gray-600 dark:text-gray-300">
+            {viewMode === "mtd" ? "Month to Date" : "Daily"} Brand Performance
+          </h4>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {data.map((brand, index) => (
-            <div
-              key={brand.brandId}
-              className="group relative overflow-hidden rounded-lg border border-gray-100 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600"
-            >
-              {/* Color indicator matching the chart bar */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {data.map((brand, index) => (
               <div
-                className="absolute top-0 bottom-0 left-0 w-1.5"
-                style={{ backgroundColor: colors[index % colors.length] }}
-              ></div>
+                key={brand.brandId}
+                className="group relative overflow-hidden rounded-lg border border-gray-100 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600"
+              >
+                {/* Color indicator matching the chart bar */}
+                <div
+                  className="absolute top-0 bottom-0 left-0 w-1.5"
+                  style={{ backgroundColor: colors[index % colors.length] }}
+                ></div>
 
-              <div className="flex flex-col pl-2">
-                {/* Brand name with truncation for long names */}
-                <div className="mb-2 flex items-center justify-between">
-                  <h5 className="max-w-[70%] truncate text-sm font-semibold text-gray-700 dark:text-gray-200">
-                    {brand.brandName}
-                  </h5>
-                  <GrowthIndicator
-                    growthValue={brand.growthPercentage}
-                    isPercentage={true}
-                    showZero={true}
-                    size="sm"
-                  />
-                </div>
-
-                {/* Sales amount with improved visualization */}
-                <div className="flex items-end justify-between">
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {viewMode === "mtd" ? "MTD Sales" : "Today's Sales"}
+                <div className="flex flex-col pl-2">
+                  {/* Brand name with truncation for long names */}
+                  <div className="mb-2 flex items-center justify-between">
+                    <h5 className="max-w-[70%] truncate text-sm font-semibold text-gray-700 dark:text-gray-200">
+                      {brand.brandName}
+                    </h5>
+                    <GrowthIndicator
+                      growthValue={brand.growthPercentage}
+                      isPercentage={true}
+                      showZero={true}
+                      size="sm"
+                    />
                   </div>
-                  <div className="text-base font-bold text-gray-800 dark:text-gray-200">
-                    {formatNumberToIDR(brand.saleAmount)}
-                  </div>
-                </div>
 
-                {/* Visual progress bar for relative performance within the dataset */}
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      backgroundColor: colors[index % colors.length],
-                      width: `${(brand.saleAmount / Math.max(...data.map((d) => d.saleAmount))) * 100}%`,
-                    }}
-                  ></div>
+                  {/* Sales amount with improved visualization */}
+                  <div className="flex items-end justify-between">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {viewMode === "mtd" ? "MTD Sales" : "Today's Sales"}
+                    </div>
+                    <div className="text-base font-bold text-gray-800 dark:text-gray-200">
+                      {formatNumberToIDR(brand.saleAmount)}
+                    </div>
+                  </div>
+
+                  {/* Visual progress bar for relative performance within the dataset */}
+                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        backgroundColor: colors[index % colors.length],
+                        width: `${(brand.saleAmount / Math.max(...data.map((d) => d.saleAmount))) * 100}%`,
+                      }}
+                    ></div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
