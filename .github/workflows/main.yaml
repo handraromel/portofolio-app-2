@@ -86,10 +86,6 @@ jobs:
           script: |
             echo "SSH connection test successful"
 
-            export DB_NAME=${{ secrets.DB_NAME }}
-            export DB_USER=${{ secrets.DB_USER }}
-            export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-
             cd /home/opc/mds-dsc/
             git pull origin master
 
@@ -113,25 +109,24 @@ jobs:
             VITE_PORT=${{ secrets.VITE_PORT }}
             EOF
 
-             # Stop, rebuild, and start containers
+            # Stop, rebuild, and start containers
             docker compose down
             docker compose up -d --build
 
-            # Wait for database before running migrations
-            echo "Waiting for database to be ready..."
-            sleep 10
-            until docker compose exec -T db pg_isready -h db -p 5432; do
-              echo "Database is unavailable - sleeping"
-              sleep 2
-            done
+            # Check if we can connect to the Neon database
+            echo "Checking connection to Neon database..."
+            # Extract hostname from the DATABASE_URL
+            DB_HOST=$(echo "${{ secrets.DATABASE_URL }}" | sed -n 's/.*@\(.*\)\/.*/\1/p')
 
-            # Run migrations
+            # Wait for backend container to be ready
+            echo "Waiting for backend container to be ready..."
+            sleep 10
+
+            # Run migrations directly (don't check database first since it's managed by Neon)
             echo "Running database migrations..."
             docker compose exec -T backend flask db current || true
             if ! docker compose exec -T backend flask db upgrade; then
               echo "Migration failed, attempting recovery..."
-              # You might need a more sophisticated recovery strategy
-              # For now, just show the error
               docker compose logs backend
             fi
 
