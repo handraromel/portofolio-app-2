@@ -6,3 +6,4 @@ export * from "./usePermission";
 export * from "./useNavigation";
 export * from "./useDismissMessage";
 export * from "./useTableSelection";
+export * from "./useModalChartRenderer";

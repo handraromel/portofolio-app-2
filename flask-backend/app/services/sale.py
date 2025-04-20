@@ -264,6 +264,7 @@ class SaleService:
                                  include_last_year=True, page=1, per_page=10):
         """
         Get daily sales summary aggregated by brand with optional last year comparison
+        using day-of-week alignment (364 days prior)
         """
         # Handle date parameters
         if date_value:
@@ -280,9 +281,15 @@ class SaleService:
             month = month or today.month
             day = day or today.day
 
-        # Set target dates for this year and last year
+        # Set target date for this year
         target_date = date(year, month, day)
-        last_year_date = date(year - 1, month, day)
+
+        # Use exactly 52 weeks (364 days) prior for day-of-week alignment
+        # This ensures comparing same weekday (Mon-to-Mon, Tue-to-Tue, etc.)
+        last_year_date = target_date - timedelta(days=364)
+
+        logger.info(
+            f"Comparing {target_date.isoformat()} with day-of-week aligned date: {last_year_date.isoformat()}")
 
         # Get sales data for the target date (This Year)
         ty_data = SaleService._get_sales_for_date_by_brand(
@@ -308,19 +315,17 @@ class SaleService:
             # Create a merged record
             if brand_uuid in ty_data:
                 # Start with this year's data
-                merged_record = ty_data[brand_uuid].copy()
+                merged_record = ty_item.copy()
 
                 # If brand exists in both years, calculate growth metrics
                 if brand_uuid in ly_data:
                     ly_sale_amt = ly_item.get('sale_amt', 0)
                     ty_sale_amt = merged_record.get('sale_amt', 0)
 
-                    # Calculate growth amount and percentage
                     growth_amt = ty_sale_amt - ly_sale_amt
                     growth_pct = ((ty_sale_amt / ly_sale_amt) *
                                   100 - 100) if ly_sale_amt > 0 else None
 
-                    # Add last year data and growth metrics
                     merged_record['ly_data'] = {
                         'sale_qty': ly_item.get('sale_qty', 0),
                         'sale_amt': ly_sale_amt,
@@ -387,7 +392,8 @@ class SaleService:
             'total': totals,
             'current_page': page,
             'pages': pages,
-            'total_records': total
+            'total_records': total,
+            'weekday_aligned': True  # Flag to indicate we're using day-of-week alignment
         }
 
     @staticmethod
@@ -396,6 +402,7 @@ class SaleService:
                                include_last_year=True, page=1, per_page=10):
         """
         Get month-to-date sales summary aggregated by brand with last year comparison
+        using day-of-week alignment
         """
         # Handle date parameters
         if date_value:
@@ -421,12 +428,36 @@ class SaleService:
                 next_month = date(year, month+1, 1)
             day = (next_month - timedelta(days=1)).day
 
-        # Set target date ranges for this year and last year
+        # Set target date ranges for this year
         ty_end_date = date(year, month, day)
         ty_start_date = date(year, month, 1)
 
-        ly_end_date = date(year - 1, month, day)
-        ly_start_date = date(year - 1, month, 1)
+        # For last year's MTD comparison:
+        # 1. Calculate the end date using 364 days (52 weeks) before the current end date
+        # This ensures comparing the same day of week
+        ly_end_date = ty_end_date - timedelta(days=364)
+
+        # 2. Calculate the start date as the first day of the month for last year's end date
+        ly_start_date = date(ly_end_date.year, ly_end_date.month, 1)
+
+        # 3. Adjust to ensure we're comparing the same number of days in the month
+        ty_days_in_period = (ty_end_date - ty_start_date).days + 1
+        ly_days_in_period = (ly_end_date - ly_start_date).days + 1
+
+        # If this year has more days than last year's period, we need to adjust
+        if ly_days_in_period < ty_days_in_period:
+            # Extend last year's period to match this year's day count if possible
+            ly_max_days = calendar.monthrange(
+                ly_end_date.year, ly_end_date.month)[1]
+            if ly_end_date.day + (ty_days_in_period - ly_days_in_period) <= ly_max_days:
+                ly_end_date = ly_end_date + \
+                    timedelta(days=(ty_days_in_period - ly_days_in_period))
+        # If last year has more days, we truncate to match this year's day count
+        elif ly_days_in_period > ty_days_in_period:
+            ly_end_date = ly_start_date + timedelta(days=ty_days_in_period - 1)
+
+        logger.info(f"Comparing MTD period {ty_start_date.isoformat()} to {ty_end_date.isoformat()} " +
+                    f"with day-of-week aligned period {ly_start_date.isoformat()} to {ly_end_date.isoformat()}")
 
         # Get this year's MTD data
         ty_data = SaleService._get_sales_for_date_range_by_brand(
@@ -449,9 +480,9 @@ class SaleService:
             ty_item = ty_data.get(brand_uuid, {})
             ly_item = ly_data.get(brand_uuid, {})
 
-            # Create a merged record - implementation similar to daily sales but with MTD metrics
+            # Create a merged record
             if brand_uuid in ty_data:
-                merged_record = ty_data[brand_uuid].copy()
+                merged_record = ty_item.copy()
 
                 if brand_uuid in ly_data:
                     ly_sale_amt = ly_item.get('sale_amt', 0)
@@ -474,7 +505,9 @@ class SaleService:
                         'days_with_sales': ly_item.get('days_with_sales', 0),
                         'total_days': ly_item.get('total_days', 0),
                         'sales_coverage': ly_item.get('sales_coverage', 0),
-                        'daily_avg_sales': ly_item.get('daily_avg_sales', 0)
+                        'daily_avg_sales': ly_item.get('daily_avg_sales', 0),
+                        'from_date': ly_start_date.isoformat(),
+                        'to_date': ly_end_date.isoformat()
                     }
                     merged_record['growth_amt'] = growth_amt
                     merged_record['growth_pct'] = growth_pct
@@ -484,11 +517,47 @@ class SaleService:
                     merged_record['growth_amt'] = None
                     merged_record['growth_pct'] = None
 
+                merged_record['from_date'] = ty_start_date.isoformat()
+                merged_record['to_date'] = ty_end_date.isoformat()
                 combined_data[brand_uuid] = merged_record
             else:
-                # Only exists in last year - similar to daily but with MTD metrics
-                # Implementation would go here
-                pass
+                # Only exists in last year - handle similar to daily sales
+                merged_record = ly_item.copy()
+                merged_record['sale_qty'] = 0
+                merged_record['sale_amt'] = 0
+                merged_record['discounted_amt'] = 0
+                merged_record['gross_sales'] = 0
+                merged_record['nett_sales'] = 0
+                merged_record['tax_amount'] = 0
+                merged_record['nett_sales_after_tax'] = 0
+                merged_record['transaction_count'] = 0
+                merged_record['days_with_sales'] = 0
+                merged_record['sales_coverage'] = 0
+                merged_record['daily_avg_sales'] = 0
+
+                merged_record['ly_data'] = {
+                    'sale_qty': ly_item.get('sale_qty', 0),
+                    'sale_amt': ly_item.get('sale_amt', 0),
+                    'discounted_amt': ly_item.get('discounted_amt', 0),
+                    'gross_sales': ly_item.get('gross_sales', 0),
+                    'nett_sales': ly_item.get('nett_sales', 0),
+                    'tax_amount': ly_item.get('tax_amount', 0),
+                    'nett_sales_after_tax': ly_item.get('nett_sales_after_tax', 0),
+                    'transaction_count': ly_item.get('transaction_count', 0),
+                    'days_with_sales': ly_item.get('days_with_sales', 0),
+                    'total_days': ly_item.get('total_days', 0),
+                    'sales_coverage': ly_item.get('sales_coverage', 0),
+                    'daily_avg_sales': ly_item.get('daily_avg_sales', 0),
+                    'from_date': ly_start_date.isoformat(),
+                    'to_date': ly_end_date.isoformat()
+                }
+
+                merged_record['growth_amt'] = -ly_item.get('sale_amt', 0)
+                merged_record['growth_pct'] = -100.0
+                merged_record['from_date'] = ty_start_date.isoformat()
+                merged_record['to_date'] = ty_end_date.isoformat()
+
+                combined_data[brand_uuid] = merged_record
 
         # Convert to list for pagination
         brands_list = list(combined_data.values())
@@ -502,6 +571,13 @@ class SaleService:
 
         # Calculate totals including this year/last year comparison
         totals = SaleService._aggregate_brand_totals_with_yoy(combined_data)
+        if 'from_date' not in totals and 'to_date' not in totals:
+            totals['from_date'] = ty_start_date.isoformat()
+            totals['to_date'] = ty_end_date.isoformat()
+
+        if 'ly_data' in totals and totals['ly_data']:
+            totals['ly_data']['from_date'] = ly_start_date.isoformat()
+            totals['ly_data']['to_date'] = ly_end_date.isoformat()
 
         return {
             'month': f"{year}-{month:02d}",
@@ -513,7 +589,8 @@ class SaleService:
             'total': totals,
             'current_page': page,
             'pages': pages,
-            'total_records': total
+            'total_records': total,
+            'weekday_aligned': True  # Flag to indicate we're using day-of-week alignment
         }
 
     @staticmethod
@@ -723,7 +800,7 @@ class SaleService:
 
             # Calculate AUR
             total_qty = int(brand_agg.total_qty) if brand_agg.total_qty else 0
-            aur = nett_sales_after_tax / total_qty if total_qty > 0 else 0.0
+            aur = total_sale_amount / total_qty if total_qty > 0 else 0.0
 
             brand_data[brand_uuid] = {
                 'brand_uuid': brand_uuid,
@@ -850,7 +927,7 @@ class SaleService:
             sales_coverage = (days_with_sales / total_days *
                               100) if total_days > 0 else 0
 
-            aur = nett_sales_after_tax / \
+            aur = total_sale_amount / \
                 int(brand_agg.total_qty) if brand_agg.total_qty and int(
                     brand_agg.total_qty) > 0 else 0
 

@@ -318,14 +318,23 @@ def get_daily_sales_by_brand():
             division_id=division_id, category_id=category_id
         )
 
+        # Add metadata about the comparison method
+        response_data = {
+            "data": sales_data,
+            "meta": {
+                "comparison_method": "day_of_week_aligned",
+                "description": "Last year's date is calculated as 364 days prior (52 weeks) to maintain day-of-week alignment"
+            }
+        }
+
         logger.info(
-            f"Successfully retrieved daily sales by brand summary for {sales_data['date']}")
-        return jsonify({"data": sales_data, "success": True}), 200
+            f"Successfully retrieved daily sales by brand summary for {sales_data['date']}, compared to {sales_data['last_year_date']} (day-of-week aligned)")
+        return jsonify(response_data), 200
 
     except Exception as e:
         logger.exception(
             f"Error retrieving daily sales by brand summary: {str(e)}")
-        return jsonify({"msg": "An error occurred while retrieving daily sales by brand", "success": False}), 500
+        return jsonify({"msg": f"An error occurred: {str(e)}", "success": False}), 500
 
 
 @jwt_required()

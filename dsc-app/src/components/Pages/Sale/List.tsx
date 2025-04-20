@@ -244,10 +244,7 @@ const SaleList: React.FC = () => {
     {
       field: "description",
       header: "Description",
-      body: (rowData: Sale) =>
-        rowData.item_no
-          ? `${rowData.item_no} - ${rowData.description || "-"}`
-          : "-",
+      body: (rowData: Sale) => rowData.description || "-",
       sortable: true,
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },

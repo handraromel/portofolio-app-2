@@ -148,7 +148,7 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
           </Card>
 
           {/* Tax Info Card */}
-          <Card title="Tax Information" className="shadow-sm">
+          {/* <Card title="Tax Information" className="shadow-sm">
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="font-medium text-gray-500">Tax Rate:</span>
@@ -159,7 +159,7 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
                 <span className="font-semibold">{sale.tax_amount}</span>
               </div>
             </div>
-          </Card>
+          </Card> */}
 
           {/* Dates Card */}
           <Card title="Record Information" className="shadow-sm">

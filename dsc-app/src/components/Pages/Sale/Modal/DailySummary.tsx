@@ -3,6 +3,7 @@ import { Modal } from "@/components/Common";
 import { formatNumberToIDR } from "@/utils/formatCurrency";
 import YearComparisonChart from "../Components/YearComparisonChart";
 import GrowthIndicator from "../Components/GrowthIndicator";
+import { useModalChartRenderer } from "@/hooks";
 
 interface DailySummaryProps {
   visible: boolean;
@@ -96,6 +97,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
   }, [summaryData]);
 
   const { totalData, reportDate, lastYearDate } = processedData;
+  const shouldRenderCharts = useModalChartRenderer(visible);
 
   // Always render the Modal but control visibility with the visible prop
   return (
@@ -109,11 +111,21 @@ const DailySummary: React.FC<DailySummaryProps> = ({
         <div className="border-b border-gray-200 pb-4 text-center dark:border-gray-700">
           <h2 className="mb-2 text-2xl font-bold">{reportDate}</h2>
           {showYoY && (
-            <div className="text-sm text-gray-500">
-              Compared to {lastYearDate}
-            </div>
+            <>
+              <div className="text-sm text-gray-500">
+                Compared to {lastYearDate}
+              </div>
+              <div className="mt-1 flex items-center justify-center text-xs text-gray-400">
+                <i
+                  className="pi pi-info-circle mr-1"
+                  style={{ fontSize: "12px" }}
+                ></i>
+                <span className="text-[12px] italic">
+                  Same day of week, 52 weeks ago (364 days)
+                </span>
+              </div>
+            </>
           )}
-          <p className="text-gray-500">Sales performance snapshot</p>
         </div>
 
         {showYoY ? (
@@ -210,63 +222,67 @@ const DailySummary: React.FC<DailySummaryProps> = ({
             </div>
 
             {/* Charts Section */}
-            <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
-              <YearComparisonChart
-                title="Sales Amount Comparison"
-                currentYearValue={totalData.sale_amt}
-                lastYearValue={totalData.ly_data.sale_amt}
-                formatValue={(value) => formatNumberToIDR(value)}
-              />
+            {showYoY &&
+              processedData.totalData.ly_data &&
+              shouldRenderCharts && (
+                <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-4">
+                  <YearComparisonChart
+                    title="Sales Amount Comparison"
+                    currentYearValue={totalData.sale_amt}
+                    lastYearValue={totalData.ly_data.sale_amt}
+                    formatValue={(value) => formatNumberToIDR(value)}
+                  />
 
-              <YearComparisonChart
-                title="Quantity Sold Comparison"
-                currentYearValue={totalData.sale_qty}
-                lastYearValue={totalData.ly_data.sale_qty}
-              />
-            </div>
+                  <YearComparisonChart
+                    title="Quantity Sold Comparison"
+                    currentYearValue={totalData.sale_qty}
+                    lastYearValue={totalData.ly_data.sale_qty}
+                  />
+                  <YearComparisonChart
+                    title="Transaction Count Comparison"
+                    currentYearValue={totalData.transaction_count}
+                    lastYearValue={totalData.ly_data.transaction_count}
+                  />
 
-            <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
-              <YearComparisonChart
-                title="Transaction Count Comparison"
-                currentYearValue={totalData.transaction_count}
-                lastYearValue={totalData.ly_data.transaction_count}
-              />
-
-              <YearComparisonChart
-                title="Net Sales After Tax Comparison"
-                currentYearValue={totalData.nett_sales_after_tax}
-                lastYearValue={totalData.ly_data.nett_sales_after_tax}
-                formatValue={(value) => formatNumberToIDR(value)}
-              />
-            </div>
+                  <YearComparisonChart
+                    title="Net Sales After Tax Comparison"
+                    currentYearValue={totalData.nett_sales_after_tax}
+                    lastYearValue={totalData.ly_data.nett_sales_after_tax}
+                    formatValue={(value) => formatNumberToIDR(value)}
+                  />
+                </div>
+              )}
 
             <div className="rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 p-6 shadow-md dark:from-blue-900/20 dark:to-indigo-900/20">
               <h3 className="mb-4 text-lg font-semibold">
+                <i className="pi pi-chart-line mr-2 text-indigo-500"></i>
                 Year-over-Year Performance
               </h3>
+
+              {/* Main KPIs - Top row */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <div className="flex flex-col items-center rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
+                <div className="flex flex-col items-center rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
                   <div className="text-sm font-medium text-gray-500">
                     Sales Growth
                   </div>
-                  <div className="mt-2 flex items-center">
+                  <div className="mt-3 flex items-center">
                     <GrowthIndicator
                       growthValue={totalData.growth_pct}
                       isPercentage={true}
                       size="lg"
-                      className="text-2xl font-bold"
+                      className="text-3xl font-bold"
                     />
                   </div>
-                  <div className="mt-1 text-sm text-gray-500">
-                    {formatNumberToIDR(totalData.growth_amt || 0)}
+                  <div className="mt-2 text-sm text-gray-500">
+                    {formatNumberToIDR(totalData.growth_amt || 0)} difference
                   </div>
                 </div>
 
-                <div className="flex flex-col items-center rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
+                <div className="flex flex-col items-center rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
                   <div className="text-sm font-medium text-gray-500">
-                    Quantity Trend
+                    Quantity Change
                   </div>
-                  <div className="mt-2 flex items-center">
+                  <div className="mt-3 flex items-center">
                     <GrowthIndicator
                       growthValue={
                         totalData.sale_qty && totalData.ly_data.sale_qty
@@ -277,19 +293,22 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                       }
                       isPercentage={true}
                       size="lg"
-                      className="text-2xl font-bold"
+                      className="text-3xl font-bold"
                     />
                   </div>
-                  <div className="mt-1 text-sm text-gray-500">
+                  <div className="mt-2 text-sm text-gray-500">
+                    {totalData.sale_qty - totalData.ly_data.sale_qty > 0
+                      ? "+"
+                      : ""}
                     {totalData.sale_qty - totalData.ly_data.sale_qty} units
                   </div>
                 </div>
 
-                <div className="flex flex-col items-center rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
+                <div className="flex flex-col items-center rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
                   <div className="text-sm font-medium text-gray-500">
-                    Transaction Trend
+                    Transaction Change
                   </div>
-                  <div className="mt-2 flex items-center">
+                  <div className="mt-3 flex items-center">
                     <GrowthIndicator
                       growthValue={
                         totalData.transaction_count &&
@@ -302,10 +321,15 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                       }
                       isPercentage={true}
                       size="lg"
-                      className="text-2xl font-bold"
+                      className="text-3xl font-bold"
                     />
                   </div>
-                  <div className="mt-1 text-sm text-gray-500">
+                  <div className="mt-2 text-sm text-gray-500">
+                    {totalData.transaction_count -
+                      totalData.ly_data.transaction_count >
+                    0
+                      ? "+"
+                      : ""}
                     {totalData.transaction_count -
                       totalData.ly_data.transaction_count}{" "}
                     transactions
@@ -313,26 +337,15 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                 </div>
               </div>
 
-              <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              {/* Secondary metrics - Bottom section */}
+              <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Discount comparison */}
                 <div className="flex flex-col rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
-                  <div className="mb-2 text-sm font-medium text-gray-500">
-                    Discount Amount
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-sm text-gray-500">This Year</div>
-                      <div className="text-lg font-semibold">
-                        {formatNumberToIDR(totalData.discounted_amt)}
-                      </div>
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="text-sm font-medium text-gray-500">
+                      <i className="pi pi-tag mr-2 text-yellow-500"></i>
+                      Discount Amount
                     </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Last Year</div>
-                      <div className="text-lg font-semibold">
-                        {formatNumberToIDR(totalData.ly_data.discounted_amt)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-2 flex items-center justify-end">
                     <GrowthIndicator
                       growthValue={
                         totalData.discounted_amt &&
@@ -344,40 +357,69 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                           : null
                       }
                       isPercentage={true}
+                      size="sm"
                     />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700">
+                      <div className="text-xs text-gray-500">This Year</div>
+                      <div className="text-lg font-semibold">
+                        {formatNumberToIDR(totalData.discounted_amt)}
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700">
+                      <div className="text-xs text-gray-500">Last Year</div>
+                      <div className="text-lg font-semibold">
+                        {formatNumberToIDR(totalData.ly_data.discounted_amt)}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
+                {/* AUR comparison */}
                 <div className="flex flex-col rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
-                  <div className="mb-2 text-sm font-medium text-gray-500">
-                    Tax Amount
-                  </div>
-                  {/* <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-sm text-gray-500">This Year</div>
-                      <div className="text-lg font-semibold">
-                        {totalData.tax_amount}
-                      </div>
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="text-sm font-medium text-gray-500">
+                      <i className="pi pi-dollar mr-2 text-green-500"></i>
+                      Average Unit Retail (AUR)
                     </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Last Year</div>
-                      <div className="text-lg font-semibold">
-                        {totalData.ly_data.tax_amount}
-                      </div>
-                    </div>
-                  </div> */}
-                  <div className="mt-2 flex items-center justify-end">
                     <GrowthIndicator
                       growthValue={
-                        totalData.tax_amount && totalData.ly_data.tax_amount
-                          ? (totalData.tax_amount /
-                              totalData.ly_data.tax_amount) *
+                        totalData.sale_qty > 0 && totalData.ly_data.sale_qty > 0
+                          ? (totalData.sale_amt /
+                              totalData.sale_qty /
+                              (totalData.ly_data.sale_amt /
+                                totalData.ly_data.sale_qty)) *
                               100 -
                             100
                           : null
                       }
                       isPercentage={true}
+                      size="sm"
                     />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700">
+                      <div className="text-xs text-gray-500">This Year</div>
+                      <div className="text-lg font-semibold">
+                        {formatNumberToIDR(
+                          totalData.sale_qty
+                            ? totalData.sale_amt / totalData.sale_qty
+                            : 0,
+                        )}
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700">
+                      <div className="text-xs text-gray-500">Last Year</div>
+                      <div className="text-lg font-semibold">
+                        {formatNumberToIDR(
+                          totalData.ly_data.sale_qty
+                            ? totalData.ly_data.sale_amt /
+                                totalData.ly_data.sale_qty
+                            : 0,
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

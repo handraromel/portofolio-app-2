@@ -3,6 +3,7 @@ import { Modal } from "@/components/Common";
 import { formatNumberToIDR } from "@/utils/formatCurrency";
 import YearComparisonChart from "../Components/YearComparisonChart";
 import GrowthIndicator from "../Components/GrowthIndicator";
+import { useModalChartRenderer } from "@/hooks";
 
 interface MtdSummaryProps {
   visible: boolean;
@@ -129,6 +130,8 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
   const { fromDate, toDate, monthTitle, lastYearMonthTitle, safeData } =
     processedData;
 
+  const shouldRenderCharts = useModalChartRenderer(visible);
+
   return (
     <Modal
       visible={visible}
@@ -142,12 +145,17 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
             Period: {fromDate} - {toDate}
           </h2>
           {showYoY && safeData.ly_data && (
-            <div className="mt-2 text-sm text-gray-500">
-              Compared to {lastYearMonthTitle}
-            </div>
+            <>
+              <div className="mt-2 text-sm text-gray-500">
+                Compared to {lastYearMonthTitle}
+              </div>
+              <div className="mt-1 text-xs text-gray-400">
+                <i className="pi pi-info-circle mr-1"></i>
+                Day-of-week aligned comparison (52 weeks prior)
+              </div>
+            </>
           )}
         </div>
-
         {showYoY && safeData.ly_data ? (
           // Year over year comparison view
           <>
@@ -195,19 +203,17 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
+                  {/* <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                     <div className="text-sm font-medium text-gray-500">
                       Coverage
                     </div>
                     <div className="text-2xl font-bold">
                       {safeData.sales_coverage.toFixed(1)}%
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
-                    <div className="text-sm font-medium text-gray-500">
-                      Daily Average
-                    </div>
+                    <div className="text-sm font-medium text-gray-500">AUR</div>
                     <div className="text-2xl font-bold">
                       {formatNumberToIDR(safeData.aur)}
                     </div>
@@ -260,19 +266,17 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
+                  {/* <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                     <div className="text-sm font-medium text-gray-500">
                       Coverage
                     </div>
                     <div className="text-2xl font-bold">
                       {(safeData.ly_data?.sales_coverage || 0).toFixed(1)}%
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
-                    <div className="text-sm font-medium text-gray-500">
-                      Daily Average
-                    </div>
+                    <div className="text-sm font-medium text-gray-500">AUR</div>
                     <div className="text-2xl font-bold">
                       {formatNumberToIDR(safeData.ly_data?.aur || 0)}
                     </div>
@@ -282,65 +286,98 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
             </div>
 
             {/* Charts Section */}
-            <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
-              <YearComparisonChart
-                title="Sales Amount Comparison"
-                currentYearValue={safeData.sale_amt}
-                lastYearValue={safeData.ly_data?.sale_amt || 0}
-                formatValue={(value) => formatNumberToIDR(value)}
-              />
+            {showYoY && safeData.ly_data && shouldRenderCharts && (
+              <>
+                <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-3">
+                  <YearComparisonChart
+                    title="Sales Amount Comparison"
+                    currentYearValue={safeData.sale_amt}
+                    lastYearValue={safeData.ly_data?.sale_amt || 0}
+                    formatValue={(value) => formatNumberToIDR(value)}
+                  />
 
-              <YearComparisonChart
-                title="Transaction Count Comparison"
-                currentYearValue={safeData.transaction_count}
-                lastYearValue={safeData.ly_data?.transaction_count || 0}
-              />
-            </div>
+                  <YearComparisonChart
+                    title="Transaction Count Comparison"
+                    currentYearValue={safeData.transaction_count}
+                    lastYearValue={safeData.ly_data?.transaction_count || 0}
+                  />
 
-            <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
-              <YearComparisonChart
-                title="Daily Average Sales Comparison"
-                currentYearValue={safeData.aur}
-                lastYearValue={safeData.ly_data?.aur || 0}
-                formatValue={(value) => formatNumberToIDR(value)}
-              />
+                  <YearComparisonChart
+                    title="AUR Comparison"
+                    currentYearValue={safeData.aur}
+                    lastYearValue={safeData.ly_data?.aur || 0}
+                    formatValue={(value) => formatNumberToIDR(value)}
+                  />
+                </div>
 
-              <YearComparisonChart
-                title="Coverage Rate Comparison"
-                currentYearValue={safeData.sales_coverage}
-                lastYearValue={safeData.ly_data?.sales_coverage || 0}
-                formatValue={(value) => `${value.toFixed(1)}%`}
-              />
-            </div>
+                {/* <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
+                  <YearComparisonChart
+                    title="Coverage Rate Comparison"
+                    currentYearValue={safeData.sales_coverage}
+                    lastYearValue={safeData.ly_data?.sales_coverage || 0}
+                    formatValue={(value) => `${value.toFixed(1)}%`}
+                  />
+                </div> */}
+              </>
+            )}
 
             <div className="rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 p-6 shadow-md dark:from-blue-900/20 dark:to-indigo-900/20">
               <h3 className="mb-4 text-lg font-semibold">
+                <i className="pi pi-chart-line mr-2 text-indigo-500"></i>
                 Year-over-Year Performance
               </h3>
 
+              {/* Main KPIs - Top row */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <div className="flex flex-col items-center rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
+                <div className="flex flex-col items-center rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
                   <div className="text-sm font-medium text-gray-500">
                     Sales Growth
                   </div>
-                  <div className="mt-2 flex items-center">
+                  <div className="mt-3 flex items-center">
                     <GrowthIndicator
                       growthValue={safeData.growth_pct}
                       isPercentage={true}
                       size="lg"
-                      className="text-2xl font-bold"
+                      className="text-3xl font-bold"
                     />
                   </div>
-                  <div className="mt-1 text-sm text-gray-500">
-                    {formatNumberToIDR(safeData.growth_amt || 0)}
+                  <div className="mt-2 text-sm text-gray-500">
+                    {formatNumberToIDR(safeData.growth_amt || 0)} difference
                   </div>
                 </div>
 
-                <div className="flex flex-col items-center rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
+                <div className="flex flex-col items-center rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
                   <div className="text-sm font-medium text-gray-500">
-                    Transactions Trend
+                    Quantity Change
                   </div>
-                  <div className="mt-2 flex items-center">
+                  <div className="mt-3 flex items-center">
+                    <GrowthIndicator
+                      growthValue={
+                        safeData.sale_qty && safeData.ly_data?.sale_qty
+                          ? (safeData.sale_qty / safeData.ly_data.sale_qty) *
+                              100 -
+                            100
+                          : null
+                      }
+                      isPercentage={true}
+                      size="lg"
+                      className="text-3xl font-bold"
+                    />
+                  </div>
+                  <div className="mt-2 text-sm text-gray-500">
+                    {safeData.sale_qty - (safeData.ly_data?.sale_qty || 0) > 0
+                      ? "+"
+                      : ""}
+                    {safeData.sale_qty - (safeData.ly_data?.sale_qty || 0)}{" "}
+                    units
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-center rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
+                  <div className="text-sm font-medium text-gray-500">
+                    Transaction Change
+                  </div>
+                  <div className="mt-3 flex items-center">
                     <GrowthIndicator
                       growthValue={
                         safeData.transaction_count &&
@@ -353,37 +390,93 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                       }
                       isPercentage={true}
                       size="lg"
-                      className="text-2xl font-bold"
+                      className="text-3xl font-bold"
                     />
                   </div>
-                  <div className="mt-1 text-sm text-gray-500">
+                  <div className="mt-2 text-sm text-gray-500">
+                    {safeData.transaction_count -
+                      (safeData.ly_data?.transaction_count || 0) >
+                    0
+                      ? "+"
+                      : ""}
                     {safeData.transaction_count -
                       (safeData.ly_data?.transaction_count || 0)}{" "}
                     transactions
                   </div>
                 </div>
+              </div>
 
-                <div className="flex flex-col items-center rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
-                  <div className="text-sm font-medium text-gray-500">
-                    Coverage Change
-                  </div>
-                  <div className="mt-2 flex items-center">
+              {/* Secondary metrics - Bottom section */}
+              <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* AUR comparison */}
+                <div className="flex flex-col rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="text-sm font-medium text-gray-500">
+                      <i className="pi pi-dollar mr-2 text-green-500"></i>
+                      Average Unit Retail (AUR)
+                    </div>
                     <GrowthIndicator
                       growthValue={
-                        safeData.sales_coverage -
-                        (safeData.ly_data?.sales_coverage || 0)
+                        safeData.aur && safeData.ly_data?.aur
+                          ? (safeData.aur / safeData.ly_data.aur) * 100 - 100
+                          : null
                       }
                       isPercentage={true}
-                      size="lg"
-                      className="text-2xl font-bold"
+                      size="sm"
                     />
                   </div>
-                  <div className="mt-1 text-sm text-gray-500">
-                    {(
-                      safeData.sales_coverage -
-                      (safeData.ly_data?.sales_coverage || 0)
-                    ).toFixed(1)}{" "}
-                    percentage points
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700">
+                      <div className="text-xs text-gray-500">This Year</div>
+                      <div className="text-lg font-semibold">
+                        {formatNumberToIDR(safeData.aur)}
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700">
+                      <div className="text-xs text-gray-500">Last Year</div>
+                      <div className="text-lg font-semibold">
+                        {formatNumberToIDR(safeData.ly_data?.aur || 0)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Discount comparison */}
+                <div className="flex flex-col rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="text-sm font-medium text-gray-500">
+                      <i className="pi pi-tag mr-2 text-yellow-500"></i>
+                      Discount Amount
+                    </div>
+                    <GrowthIndicator
+                      growthValue={
+                        safeData.discounted_amt &&
+                        safeData.ly_data?.discounted_amt
+                          ? (safeData.discounted_amt /
+                              safeData.ly_data.discounted_amt) *
+                              100 -
+                            100
+                          : null
+                      }
+                      isPercentage={true}
+                      size="sm"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700">
+                      <div className="text-xs text-gray-500">This Year</div>
+                      <div className="text-lg font-semibold">
+                        {formatNumberToIDR(safeData.discounted_amt)}
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700">
+                      <div className="text-xs text-gray-500">Last Year</div>
+                      <div className="text-lg font-semibold">
+                        {formatNumberToIDR(
+                          safeData.ly_data?.discounted_amt || 0,
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
