@@ -290,20 +290,20 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
               <>
                 <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-3">
                   <YearComparisonChart
-                    title="Sales Amount Comparison"
+                    title="Sales Amount"
                     currentYearValue={safeData.sale_amt}
                     lastYearValue={safeData.ly_data?.sale_amt || 0}
                     formatValue={(value) => formatNumberToIDR(value)}
                   />
 
                   <YearComparisonChart
-                    title="Transaction Count Comparison"
+                    title="Transaction Count"
                     currentYearValue={safeData.transaction_count}
                     lastYearValue={safeData.ly_data?.transaction_count || 0}
                   />
 
                   <YearComparisonChart
-                    title="AUR Comparison"
+                    title="AUR"
                     currentYearValue={safeData.aur}
                     lastYearValue={safeData.ly_data?.aur || 0}
                     formatValue={(value) => formatNumberToIDR(value)}

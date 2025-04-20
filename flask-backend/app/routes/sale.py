@@ -9,6 +9,7 @@ bp.route('/<uuid:sale_id>', methods=['GET'])(sale.get_by_id)
 bp.route('/create', methods=['POST'])(sale.create)
 bp.route('/<uuid:sale_id>', methods=['PUT'])(sale.update)
 bp.route('/<uuid:sale_id>', methods=['DELETE'])(sale.delete)
+bp.route('/delete-multiple', methods=['POST'])(sale.delete_multiple)
 
 # Brand-based analytics routes
 bp.route('/daily/by-brand', methods=['GET'])(sale.get_daily_sales_by_brand)

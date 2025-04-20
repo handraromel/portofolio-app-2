@@ -626,3 +626,61 @@ def cancel_import():
             "msg": f"An error occurred while cancelling import: {str(e)}",
             "success": False
         }), 500
+
+# Add this function to handle bulk deletion
+
+
+@admin_required()
+@jwt_required()
+def delete_multiple():
+    """Delete multiple sale records"""
+    current_user_id = get_jwt_identity()
+    logger.info(f"Bulk sale deletion attempt by admin ID {current_user_id}")
+
+    try:
+        # Get sale IDs from request
+        data = request.get_json()
+        if not data or 'sale_ids' not in data:
+            return jsonify({
+                'success': False,
+                'msg': 'No sale IDs provided',
+                'error': 'Missing required parameter: sale_ids'
+            }), 400
+
+        sale_ids = data.get('sale_ids', [])
+        if not sale_ids or not isinstance(sale_ids, list):
+            return jsonify({
+                'success': False,
+                'msg': 'Invalid sale IDs format',
+                'error': 'sale_ids must be a non-empty array'
+            }), 400
+
+        # Call service to delete multiple sales
+        success_count, error_count, errors = SaleService.delete_multiple(
+            sale_ids)
+
+        if success_count > 0:
+            return jsonify({
+                'success': True,
+                'msg': f'Successfully deleted {success_count} sales' +
+                       (f', {error_count} failed' if error_count > 0 else ''),
+                'details': {
+                    'success_count': success_count,
+                    'error_count': error_count,
+                    'errors': errors
+                       }
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'msg': 'Failed to delete sales',
+                'error': errors[0] if errors else 'Unknown error occurred'
+            }), 400
+
+    except Exception as e:
+        logger.exception(f"Error in bulk delete endpoint: {str(e)}")
+        return jsonify({
+            'success': False,
+            'msg': 'An error occurred during bulk deletion',
+            'error': str(e)
+        }), 500

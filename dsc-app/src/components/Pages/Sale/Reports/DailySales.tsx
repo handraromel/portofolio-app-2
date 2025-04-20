@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "primereact/button";
-import { TabView, TabPanel } from "primereact/tabview";
+import { Dropdown } from "primereact/dropdown";
 import { formatNumberToIDR } from "@/utils/formatCurrency";
 import { useSale } from "@/actions/useSale";
 import { FilterData } from "@/types/sale";
@@ -54,6 +54,13 @@ interface BrandSalesData {
   growth_pct?: number | null;
 }
 
+// Create view options interface
+interface ViewOption {
+  label: string;
+  value: number;
+  icon: string;
+}
+
 const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
   const {
     dailySalesSummary,
@@ -66,6 +73,16 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
   const summaryModal = useModal();
 
   const [activeComparisonTab, setActiveComparisonTab] = useState<number>(0);
+
+  // Define view options for dropdown
+  const viewOptions: ViewOption[] = [
+    { label: "Standard View (TY)", value: 0, icon: "pi pi-table" },
+    {
+      label: "Year-over-Year (LY)",
+      value: 1,
+      icon: "pi pi-chart-line",
+    },
+  ];
 
   const handleFilterApply = (filters: FilterData) => {
     const { date, brand_id, group_id, division_id, category_id } = filters;
@@ -96,30 +113,25 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
       {
         header: "Department",
         body: (rowData) => `${rowData.brand_id} - ${rowData.brand_name}`,
-        sortable: true,
       },
       {
         field: "gross_sales",
         header: "Gross Sales",
         body: (rowData) => formatNumberToIDR(rowData.gross_sales),
-        sortable: true,
       },
       {
         field: "discounted_amt",
         header: "Discount",
         body: (rowData) => formatNumberToIDR(rowData.discounted_amt),
-        sortable: true,
       },
       {
         field: "sale_amt",
         header: "Sale Amount",
         body: (rowData) => formatNumberToIDR(rowData.sale_amt),
-        sortable: true,
       },
       {
         field: "sale_qty",
         header: "Quantity",
-        sortable: true,
       },
       // {
       //   field: "nett_sales",
@@ -137,7 +149,6 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
         field: "nett_sales_after_tax",
         header: "Net After Tax",
         body: (rowData) => formatNumberToIDR(rowData.nett_sales_after_tax),
-        sortable: true,
       },
       // {
       //   field: "transaction_count",
@@ -157,7 +168,6 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
       {
         header: "Department",
         body: (rowData) => `${rowData.brand_id} - ${rowData.brand_name}`,
-        sortable: true,
       },
       {
         header: "Quantity (TY)",
@@ -175,7 +185,6 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
             )}
           </div>
         ),
-        sortable: true,
       },
       {
         header: "Sales Amount (TY)",
@@ -192,18 +201,15 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
             )}
           </div>
         ),
-        sortable: true,
       },
       {
         header: "Quantity (LY)",
         body: (rowData) => (rowData.ly_data ? rowData.ly_data.sale_qty : "-"),
-        sortable: true,
       },
       {
         header: "Sales Amount (LY)",
         body: (rowData) =>
           rowData.ly_data ? formatNumberToIDR(rowData.ly_data.sale_amt) : "-",
-        sortable: true,
       },
       {
         header: "Growth (Amt)",
@@ -214,7 +220,6 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
             size="md"
           />
         ),
-        sortable: true,
       },
       {
         header: "Growth (%)",
@@ -226,7 +231,6 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
             size="md"
           />
         ),
-        sortable: true,
       },
     ];
   };
@@ -234,11 +238,34 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
   const columns =
     activeComparisonTab === 0 ? getStandardColumns() : getComparisonColumns();
 
+  const viewOptionTemplate = (option: ViewOption) => {
+    if (!option) {
+      return <span>Select View</span>;
+    }
+    return (
+      <div className="flex items-center gap-2">
+        <i className={option.icon}></i>
+        <span>{option.label}</span>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h2 className="text-xl font-bold">Daily Sales by Brand</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Dropdown
+            id="view-selector"
+            value={activeComparisonTab}
+            options={viewOptions}
+            onChange={(e) => setActiveComparisonTab(e.value)}
+            optionLabel="label"
+            placeholder="Select View"
+            className="w-72"
+            valueTemplate={viewOptionTemplate}
+            itemTemplate={viewOptionTemplate}
+          />
           <Button
             icon="pi pi-chart-bar"
             label="Summary"
@@ -261,33 +288,6 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
           />
         </div>
       </div>
-
-      <TabView
-        activeIndex={activeComparisonTab}
-        onTabChange={(e) => setActiveComparisonTab(e.index)}
-        className="border-none"
-        pt={{
-          root: { className: "border-0" },
-          nav: {
-            className: "flex flex-row flex-nowrap border-0 -mb-8",
-            style: { border: "none", borderBottom: "none" },
-          },
-          navContainer: {
-            className: "border-0",
-            style: { borderBottom: "none" },
-          },
-          navContent: { className: "border-0" },
-          panelContainer: { className: "border-0" },
-          inkbar: {
-            style: {
-              display: "none",
-            },
-          },
-        }}
-      >
-        <TabPanel header="Standard View (TY)" />
-        <TabPanel header="Year-over-Year Comparison (LY)" />
-      </TabView>
 
       <Table
         title=""

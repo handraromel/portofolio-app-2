@@ -227,25 +227,25 @@ const DailySummary: React.FC<DailySummaryProps> = ({
               shouldRenderCharts && (
                 <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-4">
                   <YearComparisonChart
-                    title="Sales Amount Comparison"
+                    title="Sales Amount"
                     currentYearValue={totalData.sale_amt}
                     lastYearValue={totalData.ly_data.sale_amt}
                     formatValue={(value) => formatNumberToIDR(value)}
                   />
 
                   <YearComparisonChart
-                    title="Quantity Sold Comparison"
+                    title="Quantity Sold"
                     currentYearValue={totalData.sale_qty}
                     lastYearValue={totalData.ly_data.sale_qty}
                   />
                   <YearComparisonChart
-                    title="Transaction Count Comparison"
+                    title="Transaction Count"
                     currentYearValue={totalData.transaction_count}
                     lastYearValue={totalData.ly_data.transaction_count}
                   />
 
                   <YearComparisonChart
-                    title="Net Sales After Tax Comparison"
+                    title="Net Sales After Tax"
                     currentYearValue={totalData.nett_sales_after_tax}
                     lastYearValue={totalData.ly_data.nett_sales_after_tax}
                     formatValue={(value) => formatNumberToIDR(value)}

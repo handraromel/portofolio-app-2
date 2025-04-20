@@ -244,3 +244,20 @@ export const useDeleteSale = () => {
     },
   });
 };
+
+export const useDeleteMultipleSales = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (saleIds: string[]) =>
+      apiClient(`${salePrefix}/delete-multiple`, {
+        data: { sale_ids: saleIds },
+        method: "POST",
+      }),
+    onSuccess: () => {
+      // Invalidate and refetch related queries
+      queryClient.invalidateQueries({ queryKey: saleKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: saleKeys.reports() });
+    },
+  });
+};

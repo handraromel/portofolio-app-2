@@ -8,7 +8,7 @@ import {
 } from "primereact/datatable";
 import { Column, ColumnProps } from "primereact/column";
 import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
+import { Button, ButtonProps } from "primereact/button";
 import { FilterMatchMode } from "primereact/api";
 import { debounce } from "lodash";
 import { useRef, useLayoutEffect } from "react";
@@ -64,6 +64,7 @@ export interface TableAction {
   tooltipOptions?: object;
   className?: string;
   disabled?: boolean;
+  visible?: boolean | (() => boolean);
 }
 
 type DataTableSelection<T> = T[] | null;
@@ -80,6 +81,15 @@ export interface TableProps<T> {
     visible?: boolean;
   };
   otherActions?: TableAction[];
+  bulkActions?: Array<{
+    label: string;
+    icon?: string;
+    severity?: ButtonProps["severity"];
+    onClick: () => void;
+    visible?: () => boolean;
+    disabled?: boolean;
+    className?: string;
+  }>;
   totalRecords?: number;
   paginator?: PaginatorProps;
   onSearch?: (search: string) => void;
@@ -103,6 +113,7 @@ const Table = <T extends { [key: string]: unknown }>({
   globalSearchFields = [],
   actionButton,
   otherActions = [],
+  bulkActions = [],
   totalRecords,
   paginator,
   onSearch,
@@ -286,7 +297,7 @@ const Table = <T extends { [key: string]: unknown }>({
 
   const renderHeader = () => {
     return (
-      <div className="mb-5 flex flex-col justify-between max-sm:space-y-3 sm:flex-row">
+      <div className="mb-5 flex flex-col flex-wrap justify-between md:flex-row">
         <div className="flex flex-col">
           <h2 className="text-xl font-bold">
             {title}
@@ -297,8 +308,9 @@ const Table = <T extends { [key: string]: unknown }>({
             )}
           </h2>
         </div>
-        <div className="flex flex-col gap-4 sm:flex-row">
-          {!hideSearch && ( // Conditionally render the search input
+
+        <div className="mt-1.5 flex flex-col flex-wrap gap-2 md:flex-row">
+          {!hideSearch && (
             <span className="p-input-icon-left">
               <i className="pi pi-search text-gray-500" />
               <InputText
@@ -309,7 +321,8 @@ const Table = <T extends { [key: string]: unknown }>({
               />
             </span>
           )}
-          <div className="flex items-center gap-3">
+
+          <div className="flex flex-wrap items-center gap-3">
             {actionButton?.visible && (
               <Button
                 label={actionButton.label}
@@ -319,20 +332,39 @@ const Table = <T extends { [key: string]: unknown }>({
               />
             )}
 
-            {/* Render all other action buttons */}
-            {otherActions.map((action, index) => (
+            {otherActions
+              .filter((action) => {
+                if (typeof action.visible === "function") {
+                  return action.visible();
+                }
+                return action.visible !== false;
+              })
+              .map((action, index) => (
+                <Button
+                  key={index}
+                  icon={action.icon}
+                  rounded
+                  size="small"
+                  severity={action.severity || "info"}
+                  aria-label={action.tooltip || action.icon}
+                  tooltip={action.tooltip}
+                  tooltipOptions={action.tooltipOptions || { position: "top" }}
+                  onClick={action.onClick}
+                  className={`h-11 p-1 ${action.className || ""}`}
+                  disabled={action.disabled}
+                />
+              ))}
+
+            {bulkActions.map((action, index) => (
               <Button
-                key={index}
+                key={`bulk-action-${index}`}
                 icon={action.icon}
-                rounded
+                label={`${action.label} (${selectedItem?.length || 0})`}
+                severity={action.severity || "secondary"}
                 size="small"
-                severity={action.severity || "info"}
-                aria-label={action.tooltip || action.icon}
-                tooltip={action.tooltip}
-                tooltipOptions={action.tooltipOptions || { position: "top" }}
                 onClick={action.onClick}
-                className={`h-11 p-1 ${action.className || ""}`}
-                disabled={action.disabled}
+                disabled={action.disabled || !selectedItem}
+                className={`whitespace-nowrap ${action.className || ""}`}
               />
             ))}
           </div>

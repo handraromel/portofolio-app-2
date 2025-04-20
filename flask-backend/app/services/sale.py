@@ -1027,3 +1027,54 @@ class SaleService:
             totals['to_date'] = example_brand.get('to_date')
 
         return totals
+
+    # Add this method to the SaleService class
+
+    @staticmethod
+    def delete_multiple(sale_ids):
+        """
+        Delete multiple sale records by their UUIDs
+
+        Args:
+            sale_ids (list): List of sale UUIDs to delete
+
+        Returns:
+            tuple: (success_count, error_count, errors)
+        """
+        if not sale_ids:
+            return 0, 0, []
+
+        success_count = 0
+        error_count = 0
+        errors = []
+
+        try:
+            # Find all the sales that exist
+            sales = Sale.query.filter(Sale.uuid.in_(sale_ids)).all()
+            found_ids = [str(sale.uuid) for sale in sales]
+
+            # Track missing IDs
+            missing_ids = [str(id)
+                           for id in sale_ids if str(id) not in found_ids]
+            if missing_ids:
+                error_count += len(missing_ids)
+                errors.append(f"Sales not found: {', '.join(missing_ids)}")
+
+            # Delete the found sales
+            for sale in sales:
+                try:
+                    db.session.delete(sale)
+                    success_count += 1
+                except Exception as e:
+                    error_count += 1
+                    errors.append(
+                        f"Failed to delete sale {sale.uuid}: {str(e)}")
+
+            db.session.commit()
+            logger.info(f"Bulk deleted {success_count} sales successfully")
+            return success_count, error_count, errors
+
+        except Exception as e:
+            db.session.rollback()
+            logger.exception(f"Error in bulk delete operation: {str(e)}")
+            return 0, 1, [f"Bulk delete operation failed: {str(e)}"]

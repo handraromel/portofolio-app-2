@@ -6,6 +6,7 @@ import {
   useUpdateSale,
   useDeleteSale,
   useDailySales,
+  useDeleteMultipleSales,
   useMtdSales,
 } from "@/services/SaleService";
 import { SaleSubmission, SaleQueryFilters } from "@/types/sale";
@@ -70,6 +71,7 @@ export const useSale = () => {
   const createSaleMutation = useCreateSale();
   const updateSaleMutation = useUpdateSale();
   const deleteSaleMutation = useDeleteSale();
+  const deleteMultipleSalesMutation = useDeleteMultipleSales();
 
   const fetchSales = async (newFilters?: Partial<SaleQueryFilters>) => {
     if (newFilters) {
@@ -112,6 +114,10 @@ export const useSale = () => {
 
   const handleDeleteSale = async (saleId: string) => {
     return await deleteSaleMutation.mutateAsync(saleId);
+  };
+
+  const handleDeleteMultipleSales = async (saleIds: string[]) => {
+    return await deleteMultipleSalesMutation.mutateAsync(saleIds);
   };
 
   const handleSearch = (search: string) => {
@@ -199,6 +205,7 @@ export const useSale = () => {
     createSale: handleCreateSale,
     updateSale: handleUpdateSale,
     deleteSale: handleDeleteSale,
+    deleteMultipleSales: handleDeleteMultipleSales,
     searchSales: handleSearch,
     changePage: handlePageChange,
     changePerPage: handlePerPageChange,
@@ -216,6 +223,7 @@ export const useSale = () => {
     createSaleMutation,
     updateSaleMutation,
     deleteSaleMutation,
+    deleteMultipleSalesMutation,
     activeTab,
   };
 };

@@ -198,6 +198,7 @@ const BrandList: React.FC = () => {
             severity: "success",
             onClick: importModal.open,
             disabled: isImporting || isLoading,
+            visible: canEdit(),
           },
         ]}
         totalRecords={pagination.totalRecords}

@@ -26,6 +26,7 @@ const SaleList: React.FC = () => {
     error,
     fetchSales,
     deleteSale,
+    deleteMultipleSales,
     searchSales,
     changePage,
     changePerPage,
@@ -59,12 +60,22 @@ const SaleList: React.FC = () => {
   const responseMsg = salesQuery.data?.msg;
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [triggerDelete, setTriggerDelete] = useState(false);
+  const [triggerBulkDelete, setTriggerBulkDelete] = useState(false);
 
   // Modals
   const filterModal = useModal();
   const detailModal = useModal();
   const submissionModal = useModal();
   const importModal = useModal();
+
+  const selection = useTableSelection<Sale>({
+    idField: "uuid",
+    onSelectionChange: (items, current) => {
+      if (current) {
+        setSelectedSale(current);
+      }
+    },
+  });
 
   const handleFetchData = (e: { index: number }) => {
     setActiveTab(e.index);
@@ -111,6 +122,42 @@ const SaleList: React.FC = () => {
     fetchSales,
   ]);
 
+  const handleBulkDeleteConfirm = useCallback(async () => {
+    if (selection.selectedItems && selection.selectedItems.length > 0) {
+      try {
+        const saleIds = selection.selectedItems.map((item) => item.uuid);
+        await deleteMultipleSales(saleIds);
+
+        // Refresh the list
+        fetchSales();
+
+        // Clear selection
+        selection.clearSelection();
+
+        // Show success message
+        showWarning(`Successfully deleted ${saleIds.length} sale records`);
+        setTriggerBulkDelete(false);
+      } catch {
+        showError(responseMsg || "Failed to delete selected sale records");
+      }
+    }
+  }, [
+    selection.selectedItems,
+    deleteMultipleSales,
+    fetchSales,
+    showWarning,
+    showError,
+    selection,
+  ]);
+
+  const handleBulkDelete = () => {
+    if (selection.selectedItems && selection.selectedItems.length > 0) {
+      setTriggerBulkDelete(true);
+    } else {
+      showWarning("Please select at least one record to delete");
+    }
+  };
+
   const handleFilterApply = (filterData: FilterData) => {
     const {
       start_date,
@@ -127,15 +174,6 @@ const SaleList: React.FC = () => {
 
     fetchSales();
   };
-
-  const selection = useTableSelection<Sale>({
-    idField: "uuid",
-    onSelectionChange: (items, current) => {
-      if (current) {
-        setSelectedSale(current);
-      }
-    },
-  });
 
   const handleView = (sale: Sale) => {
     setSelectedSale(sale);
@@ -219,40 +257,34 @@ const SaleList: React.FC = () => {
     {
       header: "Brand",
       body: (rowData: Sale) => `${rowData.brand.id} - ${rowData.brand.name}`,
-      sortable: true,
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       header: "Division",
       body: (rowData: Sale) =>
         `${rowData.division.name}${rowData.division.alias ? ` - ${rowData.division.alias}` : ""}`,
-      sortable: true,
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       header: "Group",
       body: (rowData: Sale) => `${rowData.group.id} - ${rowData.group.name}`,
-      sortable: true,
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       header: "Category",
       body: (rowData: Sale) => rowData.category.name,
-      sortable: true,
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       field: "description",
       header: "Description",
       body: (rowData: Sale) => rowData.description || "-",
-      sortable: true,
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       field: "sku",
       header: "SKU",
       body: (rowData: Sale) => rowData.sku || "-",
-      sortable: true,
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
@@ -260,34 +292,29 @@ const SaleList: React.FC = () => {
       header: "Input Date",
       body: (rowData: Sale) =>
         formatDate(rowData.input_date, { format: "DD MMM YYYY" }),
-      sortable: true,
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       field: "gross_sales",
       header: "Gross Sales",
       body: (rowData: Sale) => formatNumberToIDR(rowData.gross_sales),
-      sortable: true,
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       field: "discounted_amt",
       header: "Discount",
       body: (rowData: Sale) => formatNumberToIDR(rowData.discounted_amt),
-      sortable: true,
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       field: "sale_amt",
       header: "Sale Amount",
       body: (rowData: Sale) => formatNumberToIDR(rowData.sale_amt),
-      sortable: true,
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {
       field: "sale_qty",
       header: "Quantity",
-      sortable: true,
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     // {
@@ -323,10 +350,13 @@ const SaleList: React.FC = () => {
         activeIndex={activeTab}
         onTabChange={handleFetchData}
         pt={{
-          root: { className: "border-0" },
+          root: { className: "border-0 w-full h-10" },
           nav: {
-            className: "flex flex-row flex-nowrap border-0",
-            style: { border: "none", borderBottom: "none" },
+            className:
+              "flex flex-row border-0 overflow-x-auto overflow-y-hidden -mb-5",
+            style: {
+              border: "none",
+            },
           },
           navContainer: {
             className: "border-0",
@@ -341,7 +371,13 @@ const SaleList: React.FC = () => {
           },
         }}
       >
-        <TabPanel header="Sales List">
+        <TabPanel
+          header={
+            <div className="ml-[35px] border-b-2 whitespace-nowrap">
+              Sales List
+            </div>
+          }
+        >
           <div className="p-2">
             <Table
               data={sales}
@@ -410,34 +446,57 @@ const SaleList: React.FC = () => {
                     tooltip: "Edit",
                     severity: "success",
                     onClick: handleEdit,
-                    visible: () => canEdit(),
+                    visible: () => !!canEdit(),
                   },
                   {
                     icon: "pi pi-trash",
                     tooltip: "Delete",
                     severity: "danger",
                     onClick: handleDelete,
-                    visible: () => canDelete(),
+                    visible: () => !!canDelete(),
                   },
                   {
                     icon: "pi pi-eye",
                     tooltip: "View",
                     severity: "info",
                     onClick: handleView,
-                    visible: () => true,
                   },
                 ],
               }}
+              bulkActions={[
+                {
+                  label: "Delete Selected Items",
+                  icon: "pi pi-trash",
+                  severity: "danger",
+                  onClick: handleBulkDelete,
+                  visible: () =>
+                    !!canDelete() &&
+                    !!selection.selectedItems &&
+                    selection.selectedItems.length > 0,
+                },
+              ]}
               selectionMode="multiple"
               selectedItem={selection.selectedItems}
               onSelectionChange={selection.handleSelectionChange}
             />
           </div>
         </TabPanel>
-        <TabPanel header="Daily Sales">
+        <TabPanel
+          header={
+            <div className="ml-[35px] border-b-2 whitespace-nowrap">
+              Daily Sales
+            </div>
+          }
+        >
           <DailySales onRefresh={handleRefresh} />
         </TabPanel>
-        <TabPanel header="MTD Sales">
+        <TabPanel
+          header={
+            <div className="ml-[35px] border-b-2 whitespace-nowrap">
+              MTD Sales
+            </div>
+          }
+        >
           <MtdSales onRefresh={handleRefresh} />
         </TabPanel>
       </TabView>
@@ -471,6 +530,17 @@ const SaleList: React.FC = () => {
         header="Delete Sale Record"
         icon="pi pi-exclamation-triangle"
         acceptLabel="Delete"
+        rejectLabel="Cancel"
+      />
+
+      <Confirmation
+        visible={triggerBulkDelete}
+        onHide={() => setTriggerBulkDelete(false)}
+        onConfirm={handleBulkDeleteConfirm}
+        message={`Are you sure you want to delete ${selection.selectedItems?.length || 0} selected sale record(s)?`}
+        header="Delete Multiple Sale Records"
+        icon="pi pi-exclamation-triangle"
+        acceptLabel="Delete All"
         rejectLabel="Cancel"
       />
 
