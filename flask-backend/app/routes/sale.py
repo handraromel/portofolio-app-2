@@ -21,3 +21,10 @@ bp.route('/import/confirm', methods=['POST'])(sale.confirm_import)
 bp.route('/import/cancel', methods=['POST'])(sale.cancel_import)
 bp.route('/export', methods=['GET'])(sale.export_sales)
 bp.route('/import/sample', methods=['GET'])(sale.get_import_sample)
+bp.route('/import/incremental/start',
+         methods=['POST'])(sale.start_incremental_import)
+bp.route('/import/incremental/next', methods=['POST'])(sale.import_next_record)
+bp.route('/import/incremental/progress',
+         methods=['GET'])(sale.get_import_progress)
+bp.route('/import/incremental/finish',
+         methods=['POST'])(sale.finish_incremental_import)

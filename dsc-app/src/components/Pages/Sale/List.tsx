@@ -48,6 +48,13 @@ const SaleList: React.FC = () => {
     setImportResult,
     confirmImport,
     cancelImport,
+    startIncrementalImport: processAllRecords,
+    cancelIncrementalImport,
+    isProcessingIncremental,
+    isIncrementalCompleted,
+    importProgress,
+    incrementalImportActive,
+    setIncrementalImportActive,
     isDownloading,
     isExporting,
     isImporting,
@@ -565,6 +572,17 @@ const SaleList: React.FC = () => {
         onDownloadSample={async () => {
           await downloadSample();
         }}
+        onStartIncrementalImport={async () => {
+          await processAllRecords();
+        }}
+        onCancelIncrementalImport={async () => {
+          await cancelIncrementalImport();
+        }}
+        isProcessingIncremental={isProcessingIncremental}
+        isIncrementalCompleted={isIncrementalCompleted}
+        importProgress={importProgress}
+        incrementalImportActive={incrementalImportActive}
+        setIncrementalImportActive={setIncrementalImportActive}
         isImporting={isImporting}
         isDownloading={isDownloading}
         isConfirming={isConfirming}

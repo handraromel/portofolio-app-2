@@ -776,3 +776,131 @@ def delete_multiple():
             'msg': 'An error occurred during bulk deletion',
             'error': str(e)
         }), 500
+
+
+@jwt_required()
+def start_incremental_import():
+    """Start a row-by-row import process"""
+    current_user_id = get_jwt_identity()
+    logger.info(f"Incremental import started by user ID: {current_user_id}")
+
+    try:
+        # Get the import ID from the request
+        data = request.get_json()
+        if not data or 'import_id' not in data:
+            return jsonify({"msg": "Import ID is required", "success": False}), 400
+
+        import_id = data['import_id']
+
+        # Start the incremental import
+        result = SaleImportExportService.start_incremental_import(
+            import_id, current_user_id)
+
+        if not result['success']:
+            return jsonify({"msg": result['error'], "success": False}), 400
+
+        return jsonify({
+            "success": True,
+            "import_id": result['import_id'],
+            "total_records": result['total_records'],
+            "status": result['status']
+        }), 200
+
+    except Exception as e:
+        logger.exception(f"Error starting incremental import: {str(e)}")
+        return jsonify({"msg": f"An error occurred: {str(e)}", "success": False}), 500
+
+
+@jwt_required()
+def import_next_record():
+    """Import the next record in the incremental import process"""
+    current_user_id = get_jwt_identity()
+
+    try:
+        # Get the import ID from the request
+        data = request.get_json()
+        if not data or 'import_id' not in data:
+            return jsonify({"msg": "Import ID is required", "success": False}), 400
+
+        import_id = data['import_id']
+
+        # Process the next record
+        result = SaleImportExportService.import_next_record(
+            import_id, current_user_id)
+
+        if not result['success']:
+            return jsonify({"msg": result['error'], "success": False}), 400
+
+        return jsonify({
+            "success": True,
+            "status": result['status'],
+            "progress": result['progress'],
+            "current_record": result.get('current_record'),
+            "record_status": result.get('record_status'),
+            "error": result.get('error')
+        }), 200
+
+    except Exception as e:
+        logger.exception(f"Error importing next record: {str(e)}")
+        return jsonify({"msg": f"An error occurred: {str(e)}", "success": False}), 500
+
+
+@jwt_required()
+def get_import_progress():
+    """Get the current progress of an incremental import"""
+    current_user_id = get_jwt_identity()
+
+    try:
+        # Get the import ID from the URL params
+        import_id = request.args.get('import_id')
+        if not import_id:
+            return jsonify({"msg": "Import ID is required", "success": False}), 400
+
+        # Get the import progress
+        result = SaleImportExportService.get_import_progress(
+            import_id, current_user_id)
+
+        if not result['success']:
+            return jsonify({"msg": result['error'], "success": False}), 400
+
+        return jsonify({
+            "success": True,
+            "status": result['status'],
+            "progress": result['progress'],
+            "created_at": result['created_at'],
+            "updated_at": result['updated_at']
+        }), 200
+
+    except Exception as e:
+        logger.exception(f"Error getting import progress: {str(e)}")
+        return jsonify({"msg": f"An error occurred: {str(e)}", "success": False}), 500
+
+
+@jwt_required()
+def finish_incremental_import():
+    """Finish an incremental import process"""
+    current_user_id = get_jwt_identity()
+
+    try:
+        # Get the import ID from the request
+        data = request.get_json()
+        if not data or 'import_id' not in data:
+            return jsonify({"msg": "Import ID is required", "success": False}), 400
+
+        import_id = data['import_id']
+
+        # Finish the import
+        result = SaleImportExportService.finish_incremental_import(
+            import_id, current_user_id)
+
+        if not result['success']:
+            return jsonify({"msg": result['error'], "success": False}), 400
+
+        return jsonify({
+            "success": True,
+            "stats": result['stats']
+        }), 200
+
+    except Exception as e:
+        logger.exception(f"Error finishing incremental import: {str(e)}")
+        return jsonify({"msg": f"An error occurred: {str(e)}", "success": False}), 500

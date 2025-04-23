@@ -2,6 +2,7 @@ from app import db
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 import uuid
+from datetime import datetime
 
 
 class TempImport(db.Model):
@@ -15,7 +16,13 @@ class TempImport(db.Model):
     # 'sale', 'product', etc.
     import_type = db.Column(db.String(50), nullable=False)
     data = db.Column(JSONB, nullable=False)  # Store validated records here
+    # pending, in_progress, completed, failed
+    status = db.Column(db.String(50), default="pending")
+    # Track progress with record_index:status mapping
+    progress = db.Column(JSONB, default={})
     created_at = db.Column(db.DateTime, default=func.now())
+    updated_at = db.Column(
+        db.DateTime, default=func.now(), onupdate=func.now())
 
     @classmethod
     def create_import(cls, user_id, import_type, data):
@@ -23,7 +30,15 @@ class TempImport(db.Model):
         import_obj = cls(
             user_id=user_id,
             import_type=import_type,
-            data=data
+            data=data,
+            progress={
+                "total": len(data.get("valid_records", [])),
+                "processed": 0,
+                "succeeded": 0,
+                "failed": 0,
+                # Will store status for each record: {"0": "pending", "1": "success", "2": "failed"}
+                "record_statuses": {}
+            }
         )
         db.session.add(import_obj)
         db.session.commit()
@@ -44,3 +59,39 @@ class TempImport(db.Model):
             db.session.commit()
             return True
         return False
+
+    def update_record_status(self, record_index, status, error=None):
+        """Update the status of a specific record"""
+        if not self.progress:
+            self.progress = {
+                "total": len(self.data.get("valid_records", [])),
+                "processed": 0,
+                "succeeded": 0,
+                "failed": 0,
+                "record_statuses": {}
+            }
+
+        # Update the specific record status
+        self.progress["record_statuses"][str(record_index)] = {
+            "status": status,
+            "error": error,
+            "timestamp": datetime.now().isoformat()
+        }
+
+        # Update counters
+        self.progress["processed"] += 1
+        if status == "success":
+            self.progress["succeeded"] += 1
+        elif status == "failed":
+            self.progress["failed"] += 1
+
+        # Check if all records have been processed
+        if self.progress["processed"] >= self.progress["total"]:
+            if self.progress["failed"] == 0:
+                self.status = "completed"
+            else:
+                self.status = "partially_completed"
+
+        self.updated_at = func.now()
+        db.session.commit()
+        return self.progress

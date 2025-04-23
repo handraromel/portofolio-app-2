@@ -17,6 +17,33 @@ export interface ImportResponse extends ApiResponse {
   details: ImportResult;
 }
 
+export interface ImportProgress {
+  total: number;
+  processed: number;
+  succeeded: number;
+  failed: number;
+  record_statuses: {
+    [key: string]: {
+      status: "pending" | "success" | "failed";
+      error: string | null;
+      timestamp: string;
+    };
+  };
+}
+
+export interface IncrementalImportResponse extends ApiResponse {
+  status:
+    | "pending"
+    | "in_progress"
+    | "completed"
+    | "partially_completed"
+    | "failed";
+  progress: ImportProgress;
+  current_record?: number;
+  record_status?: "success" | "failed";
+  error?: string;
+}
+
 const salePrefix = "/manage/sales";
 const productPrefix = "/manage/product";
 
@@ -409,6 +436,136 @@ export const cancelImportGroups = async (
 ): Promise<ApiResponse> => {
   const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${productPrefix}/groups/import/cancel`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
+    body: JSON.stringify({ import_id: importId }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
+ * Start an incremental row-by-row import process
+ */
+export const startIncrementalImport = async (
+  importId: string,
+): Promise<ApiResponse> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${salePrefix}/import/incremental/start`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
+    body: JSON.stringify({ import_id: importId }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
+ * Process the next record in an incremental import
+ */
+export const importNextRecord = async (
+  importId: string,
+): Promise<IncrementalImportResponse> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${salePrefix}/import/incremental/next`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
+    body: JSON.stringify({ import_id: importId }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
+ * Get the current progress of an incremental import
+ */
+export const getImportProgress = async (
+  importId: string,
+): Promise<IncrementalImportResponse> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${salePrefix}/import/incremental/progress?import_id=${importId}`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const response = await fetch(url, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
+ * Finish an incremental import process
+ */
+export const finishIncrementalImport = async (
+  importId: string,
+): Promise<ApiResponse> => {
+  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
+  const url = `${baseUrl}${salePrefix}/import/incremental/finish`;
   const csrfToken = Cookies.get("csrf_access_token");
 
   const response = await fetch(url, {
