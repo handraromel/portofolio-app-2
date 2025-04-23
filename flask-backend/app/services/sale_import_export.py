@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import logging
 from datetime import datetime
 import uuid
@@ -15,7 +16,7 @@ logger = logging.getLogger('app.services.sale_import_export')
 
 class SaleImportExportService:
     @staticmethod
-    def import_sales_from_file(file):
+    def import_sales_from_file(file, user_id=None):
         """Import sales data from Excel or CSV file"""
         try:
             # Save the uploaded file
@@ -106,7 +107,7 @@ class SaleImportExportService:
 
                     # Skip row if any required relationship is missing
                     if idx not in product_ids['brand'] or idx not in product_ids['group'] or \
-                       idx not in product_ids['division'] or idx not in product_ids['category']:
+                            idx not in product_ids['division'] or idx not in product_ids['category']:
                         error_count += 1
                         errors.append(
                             f"Row {row_index}: Missing or invalid product relationship")
@@ -123,7 +124,8 @@ class SaleImportExportService:
                         'product_brand_id': product_ids['brand'][idx],
                         'product_group_id': product_ids['group'][idx],
                         'product_division_id': product_ids['division'][idx],
-                        'product_category_id': product_ids['category'][idx]
+                        'product_category_id': product_ids['category'][idx],
+                        'user_id': user_id
                     }
 
                     result, error = SaleService.create(sale_data)
@@ -306,6 +308,8 @@ class SaleImportExportService:
                     'Group': str(sale.group.id) + '-' + sale.group.name,
                     'Division': sale.division.name + '-' + (sale.division.alias or ''),
                     'Category': sale.category.name,
+                    'Inputted By': sale.user.username if sale.user else "Unknown",
+                    'User Name': f"{sale.user.first_name} {sale.user.last_name}" if sale.user and sale.user.first_name and sale.user.last_name else (sale.user.username if sale.user else None),
                     'Created At': sale.created_at.strftime('%Y-%m-%d %H:%M:%S') if sale.created_at else '',
                     'Updated At': sale.updated_at.strftime('%Y-%m-%d %H:%M:%S') if sale.updated_at else ''
                 }
@@ -466,7 +470,8 @@ class SaleImportExportService:
                         'product_brand_id': product_ids['brand'][idx],
                         'product_group_id': product_ids['group'][idx],
                         'product_division_id': product_ids['division'][idx],
-                        'product_category_id': product_ids['category'][idx]
+                        'product_category_id': product_ids['category'][idx],
+                        'user_id': user_id
                     }
 
                     # Basic validation
@@ -497,7 +502,8 @@ class SaleImportExportService:
                 'total_count': len(df),
                 'success_count': len(valid_records),
                 'error_count': error_count,
-                'errors': errors
+                'errors': errors,
+                'user_id': user_id  # Store the user ID in the import data
             }
 
             temp_import = TempImport.create_import(
@@ -562,6 +568,9 @@ class SaleImportExportService:
                     if 'input_date' in record and isinstance(record['input_date'], str):
                         record['input_date'] = datetime.fromisoformat(
                             record['input_date']).date()
+
+                    if 'user_id' not in record or not record['user_id']:
+                        record['user_id'] = user_id
 
                     # Use the existing SaleService to create the record
                     result, error = SaleService.create(record)

@@ -303,8 +303,7 @@ const SaleList: React.FC = () => {
     {
       field: "user",
       header: "Input By",
-      body: (rowData: Sale) =>
-        rowData.user.name === "Unknown" ? "-" : rowData.user.name,
+      body: (rowData: Sale) => rowData.user.name || rowData.user.username,
       style: { whiteSpace: "nowrap", padding: "0 20px" },
     },
     {

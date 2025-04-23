@@ -22,6 +22,7 @@ export interface Sale {
   user: {
     id: string;
     name: string;
+    username: string;
   };
 
   // Related product data

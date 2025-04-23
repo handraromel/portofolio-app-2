@@ -807,6 +807,7 @@ class SaleService:
                 User.id.label('user_id'),
                 User.first_name.label('first_name'),
                 User.last_name.label('last_name'),
+                User.username.label('username'),
                 func.count(Sale.uuid).label('sales_count'),
                 func.sum(Sale.sale_amt).label('user_sale_amount')
             ).join(
@@ -817,7 +818,8 @@ class SaleService:
             ).group_by(
                 User.id,
                 User.first_name,
-                User.last_name
+                User.last_name,
+                User.username
             ).all()
 
             # Create a list of user contributors
@@ -826,6 +828,7 @@ class SaleService:
                 contributors.append({
                     'user_id': str(user.user_id) if user.user_id else None,
                     'name': f"{user.first_name} {user.last_name}" if user.first_name and user.last_name else "Unknown",
+                    'username': user.username,
                     'sales_count': user.sales_count,
                     'amount': float(user.user_sale_amount) if user.user_sale_amount else 0.0
                 })

@@ -76,7 +76,8 @@ def get_all():
                 },
                 'user': {
                     'uuid': str(item['sale'].user.id) if item['sale'].user else None,
-                    'name': f"{item['sale'].user.first_name} {item['sale'].user.last_name}" if item['sale'].user else "Unknown"
+                    'name': f"{item['sale'].user.first_name} {item['sale'].user.last_name}" if item['sale'].user and item['sale'].user.first_name and item['sale'].user.last_name else None,
+                    'username': item['sale'].user.username if item['sale'].user else None
                 }
             } for item in sales_data['items']],
             'total': sales_data['total'],
@@ -219,7 +220,8 @@ def create():
             # Add user information
             'user': {
                 'uuid': str(sale.user.id) if sale.user else None,
-                'name': f"{sale.user.first_name} {sale.user.last_name}" if sale.user else "Unknown"
+                'name': f"{sale.user.first_name} {sale.user.last_name}" if sale.user and sale.user.first_name and sale.user.last_name else None,
+                'username': sale.user.username if sale.user else None
             }
         }
 
@@ -422,8 +424,9 @@ def import_sales():
         if extension not in ['csv', 'xlsx', 'xls']:
             return jsonify({"msg": "File type not allowed. Please upload .xlsx, .xls or .csv file", "success": False}), 400
 
-        # Process the import
-        result = SaleImportExportService.import_sales_from_file(file)
+        # Process the import - pass the current user ID
+        result = SaleImportExportService.import_sales_from_file(
+            file, current_user_id)
 
         # Return the import results
         response = {
