@@ -252,6 +252,22 @@ def update(sale_id):
 
         sale = sale_data['sale']
 
+        # Log activity after successful update
+        ActivityService.log_activity(
+            user_id=current_user_id,
+            type="sale_updated",
+            message=f"Updated sale {sale.sku or 'item'} for {sale.brand.name}",
+            entity_id=str(sale.uuid),
+            entity_type="sale",
+            metadata={
+                "brand_name": sale.brand.name,
+                "group_name": sale.group.name,
+                "division_name": sale.division.name,
+                "input_date": sale.input_date.isoformat(),
+                "sale_amt": float(sale.sale_amt)
+            }
+        )
+
         result = {
             'uuid': str(sale.uuid),
             'sale_qty': sale.sale_qty,
@@ -305,11 +321,34 @@ def delete(sale_id):
         f"Sale deletion attempt by admin ID {current_user_id} for sale ID: {sale_id}")
 
     try:
+        # Get sale information before deletion for logging
+        sale_info = SaleService.get_by_id(sale_id)
+        if not sale_info:
+            return jsonify({"msg": "Sale not found", "success": False}), 404
+
+        sale = sale_info['sale']
+        brand_name = sale.brand.name
+        sku = sale.sku or 'item'
+
         success, error = SaleService.delete(sale_id)
 
         if not success:
             status_code = 404 if error == "Sale not found" else 400
             return jsonify({"msg": error, "success": False}), status_code
+
+        # Log activity after successful deletion
+        ActivityService.log_activity(
+            user_id=current_user_id,
+            type="sale_deleted",
+            message=f"Deleted sale {sku} for {brand_name}",
+            entity_id=sale_id,  # Use the ID even though the record is now deleted
+            entity_type="sale",
+            metadata={
+                "brand_name": brand_name,
+                "input_date": sale.input_date.isoformat(),
+                "sale_amt": float(sale.sale_amt)
+            }
+        )
 
         logger.info(f"Sale deleted successfully: ID {sale_id}")
         return jsonify({"msg": "Sale deleted successfully", "success": True}), 200
@@ -607,6 +646,19 @@ def confirm_import():
         if not result['success']:
             return jsonify({"msg": result['error'], "success": False}), 400
 
+        # Log activity for successful import
+        ActivityService.log_activity(
+            user_id=current_user_id,
+            type="sales_bulk_imported",
+            message=f"Imported {result['count']} sales from file",
+            entity_type="sale",
+            metadata={
+                "imported_count": result['count'],
+                "total_records": result['total'],
+                "import_id": str(import_id)
+            }
+        )
+
         return jsonify({
             "success": True,
             "msg": f"Successfully imported {result['count']} records",
@@ -656,6 +708,7 @@ def cancel_import():
 # Add this function to handle bulk deletion
 
 
+# Add activity logging for bulk delete (around line 699)
 @admin_required()
 @jwt_required()
 def delete_multiple():
@@ -686,6 +739,19 @@ def delete_multiple():
             sale_ids)
 
         if success_count > 0:
+            # Log activity for bulk deletion
+            ActivityService.log_activity(
+                user_id=current_user_id,
+                type="sales_bulk_deleted",
+                message=f"Bulk deleted {success_count} sales",
+                entity_type="sale",
+                metadata={
+                    "success_count": success_count,
+                    "error_count": error_count,
+                    "attempted_count": len(sale_ids)
+                }
+            )
+
             return jsonify({
                 'success': True,
                 'msg': f'Successfully deleted {success_count} sales' +

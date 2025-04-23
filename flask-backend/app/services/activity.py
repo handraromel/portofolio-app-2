@@ -11,7 +11,7 @@ class ActivityService:
     @staticmethod
     def log_activity(user_id, type, message, entity_id=None, entity_type=None, metadata=None):
         """
-        Log a user activity in the system and maintain only the 5 most recent entries
+        Log a user activity in the system and maintain only the 1000 most recent entries
         """
         try:
             # Create new activity
@@ -29,12 +29,12 @@ class ActivityService:
             # Get count of activities
             total_activities = Activity.query.count()
 
-            # If more than 5 activities exist, delete the oldest ones
-            if total_activities > 5:
-                # Get the IDs of all activities except the 5 most recent
+            # If more than 1000 activities exist, delete the oldest ones
+            if total_activities > 1000:
+                # Get the IDs of all activities except the 1000 most recent
                 activities_to_delete = Activity.query.order_by(
                     desc(Activity.timestamp)
-                ).offset(5).all()
+                ).offset(1000).all()
 
                 # Delete these activities
                 for old_activity in activities_to_delete:
@@ -42,7 +42,7 @@ class ActivityService:
 
                 db.session.commit()
                 logger.info(
-                    f"Cleaned up old activities. Kept only 5 most recent.")
+                    f"Cleaned up old activities. Kept only 1000 most recent.")
 
             return activity
         except Exception as e:
@@ -51,7 +51,7 @@ class ActivityService:
             return None
 
     @staticmethod
-    def get_recent_activities(limit=5):
+    def get_recent_activities(limit=20):
         """Get most recent activities with user information"""
         return (Activity.query
                 .join(User, Activity.user_id == User.id)

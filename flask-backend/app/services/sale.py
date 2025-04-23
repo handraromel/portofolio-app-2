@@ -1075,39 +1075,41 @@ class SaleService:
             tuple: (success_count, error_count, errors)
         """
         if not sale_ids:
-            return 0, 0, []
+            return 0, 0, ["No sale IDs provided"]
 
         success_count = 0
         error_count = 0
         errors = []
 
         try:
-            # Find all the sales that exist
-            sales = Sale.query.filter(Sale.uuid.in_(sale_ids)).all()
-            found_ids = [str(sale.uuid) for sale in sales]
+            # Get all sales with requested IDs
+            to_delete = []
+            for sale_id in sale_ids:
+                sale = Sale.query.get(sale_id)
+                if sale:
+                    to_delete.append(sale)
+                else:
+                    error_count += 1
+                    errors.append(f"Sale with ID {sale_id} not found")
 
-            # Track missing IDs
-            missing_ids = [str(id)
-                           for id in sale_ids if str(id) not in found_ids]
-            if missing_ids:
-                error_count += len(missing_ids)
-                errors.append(f"Sales not found: {', '.join(missing_ids)}")
-
-            # Delete the found sales
-            for sale in sales:
+            # Delete found sales
+            for sale in to_delete:
                 try:
                     db.session.delete(sale)
                     success_count += 1
                 except Exception as e:
+                    db.session.rollback()
                     error_count += 1
-                    errors.append(
-                        f"Failed to delete sale {sale.uuid}: {str(e)}")
+                    errors.append(f"Error deleting sale {sale.uuid}: {str(e)}")
 
-            db.session.commit()
-            logger.info(f"Bulk deleted {success_count} sales successfully")
+            # Commit all successful deletions
+            if success_count > 0:
+                db.session.commit()
+                logger.info(f"Bulk deleted {success_count} sales successfully")
+
             return success_count, error_count, errors
 
         except Exception as e:
             db.session.rollback()
-            logger.exception(f"Error in bulk delete operation: {str(e)}")
-            return 0, 1, [f"Bulk delete operation failed: {str(e)}"]
+            logger.exception(f"Error during bulk deletion: {str(e)}")
+            return 0, len(sale_ids), [str(e)]

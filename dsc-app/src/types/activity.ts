@@ -3,6 +3,9 @@ export interface Activity {
   type:
     | "sale_created"
     | "sale_updated"
+    | "sale_deleted"
+    | "sales_bulk_deleted"
+    | "sales_bulk_imported"
     | "report_generated"
     | "data_imported"
     | "user_login"
@@ -12,6 +15,7 @@ export interface Activity {
   user: {
     id: string;
     name: string;
+    username: string;
   };
   entity_id?: string;
   entity_type?: string;

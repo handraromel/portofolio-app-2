@@ -12,7 +12,8 @@ def get_recent_activities():
     Get the most recent activities for the dashboard
     """
     current_user_id = get_jwt_identity()
-    limit = request.args.get('limit', 5, type=int)
+    # Default to 20 instead of 5, but allow up to 100 per request
+    limit = min(request.args.get('limit', 20, type=int), 100)
 
     logger.info(
         f"Recent activities requested by user ID: {current_user_id}, limit: {limit}")
@@ -29,6 +30,7 @@ def get_recent_activities():
                 'user': {
                     'id': str(activity.user.id),
                     'name': f"{activity.user.first_name} {activity.user.last_name}",
+                    'username': activity.user.username
                 },
                 'entityId': str(activity.entity_id) if activity.entity_id else None,
                 'entityType': activity.entity_type,

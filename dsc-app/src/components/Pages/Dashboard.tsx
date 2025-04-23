@@ -265,10 +265,7 @@ const Dashboard: React.FC = () => {
 
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
-          <h3 className="mb-4 text-lg font-semibold text-gray-700 dark:text-gray-200">
-            Recent Activity
-          </h3>
-          <RecentActivities limit={5} />
+          <RecentActivities />
         </div>
       </div>
     </div>

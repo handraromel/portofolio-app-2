@@ -9,7 +9,7 @@ export const activityKeys = {
 };
 
 export const useRecentActivities = (
-  limit: number = 5,
+  limit: number = 20,
   enabled: boolean = true,
 ) => {
   return useQuery<Activity[], Error>({
