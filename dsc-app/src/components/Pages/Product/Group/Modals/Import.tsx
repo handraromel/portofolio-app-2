@@ -310,7 +310,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
             </div>
           )}
         </div>
-        <div className="flex justify-end gap-4 p-4">
+        <div className="flex flex-wrap justify-center gap-4 p-4 md:justify-end">
           <Button
             label="Close"
             icon="pi pi-times"
@@ -337,7 +337,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
         visible={visible && !importResult}
         header="Import Group Data"
         blockOutsideClick
-        className="w-2/3 md:w-1/2"
+        className="w-full md:w-3/4 xl:w-1/2"
       >
         {renderImportContent()}
       </Modal>
@@ -347,7 +347,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
         onHide={handleClose}
         header="Import Results"
         blockOutsideClick
-        className="w-2/3 md:w-1/2"
+        className="w-full md:w-3/4 xl:w-1/2"
       >
         {renderImportResultContent()}
       </Modal>

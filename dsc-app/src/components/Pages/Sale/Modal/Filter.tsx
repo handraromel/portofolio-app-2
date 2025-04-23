@@ -145,7 +145,7 @@ const Filter: React.FC<FilterProps> = ({
         <FormProvider {...filterForm}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {filterType === "list" ? (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <InputField
                   id="start_date"
                   name="start_date"
@@ -178,7 +178,7 @@ const Filter: React.FC<FilterProps> = ({
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FieldSelect
                 id="brand_id"
                 name="brand_id"
@@ -195,7 +195,7 @@ const Filter: React.FC<FilterProps> = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FieldSelect
                 id="division_id"
                 name="division_id"
@@ -212,7 +212,7 @@ const Filter: React.FC<FilterProps> = ({
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex flex-wrap justify-center gap-2 pt-4 sm:justify-end">
               <Button
                 type="button"
                 label="Clear"

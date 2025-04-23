@@ -121,7 +121,7 @@ const BrandPerformanceChart: React.FC<BrandPerformanceChartProps> = ({
 
   return (
     <div className="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
           {title}
         </h3>

@@ -181,7 +181,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
         </div>
 
         {/* Stats cards */}
-        <div className="mb-6 grid grid-cols-3 gap-4">
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
             <div className="text-xl font-bold text-slate-700">
               {importResult.details.total_records}
@@ -251,7 +251,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
         )}
 
         {/* Action buttons */}
-        <div className="mt-6 flex justify-center gap-4">
+        <div className="mt-6 flex flex-wrap justify-center gap-4">
           <Button
             label="Cancel"
             icon="pi pi-times"
@@ -339,7 +339,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
             </div>
           )}
         </div>
-        <div className="flex justify-end gap-4 p-4">
+        <div className="flex flex-wrap justify-center gap-4 p-4 md:justify-end">
           <Button
             label="Close"
             icon="pi pi-times"
@@ -366,7 +366,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
         visible={visible && !importResult}
         header="Import Sales Data"
         blockOutsideClick
-        className="w-2/3 md:w-1/2"
+        className="w-full md:w-3/4 xl:w-1/2"
       >
         {renderImportContent()}
       </Modal>
