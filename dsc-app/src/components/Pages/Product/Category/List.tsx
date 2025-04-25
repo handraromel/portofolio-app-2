@@ -16,7 +16,7 @@ const CategoryList: React.FC = () => {
     pagination,
     isLoading,
     error,
-    fetchCategories,
+    // fetchCategories,
     deleteCategory,
     searchCategories,
     changePage,
@@ -88,9 +88,9 @@ const CategoryList: React.FC = () => {
     );
   };
 
-  const handleRefresh = useCallback(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+  // const handleRefresh = useCallback(() => {
+  //   fetchCategories();
+  // }, [fetchCategories]);
 
   const columns: ColumnDef<ProductCategory>[] = [
     {
@@ -141,14 +141,14 @@ const CategoryList: React.FC = () => {
           onClick: () => handleSubmission(),
           visible: canEdit(),
         }}
-        otherActions={[
-          {
-            icon: "pi pi-refresh",
-            tooltip: "Refresh list",
-            severity: "info",
-            onClick: handleRefresh,
-          },
-        ]}
+        // otherActions={[
+        //   {
+        //     icon: "pi pi-refresh",
+        //     tooltip: "Refresh list",
+        //     severity: "info",
+        //     onClick: handleRefresh,
+        //   },
+        // ]}
         totalRecords={pagination.totalRecords}
         paginator={{
           currentPage: pagination.currentPage || 1,

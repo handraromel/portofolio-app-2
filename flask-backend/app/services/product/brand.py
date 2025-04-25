@@ -62,10 +62,10 @@ class ProductBrandService:
             return None, "Product brand ID already exists"
 
         # Check if brand name already exists
-        if ProductBrand.query.filter(ProductBrand.name == brand_data['name']).first():
-            logger.warning(
-                f"Creation failed - product brand name already exists: {brand_data['name']}")
-            return None, "Product brand name already exists"
+        # if ProductBrand.query.filter(ProductBrand.name == brand_data['name']).first():
+        #     logger.warning(
+        #         f"Creation failed - product brand name already exists: {brand_data['name']}")
+        #     return None, "Product brand name already exists"
 
         try:
             new_brand = ProductBrand(

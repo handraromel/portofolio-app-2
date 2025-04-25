@@ -113,7 +113,7 @@ jobs:
             docker compose down
             docker compose up -d --build
 
-            # Check if we can connect to the Neon database
+            # Check db connection
             echo "Checking connection to Neon database..."
             # Extract hostname from the DATABASE_URL
             DB_HOST=$(echo "${{ secrets.DATABASE_URL }}" | sed -n 's/.*@\(.*\)\/.*/\1/p')
@@ -122,7 +122,7 @@ jobs:
             echo "Waiting for backend container to be ready..."
             sleep 10
 
-            # Run migrations directly (don't check database first since it's managed by Neon)
+            # Running Migrations
             echo "Running database migrations..."
             docker compose exec -T backend flask db current || true
             if ! docker compose exec -T backend flask db upgrade; then

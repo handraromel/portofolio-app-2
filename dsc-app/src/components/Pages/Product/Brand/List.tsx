@@ -92,9 +92,9 @@ const BrandList: React.FC = () => {
     }
   }, [selectedBrand, deleteBrand, responseMsg, showWarning, showError]);
 
-  const handleRefresh = useCallback(() => {
-    fetchBrands();
-  }, [fetchBrands]);
+  // const handleRefresh = useCallback(() => {
+  //   fetchBrands();
+  // }, [fetchBrands]);
 
   // Import handling functions
   const handleImport = async (file: File) => {
@@ -186,12 +186,12 @@ const BrandList: React.FC = () => {
           visible: canEdit(),
         }}
         otherActions={[
-          {
-            icon: "pi pi-refresh",
-            tooltip: "Refresh list",
-            severity: "info",
-            onClick: handleRefresh,
-          },
+          // {
+          //   icon: "pi pi-refresh",
+          //   tooltip: "Refresh list",
+          //   severity: "info",
+          //   onClick: handleRefresh,
+          // },
           {
             icon: "pi pi-upload",
             tooltip: "Import brands",

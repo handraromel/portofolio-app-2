@@ -122,9 +122,9 @@ const UserList: React.FC = () => {
     );
   };
 
-  const handleRefresh = useCallback(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  // const handleRefresh = useCallback(() => {
+  //   fetchUsers();
+  // }, [fetchUsers]);
 
   const isEditDisabled = (user: User) => {
     return (
@@ -229,14 +229,14 @@ const UserList: React.FC = () => {
           onClick: () => handleSubmission(),
           visible: canEdit(),
         }}
-        otherActions={[
-          {
-            icon: "pi pi-refresh",
-            tooltip: "Refresh list",
-            severity: "info",
-            onClick: handleRefresh,
-          },
-        ]}
+        // otherActions={[
+        //   {
+        //     icon: "pi pi-refresh",
+        //     tooltip: "Refresh list",
+        //     severity: "info",
+        //     onClick: handleRefresh,
+        //   },
+        // ]}
         totalRecords={pagination.totalRecords}
         paginator={{
           currentPage: pagination.currentPage,

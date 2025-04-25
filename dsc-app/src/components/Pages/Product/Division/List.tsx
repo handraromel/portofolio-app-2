@@ -16,7 +16,7 @@ const DivisionList: React.FC = () => {
     pagination,
     isLoading,
     error,
-    fetchDivisions,
+    // fetchDivisions,
     deleteDivision,
     searchDivisions,
     changePage,
@@ -88,9 +88,9 @@ const DivisionList: React.FC = () => {
     );
   };
 
-  const handleRefresh = useCallback(() => {
-    fetchDivisions();
-  }, [fetchDivisions]);
+  // const handleRefresh = useCallback(() => {
+  //   fetchDivisions();
+  // }, [fetchDivisions]);
 
   const columns: ColumnDef<ProductDivision>[] = [
     {
@@ -149,14 +149,14 @@ const DivisionList: React.FC = () => {
           onClick: () => handleSubmission(),
           visible: canEdit(),
         }}
-        otherActions={[
-          {
-            icon: "pi pi-refresh",
-            tooltip: "Refresh list",
-            severity: "info",
-            onClick: handleRefresh,
-          },
-        ]}
+        // otherActions={[
+        //   {
+        //     icon: "pi pi-refresh",
+        //     tooltip: "Refresh list",
+        //     severity: "info",
+        //     onClick: handleRefresh,
+        //   },
+        // ]}
         totalRecords={pagination.totalRecords}
         paginator={{
           currentPage: pagination.currentPage || 1,

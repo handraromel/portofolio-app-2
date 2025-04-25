@@ -129,6 +129,19 @@ const SaleList: React.FC = () => {
     fetchSales,
   ]);
 
+  const handleSelectAll = useCallback(() => {
+    if (sales && sales.length > 0) {
+      if (
+        selection.selectedItems &&
+        selection.selectedItems.length === sales.length
+      ) {
+        selection.clearSelection();
+      } else {
+        selection.handleSelectionChange(sales);
+      }
+    }
+  }, [sales, selection]);
+
   const handleBulkDeleteConfirm = useCallback(async () => {
     if (selection.selectedItems && selection.selectedItems.length > 0) {
       try {
@@ -411,11 +424,27 @@ const SaleList: React.FC = () => {
                 visible: canEdit(),
               }}
               otherActions={[
+                // {
+                //   icon: "pi pi-refresh",
+                //   tooltip: "Refresh list",
+                //   severity: "info",
+                //   onClick: handleRefresh,
+                // },
                 {
-                  icon: "pi pi-refresh",
-                  tooltip: "Refresh list",
-                  severity: "info",
-                  onClick: handleRefresh,
+                  icon:
+                    selection.selectedItems?.length === sales.length
+                      ? "pi pi-times"
+                      : "pi pi-check-square",
+                  tooltip:
+                    selection.selectedItems?.length === sales.length
+                      ? "Deselect All"
+                      : "Select All",
+                  severity:
+                    selection.selectedItems?.length === sales.length
+                      ? "info"
+                      : "secondary",
+                  onClick: handleSelectAll,
+                  disabled: isLoading || sales.length === 0,
                 },
                 {
                   icon: "pi pi-filter",

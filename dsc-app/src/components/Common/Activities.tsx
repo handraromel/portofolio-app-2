@@ -168,12 +168,6 @@ const RecentActivities: React.FC<RecentActivitiesProps> = ({ limit = 20 }) => {
             <div className="py-6 text-center text-gray-500 dark:text-gray-400">
               <i className="pi pi-inbox mb-2 block text-2xl"></i>
               <p>No recent activities</p>
-              <Button
-                icon="pi pi-refresh"
-                label="Refresh"
-                className="p-button-sm p-button-text mt-3"
-                onClick={handleRefresh}
-              />
             </div>
           )}
         </div>

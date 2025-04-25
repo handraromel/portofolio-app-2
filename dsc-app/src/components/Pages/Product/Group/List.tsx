@@ -102,9 +102,9 @@ const GroupList: React.FC = () => {
     );
   };
 
-  const handleRefresh = useCallback(() => {
-    fetchGroups();
-  }, [fetchGroups]);
+  // const handleRefresh = useCallback(() => {
+  //   fetchGroups();
+  // }, [fetchGroups]);
 
   // Group import handling functions
   const handleImport = async (file: File) => {
@@ -186,12 +186,12 @@ const GroupList: React.FC = () => {
           visible: canEdit(),
         }}
         otherActions={[
-          {
-            icon: "pi pi-refresh",
-            tooltip: "Refresh list",
-            severity: "info",
-            onClick: handleRefresh,
-          },
+          // {
+          //   icon: "pi pi-refresh",
+          //   tooltip: "Refresh list",
+          //   severity: "info",
+          //   onClick: handleRefresh,
+          // },
           {
             icon: "pi pi-upload",
             tooltip: "Import groups",
