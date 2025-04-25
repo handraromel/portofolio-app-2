@@ -3,11 +3,10 @@ import { Button } from "primereact/button";
 import { Message } from "primereact/message";
 import { ProgressBar } from "primereact/progressbar";
 import { FileUpload, FileUploadHandlerEvent } from "primereact/fileupload";
-import { ImportResponse, ImportProgress } from "@/services/FileMgmtService";
+import { ImportResponse } from "@/services/FileMgmtService";
 import { ApiError } from "@/types/api";
 import { Modal } from "@/components/Common/Modal";
 import { useModal } from "@/hooks/useModal";
-import ImportStatusModal from "./ImportStatus";
 
 interface ImportModalProps {
   visible: boolean;
@@ -16,14 +15,6 @@ interface ImportModalProps {
   onConfirmImport: () => Promise<void>;
   onCancelImport: () => Promise<void>;
   onDownloadSample: () => Promise<void>;
-  // New incremental import props
-  onStartIncrementalImport: () => Promise<void>;
-  onCancelIncrementalImport: () => Promise<void>;
-  isProcessingIncremental: boolean;
-  isIncrementalCompleted: boolean;
-  importProgress: ImportProgress | null;
-  incrementalImportActive: boolean;
-  setIncrementalImportActive: (active: boolean) => void;
   isImporting: boolean;
   isDownloading: boolean;
   isConfirming?: boolean;
@@ -39,14 +30,6 @@ const ImportModal: React.FC<ImportModalProps> = ({
   onConfirmImport,
   onCancelImport,
   onDownloadSample,
-  // New incremental import props
-  onStartIncrementalImport,
-  onCancelIncrementalImport,
-  isProcessingIncremental,
-  isIncrementalCompleted,
-  importProgress,
-  incrementalImportActive,
-  setIncrementalImportActive,
   isImporting,
   isDownloading,
   isConfirming = false,
@@ -119,7 +102,6 @@ const ImportModal: React.FC<ImportModalProps> = ({
     onClearStates();
     onHide();
     resultModal.close();
-    setIncrementalImportActive(false);
   };
 
   const handleFileUpload = async (event: FileUploadHandlerEvent) => {
@@ -262,20 +244,11 @@ const ImportModal: React.FC<ImportModalProps> = ({
           {canConfirm && (
             <>
               <Button
-                label="Apply All at Once"
+                label="Apply Import"
                 icon="pi pi-check"
                 onClick={onConfirmImport}
                 loading={isConfirming}
-                disabled={isConfirming || isProcessingIncremental}
-                tooltip="Import all records in a single operation"
-              />
-              <Button
-                label="Apply Row by Row"
-                icon="pi pi-list"
-                onClick={() => setIncrementalImportActive(true)}
-                disabled={isConfirming || isProcessingIncremental}
-                className="p-button-success"
-                tooltip="Import each record individually with detailed status tracking"
+                disabled={isConfirming}
               />
             </>
           )}
@@ -372,12 +345,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
       </Modal>
 
       <Modal
-        visible={
-          resultModal.isOpen &&
-          importResult !== null &&
-          !isImporting &&
-          !incrementalImportActive
-        }
+        visible={resultModal.isOpen && importResult !== null && !isImporting}
         onHide={handleClose}
         header="Import Results"
         blockOutsideClick
@@ -385,25 +353,6 @@ const ImportModal: React.FC<ImportModalProps> = ({
       >
         {renderImportResultContent()}
       </Modal>
-
-      <ImportStatusModal
-        visible={incrementalImportActive}
-        onHide={() => {
-          handleClose();
-          setIncrementalImportActive(false);
-        }}
-        importId={importResult?.details.import_id || null}
-        progress={importProgress}
-        isProcessing={isProcessingIncremental}
-        isCompleted={isIncrementalCompleted}
-        onContinue={onStartIncrementalImport}
-        onCancel={onCancelIncrementalImport}
-        successCount={importProgress?.succeeded || 0}
-        failedCount={importProgress?.failed || 0}
-        totalCount={
-          importProgress?.total || importResult?.details.success_count || 0
-        }
-      />
     </>
   );
 };
