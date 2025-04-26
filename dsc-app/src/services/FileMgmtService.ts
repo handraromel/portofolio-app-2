@@ -46,6 +46,7 @@ export interface IncrementalImportResponse extends ApiResponse {
 
 const salePrefix = "/manage/sales";
 const productPrefix = "/manage/product";
+const baseUrl = import.meta.env.VITE_API_URL;
 
 /**
  * Download a file from a URL with proper authorization
@@ -120,7 +121,6 @@ export const downloadFileFromUrl = async (
  * Download the sample import file for sales
  */
 export const getSampleImportFile = async (): Promise<boolean> => {
-  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${salePrefix}/import/sample`;
   return downloadFileFromUrl(url, "sales_import_sample.xlsx");
 };
@@ -129,7 +129,6 @@ export const getSampleImportFile = async (): Promise<boolean> => {
  * Download the sample import file for brands
  */
 export const getSampleBrandImportFile = async (): Promise<boolean> => {
-  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${productPrefix}/brands/import/sample`;
   return downloadFileFromUrl(url, "brand_import_sample.xlsx");
 };
@@ -138,7 +137,6 @@ export const getSampleBrandImportFile = async (): Promise<boolean> => {
  * Download the sample import file for groups
  */
 export const getSampleGroupImportFile = async (): Promise<boolean> => {
-  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${productPrefix}/groups/import/sample`;
   return downloadFileFromUrl(url, "group_import_sample.xlsx");
 };
@@ -159,7 +157,6 @@ export const exportSales = async (
     });
   }
 
-  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${salePrefix}/export?${queryParams.toString()}`;
   return downloadFileFromUrl(url, `sales_export.${format}`);
 };
@@ -168,7 +165,6 @@ export const exportSales = async (
  * Import sales data from file
  */
 export const importSales = async (file: File): Promise<ImportResponse> => {
-  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${salePrefix}/import`;
   const csrfToken = Cookies.get("csrf_access_token");
 
@@ -201,7 +197,6 @@ export const importSales = async (file: File): Promise<ImportResponse> => {
  * Import brand data from file
  */
 export const importBrands = async (file: File): Promise<ImportResponse> => {
-  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${productPrefix}/brands/import/validate`;
   const csrfToken = Cookies.get("csrf_access_token");
 
@@ -234,7 +229,6 @@ export const importBrands = async (file: File): Promise<ImportResponse> => {
  * Import group data from file
  */
 export const importGroups = async (file: File): Promise<ImportResponse> => {
-  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${productPrefix}/groups/import/validate`;
   const csrfToken = Cookies.get("csrf_access_token");
 
@@ -269,7 +263,6 @@ export const importGroups = async (file: File): Promise<ImportResponse> => {
 export const confirmImportSales = async (
   importId: string,
 ): Promise<ApiResponse> => {
-  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${salePrefix}/import/confirm`;
   const csrfToken = Cookies.get("csrf_access_token");
 
@@ -302,7 +295,6 @@ export const confirmImportSales = async (
 export const confirmImportBrands = async (
   importId: string,
 ): Promise<ApiResponse> => {
-  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${productPrefix}/brands/import/confirm`;
   const csrfToken = Cookies.get("csrf_access_token");
 
@@ -335,7 +327,6 @@ export const confirmImportBrands = async (
 export const confirmImportGroups = async (
   importId: string,
 ): Promise<ApiResponse> => {
-  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${productPrefix}/groups/import/confirm`;
   const csrfToken = Cookies.get("csrf_access_token");
 
@@ -368,7 +359,6 @@ export const confirmImportGroups = async (
 export const cancelImportSales = async (
   importId: string,
 ): Promise<ApiResponse> => {
-  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${salePrefix}/import/cancel`;
   const csrfToken = Cookies.get("csrf_access_token");
 
@@ -401,7 +391,6 @@ export const cancelImportSales = async (
 export const cancelImportBrands = async (
   importId: string,
 ): Promise<ApiResponse> => {
-  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${productPrefix}/brands/import/cancel`;
   const csrfToken = Cookies.get("csrf_access_token");
 
@@ -434,7 +423,6 @@ export const cancelImportBrands = async (
 export const cancelImportGroups = async (
   importId: string,
 ): Promise<ApiResponse> => {
-  const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
   const url = `${baseUrl}${productPrefix}/groups/import/cancel`;
   const csrfToken = Cookies.get("csrf_access_token");
 
@@ -446,6 +434,36 @@ export const cancelImportGroups = async (
       "X-CSRF-TOKEN": csrfToken || "",
     },
     body: JSON.stringify({ import_id: importId }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
+ * Check the status of a pending import
+ */
+export const checkImportStatus = async (
+  importId: string,
+): Promise<IncrementalImportResponse> => {
+  const url = `${baseUrl}${salePrefix}/import/status?import_id=${importId}`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const response = await fetch(url, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
   });
 
   if (!response.ok) {
