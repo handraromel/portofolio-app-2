@@ -2,6 +2,7 @@ import pandas as pd
 import os
 import logging
 from datetime import datetime
+import threading
 import uuid
 import traceback
 from app import db
@@ -359,179 +360,396 @@ class SaleImportExportService:
     def validate_sales_from_file(file, user_id):
         """Phase 1: Validate and temporarily store sales data from Excel or CSV file"""
         file_path = None
+        upload_success = False
 
         try:
-            # Save the uploaded file
+            # First, save the file to disk with minimal processing
             file_path, filename = FileMgmtService.save_file(file)
+            upload_success = True
 
-            # Read file into DataFrame
-            df = FileMgmtService.read_file(file_path)
-
-            # Normalize column names (case-insensitive) - reuse existing code
-            df.columns = [col.lower().strip() for col in df.columns]
-
-            # Map expected columns to their possible variations - reuse existing code
-            column_mapping = {
-                'sale_qty': ['quantity', 'qty', 'sale_qty', 'saleqty', 'sale qty'],
-                'sale_amt': ['sale amount', 'saleamount', 'sale_amt', 'amount', 'sale amt'],
-                'discounted_amt': ['discount', 'discount amount', 'discounted_amt', 'discountedamt', 'discounted amt'],
-                'input_date': ['input date', 'date', 'input_date', 'inputdate'],
-                'sku': ['sku', 'stockkeepingunit'],
-                'item_no': ['item number', 'item no', 'item_no', 'itemno', 'item'],
-                'brand': ['brand', 'brand_name', 'brandname', 'product brand'],
-                'group': ['group', 'group_name', 'groupname', 'product group'],
-                'division': ['division', 'division_name', 'divisionname', 'product division'],
-                'category': ['category', 'category_name', 'categoryname', 'product category'],
-                'description': ['description', 'desc', 'product description']
-            }
-
-            # Output the actual columns for debugging
-            logger.info(f"Actual columns in file: {list(df.columns)}")
-
-            # Map actual columns to standardized columns - reuse existing code
-            actual_columns = {}
-            for standard_col, possible_cols in column_mapping.items():
-                found = False
-                for possible_col in possible_cols:
-                    if possible_col in df.columns:
-                        actual_columns[standard_col] = possible_col
-                        found = True
-                        logger.info(
-                            f"Mapped column '{possible_col}' to '{standard_col}'")
-                        break
-                if not found and standard_col in ['sale_qty', 'sale_amt', 'input_date', 'brand', 'group', 'division', 'category']:
-                    # Required field is missing
-                    FileMgmtService.delete_file(file_path)
-                    raise ValueError(
-                        f"Required column '{standard_col}' not found in file")
-
-            # Rename columns to match our model
-            rename_mapping = {actual_col: standard_col for standard_col,
-                              actual_col in actual_columns.items()}
-            df = df.rename(columns=rename_mapping)
-
-            # Process product relationships (brand, group, division, category)
-            product_ids = SaleImportExportService._process_product_relationships(
-                df)
-
-            # Convert date format
-            df['input_date'] = pd.to_datetime(df['input_date']).dt.date
-
-            # Validate and convert numeric fields
-            for field in ['sale_qty', 'sale_amt', 'discounted_amt']:
-                if field in df.columns:
-                    df[field] = pd.to_numeric(df[field], errors='coerce')
-                    df[field] = df[field].fillna(0)
-
-            # Set defaults for missing optional fields
-            if 'discounted_amt' not in df.columns:
-                df['discounted_amt'] = 0
-            if 'sku' not in df.columns:
-                df['sku'] = None
-            if 'item_no' not in df.columns:
-                df['item_no'] = None
-            if 'description' not in df.columns:
-                df['description'] = None
-
-            # Validate data (but don't insert into database yet)
-            valid_records = []
-            error_count = 0
-            errors = []
-
-            for idx, row in df.iterrows():
-                try:
-                    row_index = idx + 2  # +2 for 1-based index and header row
-
-                    # Skip row if any required relationship is missing
-                    missing_relationships = []
-                    if idx not in product_ids['brand']:
-                        missing_relationships.append('brand')
-                    if idx not in product_ids['group']:
-                        missing_relationships.append('group')
-                    if idx not in product_ids['division']:
-                        missing_relationships.append('division')
-                    if idx not in product_ids['category']:
-                        missing_relationships.append('category')
-
-                    if missing_relationships:
-                        error_count += 1
-                        errors.append(
-                            f"Row {row_index}: Missing or invalid product relationships: {', '.join(missing_relationships)}")
-                        continue
-
-                    # Create a valid record dictionary (but don't save to database yet)
-                    sale_data = {
-                        'sale_qty': int(row['sale_qty']),
-                        'sale_amt': float(row['sale_amt']),
-                        'discounted_amt': float(row['discounted_amt']),
-                        'input_date': row['input_date'].isoformat() if hasattr(row['input_date'], 'isoformat') else str(row['input_date']),
-                        'sku': row['sku'] if pd.notna(row['sku']) else None,
-                        'item_no': row['item_no'] if pd.notna(row['item_no']) else None,
-                        'description': row['description'] if pd.notna(row['description']) else None,
-                        'product_brand_id': product_ids['brand'][idx],
-                        'product_group_id': product_ids['group'][idx],
-                        'product_division_id': product_ids['division'][idx],
-                        'product_category_id': product_ids['category'][idx],
-                        'user_id': user_id
-                    }
-
-                    # Basic validation
-                    if sale_data['sale_qty'] <= 0:
-                        error_count += 1
-                        errors.append(
-                            f"Row {row_index}: Sale quantity must be positive")
-                        continue
-
-                    if sale_data['sale_amt'] < 0:
-                        error_count += 1
-                        errors.append(
-                            f"Row {row_index}: Sale amount cannot be negative")
-                        continue
-
-                    # If we get here, the record is valid
-                    valid_records.append(sale_data)
-
-                except Exception as e:
-                    error_count += 1
-                    errors.append(f"Row {row_index}: {str(e)}")
-                    logger.error(
-                        f"Error processing row {row_index}: {traceback.format_exc()}")
-
-            # Create a temporary import record
-            import_data = {
-                'valid_records': valid_records,
-                'total_count': len(df),
-                'success_count': len(valid_records),
-                'error_count': error_count,
-                'errors': errors,
-                'user_id': user_id  # Store the user ID in the import data
-            }
-
+            # Create initial TempImport record with "uploading" status
             temp_import = TempImport.create_import(
                 user_id=user_id,
                 import_type='sale',
-                data=import_data
+                data={
+                    'filename': filename,
+                    'status': 'uploading',
+                    'upload_timestamp': datetime.now().isoformat()
+                }
             )
 
-            # Clean up the file after processing
-            if file_path:
-                FileMgmtService.delete_file(file_path)
+            # Start validation in background
+            threading.Thread(
+                target=SaleImportExportService._process_validation_in_background,
+                args=(file_path, user_id, temp_import.id)
+            ).start()
 
+            # Return quickly with temp_import ID so client can start polling
             return {
                 'import_id': temp_import.id,
-                'success_count': len(valid_records),
-                'error_count': error_count,
-                'total_count': len(df),
-                'errors': errors[:10],  # Limit the number of errors returned
-                'has_more_errors': len(errors) > 10
+                'success_count': 0,
+                'error_count': 0,
+                'total_count': 0,
+                'errors': [],
+                'has_more_errors': False,
+                'status': 'uploading'
             }
 
         except Exception as e:
-            # Clean up the file even if there's an error
-            if file_path and os.path.exists(file_path):
+            # Clean up the file if it was saved but validation failed
+            if file_path and upload_success and os.path.exists(file_path):
                 FileMgmtService.delete_file(file_path)
-            logger.exception(f"Error validating sales import: {str(e)}")
+            logger.exception(
+                f"Error starting sales import validation: {str(e)}")
             raise e
+
+    @staticmethod
+    def _process_validation_in_background(file_path, user_id, temp_import_id):
+        """Process validation in background to avoid timeouts"""
+        from app import create_app, db
+
+        # Create a new app context for this thread
+        app = create_app()
+        with app.app_context():
+            # Create a new session for this thread
+            db.session.remove()
+
+            try:
+                # Get the temp import record
+                temp_import = TempImport.query.get(temp_import_id)
+                if not temp_import:
+                    logger.error(
+                        f"TempImport {temp_import_id} not found in background thread")
+                    return
+
+                # Update status to validating
+                temp_import.status = "validating"
+                temp_import.progress = {
+                    "processed": 0,
+                    "total": 0,
+                    "phase": "preprocessing"
+                }
+                db.session.commit()
+
+                # Read file in chunks for large files
+                try:
+                    # For Excel files
+                    if file_path.endswith(('.xlsx', '.xls')):
+                        # First get row count to estimate progress
+                        # Read just a few rows to get column info
+                        excel_data = pd.read_excel(file_path, nrows=5)
+                        # Normalize column names immediately
+                        excel_data.columns = [col.lower().strip()
+                                              for col in excel_data.columns]
+
+                        # Update progress with column detection
+                        temp_import.progress["columns_detected"] = list(
+                            excel_data.columns)
+                        temp_import.progress["phase"] = "counting_rows"
+                        db.session.commit()
+
+                        # Count rows (this should be relatively quick)
+                        with pd.ExcelFile(file_path) as xls:
+                            # Get sheet name, default to first sheet
+                            sheet_name = xls.sheet_names[0]
+                            # Count rows in the file
+                            total_rows = len(pd.read_excel(
+                                xls, sheet_name=sheet_name, header=None))
+                            # Adjust for header row
+                            total_rows -= 1
+
+                        # Now read the whole file
+                        df = pd.read_excel(file_path)
+                        df.columns = [col.lower().strip()
+                                      for col in df.columns]
+
+                    # For CSV files
+                    else:  # CSV
+                        # First get row count to estimate progress
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            total_rows = sum(1 for line in f) - \
+                                1  # Subtract header
+
+                        # Try different encodings for CSV
+                        try:
+                            df = pd.read_csv(file_path)
+                        except UnicodeDecodeError:
+                            df = pd.read_csv(file_path, encoding='latin1')
+
+                        df.columns = [col.lower().strip()
+                                      for col in df.columns]
+
+                    # Update progress with total rows
+                    temp_import.progress["total"] = total_rows
+                    temp_import.progress["phase"] = "mapping_columns"
+                    db.session.commit()
+
+                except Exception as file_error:
+                    # File reading error
+                    logger.exception(f"Error reading file: {str(file_error)}")
+                    temp_import.status = "failed"
+                    temp_import.progress["error"] = f"File reading error: {str(file_error)}"
+                    db.session.commit()
+
+                    # Clean up
+                    if os.path.exists(file_path):
+                        FileMgmtService.delete_file(file_path)
+                    return
+
+                # Continue with validation
+                try:
+                    # Map expected columns to their possible variations
+                    column_mapping = {
+                        'sale_qty': ['quantity', 'qty', 'sale_qty', 'saleqty', 'sale qty'],
+                        'sale_amt': ['sale amount', 'saleamount', 'sale_amt', 'amount', 'sale amt'],
+                        'discounted_amt': ['discount', 'discount amount', 'discounted_amt', 'discountedamt', 'discounted amt'],
+                        'input_date': ['input date', 'date', 'input_date', 'inputdate'],
+                        'sku': ['sku', 'stockkeepingunit'],
+                        'item_no': ['item number', 'item no', 'item_no', 'itemno', 'item'],
+                        'brand': ['brand', 'brand_name', 'brandname', 'product brand'],
+                        'group': ['group', 'group_name', 'groupname', 'product group'],
+                        'division': ['division', 'division_name', 'divisionname', 'product division'],
+                        'category': ['category', 'category_name', 'categoryname', 'product category'],
+                        'description': ['description', 'desc', 'product description']
+                    }
+
+                    # Map actual columns to standardized columns
+                    actual_columns = {}
+                    missing_required = []
+
+                    for standard_col, possible_cols in column_mapping.items():
+                        found = False
+                        for possible_col in possible_cols:
+                            if possible_col in df.columns:
+                                actual_columns[standard_col] = possible_col
+                                found = True
+                                break
+
+                        if not found and standard_col in ['sale_qty', 'sale_amt', 'input_date', 'brand', 'group', 'division', 'category']:
+                            missing_required.append(standard_col)
+
+                    # Check for missing required columns
+                    if missing_required:
+                        missing_str = ", ".join(missing_required)
+                        error_msg = f"Required columns missing: {missing_str}"
+                        temp_import.status = "failed"
+                        temp_import.progress["error"] = error_msg
+                        temp_import.progress["phase"] = "completed"
+                        db.session.commit()
+
+                        # Clean up
+                        if os.path.exists(file_path):
+                            FileMgmtService.delete_file(file_path)
+                        return
+
+                    # Update progress
+                    temp_import.progress["phase"] = "renaming_columns"
+                    temp_import.progress["column_mapping"] = actual_columns
+                    db.session.commit()
+
+                    # Rename columns to match our model
+                    rename_mapping = {
+                        actual_col: standard_col for standard_col, actual_col in actual_columns.items()}
+                    df = df.rename(columns=rename_mapping)
+
+                    # Update progress
+                    temp_import.progress["phase"] = "processing_relationships"
+                    db.session.commit()
+
+                    # Process product relationships (brand, group, division, category)
+                    product_ids = SaleImportExportService._process_product_relationships(
+                        df)
+
+                    # Update progress
+                    temp_import.progress["phase"] = "validating_fields"
+                    db.session.commit()
+
+                    # Convert date format
+                    df['input_date'] = pd.to_datetime(
+                        df['input_date'], errors='coerce').dt.date
+
+                    # Check for date parsing errors
+                    date_null_count = df['input_date'].isna().sum()
+                    if date_null_count > 0:
+                        logger.warning(
+                            f"Found {date_null_count} rows with invalid date format")
+                        temp_import.progress["date_parsing_errors"] = int(
+                            date_null_count)
+
+                    # Validate and convert numeric fields
+                    for field in ['sale_qty', 'sale_amt', 'discounted_amt']:
+                        if field in df.columns:
+                            df[field] = pd.to_numeric(
+                                df[field], errors='coerce')
+                            # Track null values that indicate conversion errors
+                            null_count = df[field].isna().sum()
+                            if null_count > 0:
+                                logger.warning(
+                                    f"Found {null_count} rows with invalid {field} format")
+                                temp_import.progress[f"{field}_parsing_errors"] = int(
+                                    null_count)
+
+                            # Fill NA with 0
+                            df[field] = df[field].fillna(0)
+
+                    # Set defaults for missing optional fields
+                    if 'discounted_amt' not in df.columns:
+                        df['discounted_amt'] = 0
+                    if 'sku' not in df.columns:
+                        df['sku'] = None
+                    if 'item_no' not in df.columns:
+                        df['item_no'] = None
+                    if 'description' not in df.columns:
+                        df['description'] = None
+
+                    # Update progress - starting row validation
+                    temp_import.progress["phase"] = "validating_rows"
+                    temp_import.progress["processed"] = 0
+                    db.session.commit()
+
+                    # Validate data row by row
+                    valid_records = []
+                    error_count = 0
+                    errors = []
+
+                    # Process in batches to avoid long transactions
+                    batch_size = 5
+                    total_rows = len(df)
+
+                    for batch_start in range(0, total_rows, batch_size):
+                        batch_end = min(batch_start + batch_size, total_rows)
+                        batch_df = df.iloc[batch_start:batch_end]
+
+                        for idx, row in batch_df.iterrows():
+                            try:
+                                row_index = idx + 2  # +2 for 1-based index and header row
+
+                                # Skip row if any required relationship is missing
+                                missing_relationships = []
+                                if idx not in product_ids['brand']:
+                                    missing_relationships.append('brand')
+                                if idx not in product_ids['group']:
+                                    missing_relationships.append('group')
+                                if idx not in product_ids['division']:
+                                    missing_relationships.append('division')
+                                if idx not in product_ids['category']:
+                                    missing_relationships.append('category')
+
+                                if missing_relationships:
+                                    error_count += 1
+                                    errors.append(
+                                        f"Row {row_index}: Missing or invalid product relationships: {', '.join(missing_relationships)}"
+                                    )
+                                    continue
+
+                                # Check for invalid input_date
+                                if pd.isna(row['input_date']):
+                                    error_count += 1
+                                    errors.append(
+                                        f"Row {row_index}: Invalid date format")
+                                    continue
+
+                                # Create a valid record dictionary
+                                sale_data = {
+                                    'sale_qty': int(row['sale_qty']),
+                                    'sale_amt': float(row['sale_amt']),
+                                    'discounted_amt': float(row['discounted_amt']),
+                                    'input_date': row['input_date'].isoformat() if hasattr(row['input_date'], 'isoformat') else str(row['input_date']),
+                                    'sku': row['sku'] if pd.notna(row['sku']) else None,
+                                    'item_no': row['item_no'] if pd.notna(row['item_no']) else None,
+                                    'description': row['description'] if pd.notna(row['description']) else None,
+                                    'product_brand_id': product_ids['brand'][idx],
+                                    'product_group_id': product_ids['group'][idx],
+                                    'product_division_id': product_ids['division'][idx],
+                                    'product_category_id': product_ids['category'][idx],
+                                    'user_id': user_id
+                                }
+
+                                # Basic validation
+                                if sale_data['sale_qty'] <= 0:
+                                    error_count += 1
+                                    errors.append(
+                                        f"Row {row_index}: Sale quantity must be positive")
+                                    continue
+
+                                if sale_data['sale_amt'] < 0:
+                                    error_count += 1
+                                    errors.append(
+                                        f"Row {row_index}: Sale amount cannot be negative")
+                                    continue
+
+                                # If we get here, the record is valid
+                                valid_records.append(sale_data)
+
+                            except Exception as e:
+                                error_count += 1
+                                errors.append(f"Row {row_index}: {str(e)}")
+                                logger.error(
+                                    f"Error processing row {row_index}: {traceback.format_exc()}")
+
+                            # Update progress after each row
+                            temp_import.progress["processed"] += 1
+                            # Update DB every 10 rows
+                            if temp_import.progress["processed"] % 10 == 0:
+                                db.session.commit()
+
+                        # Commit after each batch to prevent session timeout
+                        db.session.commit()
+
+                    # Create final import data
+                    import_data = {
+                        'valid_records': valid_records,
+                        'total_count': total_rows,
+                        'success_count': len(valid_records),
+                        'error_count': error_count,
+                        'errors': errors[:100],  # Limit stored errors
+                        'has_more_errors': len(errors) > 100,
+                        'user_id': user_id
+                    }
+
+                    # Update the temporary import record with validation results
+                    temp_import.data = import_data
+                    temp_import.status = "pending"
+                    temp_import.progress["phase"] = "completed"
+                    db.session.commit()
+
+                    logger.info(
+                        f"Validation complete for import {temp_import_id}: {len(valid_records)} valid, {error_count} errors")
+
+                except Exception as validation_error:
+                    logger.exception(
+                        f"Validation error: {str(validation_error)}")
+                    temp_import.status = "failed"
+                    temp_import.progress["error"] = f"Validation error: {str(validation_error)}"
+                    temp_import.progress["phase"] = "error"
+                    db.session.commit()
+
+                # Clean up the file in any case
+                if os.path.exists(file_path):
+                    FileMgmtService.delete_file(file_path)
+
+            except Exception as outer_error:
+                logger.exception(f"Outer validation error: {str(outer_error)}")
+                try:
+                    # Try to update the import status
+                    temp_import = TempImport.query.get(temp_import_id)
+                    if temp_import:
+                        temp_import.status = "failed"
+                        temp_import.progress = {
+                            "error": f"System error: {str(outer_error)}",
+                            "phase": "error"
+                        }
+                        db.session.commit()
+                except:
+                    logger.exception("Failed to update error status")
+
+                # Make sure to clean up
+                if os.path.exists(file_path):
+                    FileMgmtService.delete_file(file_path)
+
+            finally:
+                # Always close the session
+                db.session.remove()
 
     @staticmethod
     def confirm_import(import_id, user_id):
@@ -738,4 +956,60 @@ class SaleImportExportService:
             return {
                 'success': False,
                 'error': str(e)
+            }
+
+    @staticmethod
+    def get_import_validation_status(import_id):
+        """Get the status of a validation in progress"""
+        temp_import = TempImport.query.get(import_id)
+
+        if not temp_import:
+            return {
+                'success': False,
+                'error': 'Import not found'
+            }
+
+        # If validation is complete
+        if temp_import.status == 'pending':
+            return {
+                'success': True,
+                'status': 'pending',
+                'import_id': str(temp_import.id),
+                'success_count': temp_import.data.get('success_count', 0),
+                'error_count': temp_import.data.get('error_count', 0),
+                'total_count': temp_import.data.get('total_count', 0),
+                'errors': temp_import.data.get('errors', [])[:10],
+                'has_more_errors': temp_import.data.get('has_more_errors', False)
+            }
+
+        # If validation is still in progress
+        elif temp_import.status in ['uploading', 'validating']:
+            progress = temp_import.progress or {}
+            return {
+                'success': True,
+                'status': temp_import.status,
+                'import_id': str(temp_import.id),
+                'progress': {
+                    'phase': progress.get('phase', 'unknown'),
+                    'processed': progress.get('processed', 0),
+                    'total': progress.get('total', 0),
+                    'percentage': progress.get('processed', 0) / max(progress.get('total', 1), 1) * 100 if progress.get('total', 0) > 0 else 0
+                }
+            }
+
+        # If validation failed
+        elif temp_import.status == 'failed':
+            return {
+                'success': False,
+                'status': 'failed',
+                'import_id': str(temp_import.id),
+                'error': temp_import.progress.get('error', 'Unknown error') if temp_import.progress else 'Unknown error'
+            }
+
+        # Other statuses (shouldn't happen for validation)
+        else:
+            return {
+                'success': True,
+                'status': temp_import.status,
+                'import_id': str(temp_import.id)
             }

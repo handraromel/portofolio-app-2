@@ -812,3 +812,39 @@ def get_import_status():
             "msg": f"An error occurred while checking import status: {str(e)}",
             "success": False
         }), 500
+
+# Add this function
+
+
+@jwt_required()
+def get_import_validation_status():
+    """Check the status of an import validation"""
+    current_user_id = get_jwt_identity()
+
+    try:
+        import_id = request.args.get('import_id')
+        if not import_id:
+            return jsonify({"msg": "Import ID is required", "success": False}), 400
+
+        status = SaleImportExportService.get_import_validation_status(
+            import_id)
+
+        if not status['success']:
+            return jsonify({
+                "success": False,
+                "msg": status.get('error', 'Import validation failed'),
+                "status": status.get('status', 'failed')
+            }), 400
+
+        return jsonify({
+            "success": True,
+            "status": status['status'],
+            "details": status
+        }), 200
+
+    except Exception as e:
+        logger.exception(f"Error checking validation status: {str(e)}")
+        return jsonify({
+            "msg": f"An error occurred: {str(e)}",
+            "success": False
+        }), 500

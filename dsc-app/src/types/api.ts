@@ -8,7 +8,7 @@ export interface ApiResponse<T = unknown> {
   users?: User[];
   user?: T;
   data?: T;
-  sale: Sale;
+  sale?: Sale;
   success?: boolean;
   error?: string;
   current_page?: number;
@@ -26,7 +26,7 @@ export interface ApiError {
     };
     status: number;
   };
-  message: string;
+  message?: string;
 }
 
 export interface ApiRequestConfig<T = unknown> {

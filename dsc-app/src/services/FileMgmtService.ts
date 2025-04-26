@@ -44,6 +44,25 @@ export interface IncrementalImportResponse extends ApiResponse {
   error?: string;
 }
 
+export interface ValidationProgress {
+  phase: string;
+  processed: number;
+  total: number;
+  percentage: number;
+}
+
+export interface ValidationStatusResponse extends ApiResponse {
+  status: "uploading" | "validating" | "pending" | "failed";
+  details: {
+    progress?: ValidationProgress;
+    success_count?: number;
+    error_count?: number;
+    total_count?: number;
+    errors?: string[];
+    has_more_errors?: boolean;
+  };
+}
+
 const salePrefix = "/manage/sales";
 const productPrefix = "/manage/product";
 const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
@@ -456,6 +475,36 @@ export const checkImportStatus = async (
   importId: string,
 ): Promise<IncrementalImportResponse> => {
   const url = `${baseUrl}${salePrefix}/import/status?import_id=${importId}`;
+  const csrfToken = Cookies.get("csrf_access_token");
+
+  const response = await fetch(url, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "X-CSRF-TOKEN": csrfToken || "",
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw {
+      response: {
+        data: errorData,
+        status: response.status,
+      },
+    };
+  }
+
+  return await response.json();
+};
+
+/**
+ * Check the status of a validation in progress
+ */
+export const checkImportValidationStatus = async (
+  importId: string,
+): Promise<ValidationStatusResponse> => {
+  const url = `${baseUrl}${salePrefix}/import/validation/status?import_id=${importId}`;
   const csrfToken = Cookies.get("csrf_access_token");
 
   const response = await fetch(url, {

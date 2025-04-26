@@ -54,6 +54,8 @@ const SaleList: React.FC = () => {
     importResult,
     isConfirming,
     importError,
+    validationProgress,
+    validationStatus,
   } = useFileMgmt();
 
   const { showWarning, showError } = useToast();
@@ -417,12 +419,6 @@ const SaleList: React.FC = () => {
                 visible: canEdit(),
               }}
               otherActions={[
-                // {
-                //   icon: "pi pi-refresh",
-                //   tooltip: "Refresh list",
-                //   severity: "info",
-                //   onClick: handleRefresh,
-                // },
                 {
                   icon:
                     selection.selectedItems?.length === sales.length
@@ -438,6 +434,12 @@ const SaleList: React.FC = () => {
                       : "secondary",
                   onClick: handleSelectAll,
                   disabled: isLoading || sales.length === 0,
+                },
+                {
+                  icon: "pi pi-refresh",
+                  tooltip: "Refresh list",
+                  severity: "info",
+                  onClick: handleRefresh,
                 },
                 {
                   icon: "pi pi-filter",
@@ -600,6 +602,8 @@ const SaleList: React.FC = () => {
         importError={importError}
         importResult={importResult}
         onClearStates={handleClearImportStates}
+        validationProgress={validationProgress}
+        validationStatus={validationStatus}
       />
     </>
   );
