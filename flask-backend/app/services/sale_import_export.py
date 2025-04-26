@@ -535,7 +535,7 @@ class SaleImportExportService:
 
     @staticmethod
     def confirm_import(import_id, user_id):
-        """Phase 2: Commit a previously validated import to the database"""
+        """Phase 2: Queue a previously validated import for processing"""
         try:
             # Find the temporary import record
             temp_import = TempImport.get_by_id(import_id, user_id)
@@ -561,40 +561,179 @@ class SaleImportExportService:
                     'error': 'No valid records to import'
                 }
 
-            # Insert all records into the database
-            success_count = 0
-            for record in valid_records:
-                try:
-                    # Convert ISO date string back to date object for database insertion
-                    if 'input_date' in record and isinstance(record['input_date'], str):
-                        record['input_date'] = datetime.fromisoformat(
-                            record['input_date']).date()
-
-                    if 'user_id' not in record or not record['user_id']:
-                        record['user_id'] = user_id
-
-                    # Use the existing SaleService to create the record
-                    result, error = SaleService.create(record)
-                    if not error:
-                        success_count += 1
-                except Exception as e:
-                    logger.error(
-                        f"Error creating sale during import confirmation: {str(e)}")
-                    # Continue with other records even if one fails
-
-            # Delete the temporary import record after processing
-            db.session.delete(temp_import)
+            # Initialize progress tracking
+            temp_import.status = "in_progress"
+            temp_import.progress = {
+                "total": len(valid_records),
+                "processed": 0,
+                "succeeded": 0,
+                "failed": 0,
+                "record_statuses": {}
+            }
             db.session.commit()
 
-            # Return the result
+            # Start the background processing
+            import threading
+
+            def run_import_in_background():
+                from app import create_app, db
+
+                # Create a new app context for this thread
+                app = create_app()
+                with app.app_context():
+                    # Create a new session for this thread
+                    db.session.remove()  # Close any open sessions
+
+                    try:
+                        # Query for the import record in this thread's session
+                        thread_temp_import = TempImport.query.get(import_id)
+
+                        if not thread_temp_import:
+                            logger.error(
+                                f"Import {import_id} not found in background thread")
+                            return
+
+                        # Process in batches to avoid long transactions
+                        batch_size = 20
+                        success_count = 0
+
+                        for batch_start in range(0, len(valid_records), batch_size):
+                            batch_end = min(
+                                batch_start + batch_size, len(valid_records))
+                            logger.info(
+                                f"Processing batch {batch_start}-{batch_end} of {len(valid_records)}")
+
+                            for idx in range(batch_start, batch_end):
+                                record = valid_records[idx]
+                                try:
+                                    # Convert ISO date string back to date object
+                                    if 'input_date' in record and isinstance(record['input_date'], str):
+                                        try:
+                                            record['input_date'] = datetime.fromisoformat(
+                                                record['input_date']).date()
+                                        except ValueError:
+                                            record['input_date'] = datetime.strptime(
+                                                record['input_date'], '%Y-%m-%d').date()
+
+                                    # Set user ID if missing
+                                    if 'user_id' not in record or not record['user_id']:
+                                        record['user_id'] = user_id
+
+                                    # Create the sale record
+                                    result, error = SaleService.create(record)
+
+                                    if error:
+                                        logger.warning(
+                                            f"Failed to import record {idx}: {error}")
+                                        # Update status in the thread's session
+                                        update_record_status(
+                                            thread_temp_import, idx, "failed", error)
+                                        db.session.commit()
+                                    else:
+                                        success_count += 1
+                                        # Update status in the thread's session
+                                        update_record_status(
+                                            thread_temp_import, idx, "success")
+                                        db.session.commit()
+
+                                except Exception as e:
+                                    logger.exception(
+                                        f"Error processing record {idx}: {str(e)}")
+                                    update_record_status(
+                                        thread_temp_import, idx, "failed", str(e))
+                                    db.session.commit()
+
+                            # Commit after each batch
+                            db.session.commit()
+
+                        # Update final status
+                        thread_temp_import = TempImport.query.get(
+                            import_id)  # Re-query to avoid stale state
+                        if thread_temp_import:
+                            if success_count == len(valid_records):
+                                thread_temp_import.status = "completed"
+                            elif success_count > 0:
+                                thread_temp_import.status = "partially_completed"
+                            else:
+                                thread_temp_import.status = "failed"
+
+                            thread_temp_import.updated_at = datetime.now()
+                            db.session.commit()
+                            logger.info(
+                                f"Import {import_id} complete with status: {thread_temp_import.status}")
+
+                    except Exception as e:
+                        logger.exception(
+                            f"Background import processing failed: {str(e)}")
+                        try:
+                            # Re-query in case of exception
+                            thread_temp_import = TempImport.query.get(
+                                import_id)
+                            if thread_temp_import:
+                                thread_temp_import.status = "failed"
+                                if not thread_temp_import.progress:
+                                    thread_temp_import.progress = {}
+                                thread_temp_import.progress["error"] = str(e)
+                                db.session.commit()
+                        except Exception as inner_e:
+                            logger.exception(
+                                f"Error updating failure status: {str(inner_e)}")
+                    finally:
+                        # Always close the session when done
+                        db.session.remove()
+
+            # Helper function to update record status
+            def update_record_status(temp_import_obj, record_index, status, error=None):
+                """Update the status of a specific record without using the model method"""
+                if not temp_import_obj.progress:
+                    temp_import_obj.progress = {
+                        "total": len(valid_records),
+                        "processed": 0,
+                        "succeeded": 0,
+                        "failed": 0,
+                        "record_statuses": {}
+                    }
+
+                # Convert record_index to string to ensure it works as a JSON key
+                record_index_str = str(record_index)
+
+                # Check if this record has already been processed to avoid double counting
+                already_processed = record_index_str in temp_import_obj.progress["record_statuses"]
+
+                # Update the specific record status
+                temp_import_obj.progress["record_statuses"][record_index_str] = {
+                    "status": status,
+                    "error": error,
+                    "timestamp": datetime.now().isoformat()
+                }
+
+                # Only increment counters if this is the first time processing this record
+                if not already_processed:
+                    # Update counters
+                    temp_import_obj.progress["processed"] += 1
+                    if status == "success":
+                        temp_import_obj.progress["succeeded"] += 1
+                    elif status == "failed":
+                        temp_import_obj.progress["failed"] += 1
+
+            # Start the background thread
+            background_thread = threading.Thread(
+                target=run_import_in_background)
+            background_thread.daemon = True
+            background_thread.start()
+            logger.info(f"Started background thread for import {import_id}")
+
+            # Return immediately with status info
             return {
                 'success': True,
-                'count': success_count,
+                'status': 'in_progress',  # Set as in_progress, not processing
+                'import_id': str(import_id),
+                'count': len(valid_records),
                 'total': len(valid_records)
             }
 
         except Exception as e:
-            logger.exception(f"Error confirming import: {str(e)}")
+            logger.exception(f"Error queueing import: {str(e)}")
             db.session.rollback()
             return {
                 'success': False,

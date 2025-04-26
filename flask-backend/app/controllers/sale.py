@@ -776,3 +776,39 @@ def delete_multiple():
             'msg': 'An error occurred during bulk deletion',
             'error': str(e)
         }), 500
+
+
+@jwt_required()
+def get_import_status():
+    """Get the status of a pending or in-progress import"""
+    current_user_id = get_jwt_identity()
+
+    try:
+        import_id = request.args.get('import_id')
+        if not import_id:
+            return jsonify({"msg": "Import ID is required", "success": False}), 400
+
+        from app.models.temp_import import TempImport
+        temp_import = TempImport.get_by_id(import_id, current_user_id)
+
+        if not temp_import:
+            return jsonify({
+                "success": False,
+                "msg": "Import not found or expired"
+            }), 404
+
+        # Return progress information
+        return jsonify({
+            "success": True,
+            "status": temp_import.status,
+            "progress": temp_import.progress,
+            "created_at": temp_import.created_at.isoformat(),
+            "updated_at": temp_import.updated_at.isoformat() if temp_import.updated_at else None
+        }), 200
+
+    except Exception as e:
+        logger.exception(f"Error checking import status: {str(e)}")
+        return jsonify({
+            "msg": f"An error occurred while checking import status: {str(e)}",
+            "success": False
+        }), 500

@@ -71,27 +71,26 @@ class TempImport(db.Model):
                 "record_statuses": {}
             }
 
+        # Convert record_index to string to ensure it works as a JSON key
+        record_index_str = str(record_index)
+
+        # Check if this record has already been processed to avoid double counting
+        already_processed = record_index_str in self.progress["record_statuses"]
+
         # Update the specific record status
-        self.progress["record_statuses"][str(record_index)] = {
+        self.progress["record_statuses"][record_index_str] = {
             "status": status,
             "error": error,
             "timestamp": datetime.now().isoformat()
         }
 
-        # Update counters
-        self.progress["processed"] += 1
-        if status == "success":
-            self.progress["succeeded"] += 1
-        elif status == "failed":
-            self.progress["failed"] += 1
+        # Only increment counters if this is the first time processing this record
+        if not already_processed:
+            # Update counters
+            self.progress["processed"] += 1
+            if status == "success":
+                self.progress["succeeded"] += 1
+            elif status == "failed":
+                self.progress["failed"] += 1
 
-        # Check if all records have been processed
-        if self.progress["processed"] >= self.progress["total"]:
-            if self.progress["failed"] == 0:
-                self.status = "completed"
-            else:
-                self.status = "partially_completed"
-
-        self.updated_at = func.now()
-        db.session.commit()
         return self.progress
