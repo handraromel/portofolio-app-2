@@ -497,33 +497,3 @@ export const checkImportStatus = async (
 
   return await response.json();
 };
-
-/**
- * Check the status of a validation in progress
- */
-export const checkImportValidationStatus = async (
-  importId: string,
-): Promise<ValidationStatusResponse> => {
-  const url = `${baseUrl}${salePrefix}/import/validation/status?import_id=${importId}`;
-  const csrfToken = Cookies.get("csrf_access_token");
-
-  const response = await fetch(url, {
-    method: "GET",
-    credentials: "include",
-    headers: {
-      "X-CSRF-TOKEN": csrfToken || "",
-    },
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw {
-      response: {
-        data: errorData,
-        status: response.status,
-      },
-    };
-  }
-
-  return await response.json();
-};

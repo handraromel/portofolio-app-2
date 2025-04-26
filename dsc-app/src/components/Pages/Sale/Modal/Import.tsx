@@ -21,13 +21,6 @@ interface ImportModalProps {
   importError: ApiError | null;
   importResult: ImportResponse | null;
   onClearStates: () => void;
-  validationProgress?: {
-    phase: string;
-    processed: number;
-    total: number;
-    percentage: number;
-  } | null;
-  validationStatus?: string | null;
 }
 
 const ImportModal: React.FC<ImportModalProps> = ({
@@ -42,8 +35,6 @@ const ImportModal: React.FC<ImportModalProps> = ({
   isConfirming = false,
   importError,
   importResult,
-  validationProgress,
-  validationStatus,
   onClearStates,
 }) => {
   const fileUploadRef = useRef<FileUpload>(null);
@@ -266,30 +257,6 @@ const ImportModal: React.FC<ImportModalProps> = ({
     );
   };
 
-  const getPhaseLabel = (phase: string): string => {
-    switch (phase) {
-      case "preprocessing":
-        return "Preparing file";
-      case "counting_rows":
-        return "Analyzing file structure";
-      case "mapping_columns":
-        return "Mapping columns";
-      case "renaming_columns":
-        return "Processing columns";
-      case "processing_relationships":
-        return "Checking product relationships";
-      case "validating_fields":
-        return "Validating data fields";
-      case "validating_rows":
-        return "Validating rows";
-      case "completed":
-        return "Validation complete";
-      default:
-        return phase;
-    }
-  };
-
-  // Update renderImportContent to show validation progress
   const renderImportContent = () => {
     return (
       <>
@@ -306,91 +273,25 @@ const ImportModal: React.FC<ImportModalProps> = ({
             />
           </div>
 
-          {!validationStatus ||
-          validationStatus === "pending" ||
-          validationStatus === "failed" ? (
-            <FileUpload
-              ref={fileUploadRef}
-              name="file"
-              customUpload
-              uploadHandler={handleFileUpload}
-              accept=".xlsx,.xls,.csv"
-              maxFileSize={10000000}
-              chooseLabel="Select File"
-              uploadLabel="Import"
-              cancelLabel="Cancel"
-              className="w-full"
-              emptyTemplate={
-                <p className="m-0">
-                  Drag and drop a file here or click to browse
-                </p>
-              }
-            />
-          ) : null}
-
-          {/* Show validation progress */}
-          {(validationStatus === "uploading" ||
-            validationStatus === "validating") && (
-            <div className="mt-6 rounded-lg border border-blue-100 bg-blue-50 p-5">
-              <h3 className="mb-3 text-center text-lg font-semibold text-blue-800">
-                {validationStatus === "uploading"
-                  ? "Uploading File..."
-                  : "Validating Data..."}
-              </h3>
-
-              {validationProgress ? (
-                <>
-                  <div className="mb-4">
-                    <p className="text-sm text-blue-700">
-                      <span className="font-medium">
-                        {getPhaseLabel(validationProgress.phase)}
-                      </span>
-                      {validationProgress.phase === "validating_rows" &&
-                        validationProgress.total > 0 && (
-                          <span>
-                            {" "}
-                            - {validationProgress.processed} of{" "}
-                            {validationProgress.total} rows
-                          </span>
-                        )}
-                    </p>
-                  </div>
-
-                  <ProgressBar
-                    value={
-                      validationProgress.percentage > 0
-                        ? Math.round(validationProgress.percentage)
-                        : null
-                    }
-                    mode={
-                      validationProgress.percentage > 0
-                        ? "determinate"
-                        : "indeterminate"
-                    }
-                    style={{ height: "8px" }}
-                  />
-
-                  {validationProgress.phase === "validating_rows" &&
-                    validationProgress.total > 0 && (
-                      <div className="mt-2 text-right">
-                        <span className="text-xs text-blue-600">
-                          {Math.round(validationProgress.percentage)}%
-                        </span>
-                      </div>
-                    )}
-                </>
-              ) : (
-                <ProgressBar mode="indeterminate" style={{ height: "8px" }} />
-              )}
-
-              <p className="mt-4 text-center text-sm text-blue-600">
-                This may take a few moments for large files. Please don&apos;t
-                close this window.
+          <FileUpload
+            ref={fileUploadRef}
+            name="file"
+            customUpload
+            uploadHandler={handleFileUpload}
+            accept=".xlsx,.xls,.csv"
+            maxFileSize={10000000}
+            chooseLabel="Select File"
+            uploadLabel="Import"
+            cancelLabel="Cancel"
+            className="w-full"
+            emptyTemplate={
+              <p className="m-0">
+                Drag and drop a file here or click to browse
               </p>
-            </div>
-          )}
+            }
+          />
 
-          {isImporting && !validationStatus && (
+          {isImporting && (
             <div className="mt-4">
               <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
               <p className="mt-2 text-center">
@@ -418,23 +319,14 @@ const ImportModal: React.FC<ImportModalProps> = ({
             severity="secondary"
             className="p-button-outlined ml-2"
             onClick={handleClose}
-            disabled={
-              isImporting &&
-              (validationStatus === "uploading" ||
-                validationStatus === "validating")
-            }
+            disabled={isImporting}
           />
           <Button
             label="Download Sample"
             icon="pi pi-download"
             onClick={onDownloadSample}
             className="p-button-outlined"
-            disabled={
-              isDownloading ||
-              (isImporting &&
-                (validationStatus === "uploading" ||
-                  validationStatus === "validating"))
-            }
+            disabled={isDownloading}
           />
         </div>
       </>

@@ -22,5 +22,3 @@ bp.route('/import/cancel', methods=['POST'])(sale.cancel_import)
 bp.route('/export', methods=['GET'])(sale.export_sales)
 bp.route('/import/sample', methods=['GET'])(sale.get_import_sample)
 bp.route('/import/status', methods=['GET'])(sale.get_import_status)
-bp.route('/import/validation/status',
-         methods=['GET'])(sale.get_import_validation_status)

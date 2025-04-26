@@ -54,8 +54,6 @@ const SaleList: React.FC = () => {
     importResult,
     isConfirming,
     importError,
-    validationProgress,
-    validationStatus,
   } = useFileMgmt();
 
   const { showWarning, showError } = useToast();
@@ -430,7 +428,7 @@ const SaleList: React.FC = () => {
                       : "Select All",
                   severity:
                     selection.selectedItems?.length === sales.length
-                      ? "info"
+                      ? "warning"
                       : "secondary",
                   onClick: handleSelectAll,
                   disabled: isLoading || sales.length === 0,
@@ -602,8 +600,6 @@ const SaleList: React.FC = () => {
         importError={importError}
         importResult={importResult}
         onClearStates={handleClearImportStates}
-        validationProgress={validationProgress}
-        validationStatus={validationStatus}
       />
     </>
   );

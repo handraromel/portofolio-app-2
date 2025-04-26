@@ -9,9 +9,7 @@ import {
   importSales,
   confirmImportSales,
   cancelImportSales,
-  checkImportValidationStatus,
   ImportResponse,
-  ValidationProgress,
 } from "@/services/FileMgmtService";
 import { ApiError } from "@/types/api";
 
@@ -23,9 +21,6 @@ export const useFileMgmt = () => {
   const [importResult, setImportResult] = useState<ImportResponse | null>(null);
   const [importError, setImportError] = useState<ApiError | null>(null);
   const [importId, setImportId] = useState<string | null>(null);
-  const [validationProgress, setValidationProgress] =
-    useState<ValidationProgress | null>(null);
-  const [validationStatus, setValidationStatus] = useState<string | null>(null);
   const { showSuccess, showError, showInfo, showWarning } = useToast();
   const queryClient = useQueryClient();
 
@@ -85,71 +80,6 @@ export const useFileMgmt = () => {
     }
   };
 
-  const checkValidationStatus = async (importId: string): Promise<void> => {
-    if (!importId) return;
-
-    try {
-      const result = await checkImportValidationStatus(importId);
-
-      // Update UI with validation status
-      setValidationStatus(result.status);
-
-      if (result.details?.progress) {
-        setValidationProgress(result.details.progress);
-      }
-
-      // Handle based on status
-      if (result.status === "pending") {
-        // Validation completed successfully
-        setIsImporting(false);
-
-        // Set the import result from validation
-        setImportResult({
-          success: true,
-          message: `Import validation completed: ${result.details.success_count} records valid, ${result.details.error_count} failed`,
-          details: {
-            import_id: importId,
-            total_records: result.details.total_count || 0,
-            success_count: result.details.success_count || 0,
-            error_count: result.details.error_count || 0,
-            errors: result.details.errors || [],
-            has_more_errors: result.details.has_more_errors || false,
-          },
-        });
-
-        // Import is ready to be confirmed
-        setImportId(importId);
-        showSuccess("Data validation completed successfully");
-      } else if (result.status === "failed") {
-        // Validation failed
-        setIsImporting(false);
-
-        showError(result.details.errors?.[0] || "Validation failed");
-        setImportError({
-          response: {
-            data: { msg: result.details.errors?.[0] || "Validation failed" },
-            status: 400,
-          },
-        });
-      } else if (
-        result.status === "uploading" ||
-        result.status === "validating"
-      ) {
-        // Still in progress, re-check after a delay
-        setTimeout(() => checkValidationStatus(importId), 2000);
-      }
-    } catch (error) {
-      setIsImporting(false);
-
-      console.error("Error checking validation status:", error);
-      const apiError = error as ApiError;
-      showError(
-        apiError?.response?.data?.msg || "Failed to check validation status",
-      );
-      setImportError(apiError);
-    }
-  };
-
   /**
    * Import sales data from file (validation phase)
    */
@@ -158,62 +88,34 @@ export const useFileMgmt = () => {
   ): Promise<ImportResponse | null> => {
     setIsImporting(true);
     setImportError(null);
-    setValidationProgress(null);
-    setValidationStatus(null);
 
     try {
-      showInfo("Uploading file for validation, please wait...");
+      showInfo("Validating sales data, please wait...");
 
       const result = await importSales(file);
+      setImportResult(result);
+      setImportId(result.details.import_id || null);
 
-      // Start validation checking
-      if (result.details && result.details.import_id) {
-        setValidationStatus("uploading"); // Set initial status
-
-        // Start checking validation status (this will recursively check until complete)
-        if (result.details.import_id) {
-          setTimeout(
-            () => checkValidationStatus(result.details.import_id as string),
-            1000,
+      if (result.details.error_count > 0) {
+        if (result.details.success_count > 0) {
+          showWarning(
+            `Import validation completed with ${result.details.error_count} error${
+              result.details.error_count > 1 ? "s" : ""
+            }. ${result.details.success_count} records are ready to import.`,
           );
         } else {
-          showError("No import ID returned from server.");
-          setIsImporting(false);
+          showError(
+            `Import validation failed with ${result.details.error_count} error${
+              result.details.error_count > 1 ? "s" : ""
+            }. No records are valid for import.`,
+          );
         }
-
-        return null; // We'll return the final result via the validation checks
-      } else {
-        // Fallback to old behavior if no import_id is returned
-        setImportResult(result);
-        setImportId(result.details?.import_id || null);
-
-        if (result.details?.error_count && result.details.error_count > 0) {
-          if (
-            result.details.success_count &&
-            result.details.success_count > 0
-          ) {
-            showWarning(
-              `Import validation completed with ${result.details.error_count} error${
-                result.details.error_count > 1 ? "s" : ""
-              }. ${result.details.success_count} records are ready to import.`,
-            );
-          } else {
-            showError(
-              `Import validation failed with ${result.details.error_count} error${
-                result.details.error_count > 1 ? "s" : ""
-              }. No records are valid for import.`,
-            );
-          }
-        } else {
-          showSuccess("Data validation successful. Ready to apply changes.");
-        }
-
-        setIsImporting(false);
         return result;
       }
-    } catch (error) {
-      setIsImporting(false);
 
+      showSuccess("Data validation successful. Ready to apply changes.");
+      return result;
+    } catch (error) {
       const apiError = error as ApiError;
       console.error("Error validating import data:", error);
       const errorMessage =
@@ -221,6 +123,8 @@ export const useFileMgmt = () => {
       showError(errorMessage);
       setImportError(apiError);
       return null;
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -314,7 +218,5 @@ export const useFileMgmt = () => {
     importResult,
     importError,
     importId,
-    validationProgress,
-    validationStatus,
   };
 };
