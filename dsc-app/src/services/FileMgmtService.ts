@@ -46,7 +46,7 @@ export interface IncrementalImportResponse extends ApiResponse {
 
 const salePrefix = "/manage/sales";
 const productPrefix = "/manage/product";
-const baseUrl = import.meta.env.VITE_API_URL;
+const baseUrl = import.meta.env.VITE_REACT_APP_API_BASE_URL;
 
 /**
  * Download a file from a URL with proper authorization

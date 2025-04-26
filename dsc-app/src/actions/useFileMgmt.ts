@@ -165,8 +165,6 @@ export const useFileMgmt = () => {
         apiError?.response?.data?.msg || "Failed to apply changes";
       showError(errorMessage);
       return false;
-    } finally {
-      setIsConfirming(false);
     }
   };
 
