@@ -159,10 +159,10 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
         {showYoY && safeData.ly_data ? (
           // Year over year comparison view
           <>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">This Year (TY)</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                     <div className="text-sm font-medium text-gray-500">
                       Qty Sold
@@ -182,7 +182,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                     <div className="text-sm font-medium text-gray-500">
                       Transactions
@@ -202,7 +202,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   {/* <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                     <div className="text-sm font-medium text-gray-500">
                       Coverage
@@ -223,7 +223,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
 
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Last Year (LY)</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                     <div className="text-sm font-medium text-gray-500">
                       Qty Sold
@@ -243,7 +243,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                     <div className="text-sm font-medium text-gray-500">
                       Transactions
@@ -265,7 +265,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   {/* <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                     <div className="text-sm font-medium text-gray-500">
                       Coverage
@@ -310,7 +310,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                   />
                 </div>
 
-                {/* <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
+                {/* <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-1 md:grid-cols-2">
                   <YearComparisonChart
                     title="Coverage Rate Comparison"
                     currentYearValue={safeData.sales_coverage}
@@ -407,7 +407,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
               </div>
 
               {/* Secondary metrics - Bottom section */}
-              <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {/* AUR comparison */}
                 <div className="flex flex-col rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
                   <div className="mb-3 flex items-center justify-between">
@@ -425,7 +425,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                       size="sm"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700">
                       <div className="text-xs text-gray-500">This Year</div>
                       <div className="text-lg font-semibold">
@@ -462,7 +462,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
                       size="sm"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700">
                       <div className="text-xs text-gray-500">This Year</div>
                       <div className="text-lg font-semibold">
@@ -485,7 +485,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
         ) : (
           // Standard view (no year-over-year comparison)
           <>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                 <div className="text-sm font-medium text-gray-500">
                   Qty Sold
@@ -512,7 +512,7 @@ const MtdSummary: React.FC<MtdSummaryProps> = ({
               </div>
             </div>
             {/* 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-1 md:grid-cols-2">
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                 <div className="text-sm font-medium text-gray-500">
                   Tax Rate

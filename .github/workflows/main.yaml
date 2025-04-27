@@ -51,6 +51,9 @@ jobs:
           VITE_REACT_APP_EDITOR_KEY: ${{ secrets.VITE_REACT_APP_EDITOR_KEY }}
           VITE_REACT_APP_API_BASE_URL: ${{ secrets.VITE_REACT_APP_API_BASE_URL }}
           VITE_PORT: ${{ secrets.VITE_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           # Create backend .env file for build
           cat << EOF > flask-backend/.env
@@ -63,6 +66,9 @@ jobs:
           EMAIL_SERVICE=$EMAIL_SERVICE
           PUBLIC_URL=$PUBLIC_URL
           FLASK_ENV=$FLASK_ENV
+          DB_NAME=$DB_NAME
+          DB_USER=$DB_USER
+          DB_PASSWORD=$DB_PASSWORD
           EOF
 
           # Create frontend .env file for build
@@ -82,14 +88,13 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          envs: DB_NAME,DB_USER,DB_PASSWORD
           script: |
             echo "SSH connection test successful"
 
             cd /home/opc/mds-dsc/
             git pull origin master
 
-            # Create backend .env file
+            # Create backend .env file with local database URL
             cat << EOF > flask-backend/.env
             SECRET_KEY=${{ secrets.SECRET_KEY }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
@@ -100,6 +105,9 @@ jobs:
             EMAIL_SERVICE=${{ secrets.EMAIL_SERVICE }}
             PUBLIC_URL=${{ secrets.PUBLIC_URL }}
             FLASK_ENV=${{ secrets.FLASK_ENV }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             EOF
 
             # Create frontend .env file
@@ -109,16 +117,30 @@ jobs:
             VITE_PORT=${{ secrets.VITE_PORT }}
             EOF
 
+            # Create .env file for docker-compose
+            cat << EOF > .env
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            EOF
+
+            # Ensure volume exists (create if it doesn't)
+            docker volume inspect postgres_data >/dev/null 2>&1 || docker volume create --name=postgres_data
+
             # Stop, rebuild, and start containers
             docker compose down
+
+            # Start DB first to ensure it's ready before other services
+            docker compose up -d db
+
+            # Wait for DB to be ready
+            echo "Waiting for database to be ready..."
+            sleep 10
+
+            # Starting the rest of the services
             docker compose up -d --build
 
-            # Check db connection
-            echo "Checking connection to Neon database..."
-            # Extract hostname from the DATABASE_URL
-            DB_HOST=$(echo "${{ secrets.DATABASE_URL }}" | sed -n 's/.*@\(.*\)\/.*/\1/p')
-
-            # Wait for backend container to be ready
+            # Waiting for backend container to be ready
             echo "Waiting for backend container to be ready..."
             sleep 10
 
@@ -132,8 +154,7 @@ jobs:
 
             # Clean up unused Docker resources
             echo "Cleaning up unused Docker resources..."
-            docker image prune -af --filter "until=24h"
-            docker volume prune -f --filter "label!=keep"
+            docker system prune -a -f
 
       - name: Verify deployment
         uses: appleboy/ssh-action@master

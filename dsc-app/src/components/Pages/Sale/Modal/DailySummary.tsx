@@ -131,10 +131,10 @@ const DailySummary: React.FC<DailySummaryProps> = ({
         {showYoY ? (
           // Year over year comparison view
           <>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">This Year (TY)</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                     <div className="text-sm font-medium text-gray-500">
                       Quantity Sold
@@ -154,7 +154,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                     <div className="text-sm font-medium text-gray-500">
                       Transactions
@@ -177,7 +177,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
 
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Last Year (LY)</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                     <div className="text-sm font-medium text-gray-500">
                       Quantity Sold
@@ -197,7 +197,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                     <div className="text-sm font-medium text-gray-500">
                       Transactions
@@ -338,7 +338,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
               </div>
 
               {/* Secondary metrics - Bottom section */}
-              <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {/* Discount comparison */}
                 <div className="flex flex-col rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
                   <div className="mb-3 flex items-center justify-between">
@@ -360,7 +360,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                       size="sm"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700">
                       <div className="text-xs text-gray-500">This Year</div>
                       <div className="text-lg font-semibold">
@@ -398,7 +398,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
                       size="sm"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-700">
                       <div className="text-xs text-gray-500">This Year</div>
                       <div className="text-lg font-semibold">
@@ -428,7 +428,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
         ) : (
           // Original view without YoY
           <>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="rounded-lg bg-gray-50 p-4 shadow-sm dark:bg-gray-800">
                 <div className="text-sm font-medium text-gray-500">
                   Quantity Sold
