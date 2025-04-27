@@ -37,6 +37,7 @@ export const useAuth = () => {
           dispatch(updateAuthUser(response.user as User));
           localStorage.setItem("isLoggedIn", "true");
           localStorage.setItem("authUserData", JSON.stringify(response.user));
+          localStorage.setItem("firstLoginTime", Date.now().toString());
           return response.user;
         }
         dispatch(
@@ -93,15 +94,25 @@ export const useAuth = () => {
       Cookies.remove("csrf_refresh_token");
       localStorage.removeItem("isLoggedIn");
       localStorage.removeItem("authUserData");
+      localStorage.removeItem("firstLoginTime");
 
       dispatch(resetAuth());
-
       queryClient.clear();
     }
   };
 
   const handleRefreshToken = async () => {
     try {
+      const firstLoginTime = localStorage.getItem("firstLoginTime");
+      const currentTime = Date.now();
+      if (
+        firstLoginTime &&
+        currentTime - parseInt(firstLoginTime) > 24 * 3600 * 1000
+      ) {
+        console.warn("Maximum session duration reached (24h), logging out");
+        await handleLogout();
+        throw new Error("Maximum session duration exceeded");
+      }
       const response = await refreshTokenMutation.mutateAsync();
       if (response?.user) {
         dispatch(updateAuthUser(response.user as User));

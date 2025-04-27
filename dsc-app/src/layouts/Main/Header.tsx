@@ -53,7 +53,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
       label={`${currentUser.first_name[0]}${currentUser.last_name[0]}`}
       size="normal"
       shape="circle"
-      className="text-4xl font-bold text-indigo-800 dark:text-indigo-100"
+      className="p-5 text-4xl font-bold text-indigo-800 dark:text-indigo-100"
     />
   );
 
@@ -89,6 +89,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
                   style: {
                     height: "2rem",
                     width: "2rem",
+                    backgroundColor: "#b3bcf5", // light indigo
                   },
                 },
               }}
@@ -103,6 +104,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
                 )
               }
               rounded
+              style={{ backgroundColor: "#818cf8", color: "white" }}
               onClick={() => dispatch(toggleTheme())}
               pt={{
                 root: {

@@ -7,3 +7,4 @@ export * from "./useNavigation";
 export * from "./useDismissMessage";
 export * from "./useTableSelection";
 export * from "./useModalChartRenderer";
+export * from "./useInactivityTimeout";

@@ -269,7 +269,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
           <div className="mb-4">
             <Message
               severity="info"
-              text="For Group and Brand fields, use ID-NAME format (e.g., 123-NAME). For Division, use NAME-ALIAS format or could be NAME only (e.g., DIVISI 2-FOOTWEAR or DIVISI 2)."
+              text="If you're not sure about the format, you can download a sample file. Click 'Download Sample' to get one."
             />
           </div>
 
@@ -279,14 +279,16 @@ const ImportModal: React.FC<ImportModalProps> = ({
             customUpload
             uploadHandler={handleFileUpload}
             accept=".xlsx,.xls,.csv"
-            maxFileSize={10000000}
+            maxFileSize={1100000}
             chooseLabel="Select File"
             uploadLabel="Import"
             cancelLabel="Cancel"
             className="w-full"
+            invalidFileSizeMessageSummary=""
+            invalidFileSizeMessageDetail="File size should not exceed 1MB"
             emptyTemplate={
               <p className="m-0">
-                Drag and drop a file here or click to browse
+                Drag and drop a file here or click Select File to browse
               </p>
             }
           />

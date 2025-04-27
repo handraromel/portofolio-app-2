@@ -17,6 +17,7 @@ export const useAuthCheck = () => {
   const location = useLocation();
   const refreshAttempted = useRef(false);
   const lastCheckedPath = useRef<string | null>(null);
+  const navigateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const publicPaths = [
     "/login",
@@ -62,7 +63,17 @@ export const useAuthCheck = () => {
       if (!isLoggedIn && !isPublicPath()) {
         // Save current path for redirecting back after login
         localStorage.setItem("redirectAfterLogin", location.pathname);
-        navigate("/login");
+
+        // Clear any pending navigations
+        if (navigateTimeout.current) {
+          clearTimeout(navigateTimeout.current);
+        }
+
+        // Debounce navigation to prevent rapid calls
+        navigateTimeout.current = setTimeout(() => {
+          navigate("/login");
+        }, 100);
+
         if (isSubscribed) setIsChecking(false);
         return;
       }
@@ -84,7 +95,16 @@ export const useAuthCheck = () => {
           // Redirect to login if not on a public path
           if (!isPublicPath()) {
             localStorage.setItem("redirectAfterLogin", location.pathname);
-            navigate("/login");
+
+            // Clear any pending navigations
+            if (navigateTimeout.current) {
+              clearTimeout(navigateTimeout.current);
+            }
+
+            // Debounce navigation to prevent rapid calls
+            navigateTimeout.current = setTimeout(() => {
+              navigate("/login");
+            }, 100);
           }
         }
       }
@@ -98,6 +118,10 @@ export const useAuthCheck = () => {
 
     return () => {
       isSubscribed = false;
+      // Clear timeout on cleanup
+      if (navigateTimeout.current) {
+        clearTimeout(navigateTimeout.current);
+      }
     };
   }, [location.pathname, navigate, refreshToken, logout]);
 

@@ -182,7 +182,7 @@ export const useFileMgmt = () => {
 
       await cancelImportSales(importId);
 
-      showSuccess("Import cancelled successfully");
+      showWarning("Import is cancelled");
 
       // Clear import states
       setImportResult(null);

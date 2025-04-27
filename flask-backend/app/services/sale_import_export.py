@@ -594,7 +594,7 @@ class SaleImportExportService:
                             return
 
                         # Process in batches to avoid long transactions
-                        batch_size = 20
+                        batch_size = 50
                         success_count = 0
 
                         for batch_start in range(0, len(valid_records), batch_size):

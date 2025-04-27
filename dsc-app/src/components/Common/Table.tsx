@@ -317,7 +317,7 @@ const Table = <T extends { [key: string]: unknown }>({
                 value={globalFilterValue}
                 onChange={onGlobalFilterChange}
                 placeholder="Search..."
-                className="h-12 w-full pl-8"
+                className="h-[2.35rem] w-full pl-8"
               />
             </span>
           )}
@@ -434,10 +434,10 @@ const Table = <T extends { [key: string]: unknown }>({
       <DataTable
         value={data}
         paginator={true}
-        paginatorClassName="fixed-bottom-paginator border-t border-gray-200" // Add custom class
+        paginatorClassName="fixed-bottom-paginator border-t border-gray-200"
         paginatorPosition="bottom"
         rows={currentRows}
-        rowsPerPageOptions={[5, 10, 25, 50]}
+        rowsPerPageOptions={[5, 10, 25, 50, 100]}
         size="small"
         dataKey={getUniqueKeyField()}
         filters={filters}
