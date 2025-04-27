@@ -55,7 +55,7 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
           </div>
 
           <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            {sale.description || "No description provided"}
+            {sale.item_no || "No description provided"}
           </div>
 
           <div className="mt-2 flex flex-wrap gap-2">
@@ -69,82 +69,86 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
         <div className="mb-5 grid grid-cols-1 gap-6 sm:grid-cols-2">
           {/* Product Info Card */}
           <Card title="Product Information" className="shadow-sm">
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">SKU:</span>
-                <span className="font-semibold">{sale.sku}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">Item No:</span>
-                <span className="font-semibold">{sale.item_no}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">Brand:</span>
-                <span className="font-semibold">
-                  {sale.brand.id} - {sale.brand.name}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">Group:</span>
-                <span className="font-semibold">
-                  {sale.group.id} - {sale.group.name}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">Division:</span>
-                <span className="font-semibold">
-                  {sale.division.name} - {sale.division.alias || ""}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">Category:</span>
-                <span className="font-semibold">{sale.category.name}</span>
-              </div>
-            </div>
+            <table className="w-full text-sm">
+              <tbody>
+                <tr>
+                  <td className="py-1 font-medium text-gray-500">SKU:</td>
+                  <td className="py-1 pl-2 font-semibold">{sale.sku}</td>
+                </tr>
+                <tr>
+                  <td className="py-1 font-medium text-gray-500">Item No:</td>
+                  <td className="py-1 pl-2 font-semibold">{sale.item_no}</td>
+                </tr>
+                <tr>
+                  <td className="py-1 font-medium text-gray-500">Brand:</td>
+                  <td className="py-1 pl-2 font-semibold">
+                    {sale.brand.id} - {sale.brand.name}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-1 font-medium text-gray-500">Group:</td>
+                  <td className="py-1 pl-2 font-semibold">
+                    {sale.group.id} - {sale.group.name}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-1 font-medium text-gray-500">Division:</td>
+                  <td className="py-1 pl-2 font-semibold">
+                    {sale.division.name} - {sale.division.alias || ""}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-1 font-medium text-gray-500">Category:</td>
+                  <td className="py-1 pl-2 font-semibold">
+                    {sale.category.name}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </Card>
 
           {/* Sales Metrics Card */}
           <Card title="Sales Metrics" className="shadow-sm">
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">Quantity:</span>
-                <span className="font-semibold">{sale.sale_qty}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">Sale Amount:</span>
-                <span className="font-semibold">
-                  {formatNumberToIDR(sale.sale_amt)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">
-                  Discount Amount:
-                </span>
-                <span className="font-semibold">
-                  {formatNumberToIDR(sale.discounted_amt)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">Gross Sales:</span>
-                <span className="font-semibold">
-                  {formatNumberToIDR(sale.gross_sales)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">Net Sales:</span>
-                <span className="font-semibold">
-                  {formatNumberToIDR(sale.nett_sales)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">
-                  Net After Tax:
-                </span>
-                <span className="font-semibold">
-                  {formatNumberToIDR(sale.nett_sales_after_tax)}
-                </span>
-              </div>
-            </div>
+            <table className="w-full border-separate border-spacing-y-2 text-sm">
+              <tbody>
+                <tr>
+                  <td className="font-medium text-gray-500">Quantity:</td>
+                  <td className="text-right font-semibold">{sale.sale_qty}</td>
+                </tr>
+                <tr>
+                  <td className="font-medium text-gray-500">Sale Amount:</td>
+                  <td className="text-right font-semibold">
+                    {formatNumberToIDR(sale.sale_amt)}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="font-medium text-gray-500">
+                    Discount Amount:
+                  </td>
+                  <td className="text-right font-semibold">
+                    {formatNumberToIDR(sale.discounted_amt)}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="font-medium text-gray-500">Gross Sales:</td>
+                  <td className="text-right font-semibold">
+                    {formatNumberToIDR(sale.gross_sales)}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="font-medium text-gray-500">Net Sales:</td>
+                  <td className="text-right font-semibold">
+                    {formatNumberToIDR(sale.nett_sales)}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="font-medium text-gray-500">Net After Tax:</td>
+                  <td className="text-right font-semibold">
+                    {formatNumberToIDR(sale.nett_sales_after_tax)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </Card>
 
           {/* Tax Info Card */}
@@ -163,39 +167,43 @@ const Detail: React.FC<DetailProps> = ({ visible, onHide, sale }) => {
 
           {/* Dates Card */}
           <Card title="Record Information" className="shadow-sm">
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">Input Date:</span>
-                <div className="text-right">
-                  <div>
-                    {formatDate(sale.input_date, {
-                      format: dateFormats.CALENDAR_DATE,
-                    })}
-                  </div>
-                  <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {getTimeAgo(inputDate)}
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">Created:</span>
-                <div className="text-right">
-                  <div>{formatDate(sale.created_at)}</div>
-                  <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {getTimeAgo(createdDate)}
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-500">Updated:</span>
-                <div className="text-right">
-                  <div>{formatDate(sale.updated_at)}</div>
-                  <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {getTimeAgo(updatedDate)}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <table className="w-full border-separate border-spacing-y-2 text-sm">
+              <tbody>
+                <tr>
+                  <td className="w-1/3 font-medium text-gray-500">
+                    Input Date:
+                  </td>
+                  <td className="text-right">
+                    <div>
+                      {formatDate(sale.input_date, {
+                        format: dateFormats.CALENDAR_DATE,
+                      })}
+                    </div>
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {getTimeAgo(inputDate)}
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="font-medium text-gray-500">Created:</td>
+                  <td className="text-right">
+                    <div>{formatDate(sale.created_at)}</div>
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {getTimeAgo(createdDate)}
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="font-medium text-gray-500">Updated:</td>
+                  <td className="text-right">
+                    <div>{formatDate(sale.updated_at)}</div>
+                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {getTimeAgo(updatedDate)}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </Card>
         </div>
       </div>

@@ -174,7 +174,6 @@ export const useMtdSales = (
     queryFn: async (): Promise<MtdSalesSummary | null> => {
       try {
         const response = await apiClient<MtdSalesSummary>(endpoint);
-
         return response.data || null;
       } catch (error) {
         if (error instanceof Error) {

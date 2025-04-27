@@ -133,7 +133,7 @@ const Submission: React.FC<SubmissionProps> = ({
               />
               <Button
                 type="submit"
-                label="Submit"
+                label={category ? "Update" : "Submit"}
                 size="small"
                 loading={isSubmitting || isLoading}
                 disabled={!isValid || !isDirty || isSubmitting || isLoading}

@@ -211,7 +211,7 @@ export const Submission: React.FC<SubmissionProps> = ({
               />
               <Button
                 type="submit"
-                label="Submit"
+                label={user ? "Update" : "Submit"}
                 size="small"
                 loading={isSubmitting}
                 disabled={!isValid || !isDirty || isSubmitting}

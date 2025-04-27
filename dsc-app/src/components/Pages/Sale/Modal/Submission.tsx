@@ -271,7 +271,7 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, sale }) => {
               />
               <Button
                 type="submit"
-                label="Submit"
+                label={sale ? "Update" : "Submit"}
                 size="small"
                 loading={isSubmitting || isLoading}
                 disabled={!isValid || !isDirty || isSubmitting || isLoading}

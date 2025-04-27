@@ -27,10 +27,10 @@ const Filter: React.FC<FilterProps> = ({
   filterType,
 }) => {
   // Get product data for dropdowns
-  const { brands } = useBrand();
-  const { groups } = useGroup();
-  const { divisions } = useDivision();
-  const { categories } = useCategory();
+  const { allBrands } = useBrand();
+  const { allGroups } = useGroup();
+  const { allDivisions } = useDivision();
+  const { allCategories } = useCategory();
 
   const defaultValues: FilterData = {
     start_date: "",
@@ -109,19 +109,19 @@ const Filter: React.FC<FilterProps> = ({
   };
 
   // Transform arrays to dropdown options
-  const brandOptions = brands.map((brand) => ({
+  const brandOptions = allBrands.map((brand) => ({
     label: `${brand.id} - ${brand.name}`,
     value: brand.uuid,
   }));
-  const groupOptions = groups.map((group) => ({
+  const groupOptions = allGroups.map((group) => ({
     label: `${group.id} - ${group.name}`,
     value: group.uuid,
   }));
-  const divisionOptions = divisions.map((division) => ({
+  const divisionOptions = allDivisions.map((division) => ({
     label: `${division.name} - ${division.alias}`,
     value: division.uuid,
   }));
-  const categoryOptions = categories.map((category) => ({
+  const categoryOptions = allCategories.map((category) => ({
     label: category.name,
     value: category.uuid,
   }));

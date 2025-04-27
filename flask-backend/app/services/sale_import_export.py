@@ -476,17 +476,17 @@ class SaleImportExportService:
                     }
 
                     # Basic validation
-                    if sale_data['sale_qty'] <= 0:
-                        error_count += 1
-                        errors.append(
-                            f"Row {row_index}: Sale quantity must be positive")
-                        continue
+                    # if sale_data['sale_qty'] <= 0:
+                    #     error_count += 1
+                    #     errors.append(
+                    #         f"Row {row_index}: Sale quantity must be positive")
+                    #     continue
 
-                    if sale_data['sale_amt'] < 0:
-                        error_count += 1
-                        errors.append(
-                            f"Row {row_index}: Sale amount cannot be negative")
-                        continue
+                    # if sale_data['sale_amt'] < 0:
+                    #     error_count += 1
+                    #     errors.append(
+                    #         f"Row {row_index}: Sale amount cannot be negative")
+                    #     continue
 
                     # If we get here, the record is valid
                     valid_records.append(sale_data)

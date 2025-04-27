@@ -101,7 +101,11 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
   const indexTemplate = (rowData: BrandSalesData) => {
     const index =
       dailySalesSummary?.brands.findIndex((item) => item === rowData) ?? -1;
-    return index + 1;
+
+    const itemsPerPage = dailyReportParams.per_page;
+    const currentPage = dailySalesSummary?.current_page || 1;
+
+    return (currentPage - 1) * itemsPerPage + index + 1;
   };
 
   const getStandardColumns = (): ColumnDef<BrandSalesData>[] => {

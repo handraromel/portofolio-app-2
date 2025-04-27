@@ -190,22 +190,27 @@ const Dashboard: React.FC = () => {
               {isLoading ? (
                 <div className="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
               ) : (
-                <div className="text-3xl font-bold">
-                  <GrowthIndicator
-                    growthValue={
-                      mtdSalesSummary?.total.sale_qty &&
-                      mtdSalesSummary?.total.ly_data
-                        ? (mtdSalesSummary.total.sale_qty /
-                            mtdSalesSummary.total.ly_data.sale_qty) *
-                            100 -
-                          100
+                <GrowthIndicator
+                  growthValue={
+                    mtdSalesSummary?.total.sale_qty &&
+                    mtdSalesSummary?.total.ly_data &&
+                    mtdSalesSummary.total.ly_data.sale_qty > 0
+                      ? (mtdSalesSummary.total.sale_qty /
+                          mtdSalesSummary.total.ly_data.sale_qty) *
+                          100 -
+                        100
+                      : mtdSalesSummary?.total.sale_qty &&
+                          mtdSalesSummary?.total.ly_data &&
+                          mtdSalesSummary.total.ly_data.sale_qty === 0 &&
+                          mtdSalesSummary.total.sale_qty > 0
+                        ? 100
                         : null
-                    }
-                    isPercentage={true}
-                    size="lg"
-                    className="text-3xl font-bold"
-                  />
-                </div>
+                  }
+                  isPercentage={true}
+                  size="lg"
+                  className="text-3xl font-bold"
+                  defaultValue="New"
+                />
               )}
             </div>
             <div className="mt-2 text-sm text-gray-500">
@@ -220,7 +225,6 @@ const Dashboard: React.FC = () => {
                 : "No comparison data"}
             </div>
           </div>
-
           <div className="flex flex-col items-center rounded-lg bg-white p-5 shadow-sm dark:bg-gray-800">
             <div className="text-sm font-medium text-gray-500">
               Transaction Change
@@ -233,16 +237,24 @@ const Dashboard: React.FC = () => {
                   <GrowthIndicator
                     growthValue={
                       mtdSalesSummary?.total.transaction_count &&
-                      mtdSalesSummary?.total.ly_data
+                      mtdSalesSummary?.total.ly_data &&
+                      mtdSalesSummary.total.ly_data.transaction_count > 0
                         ? (mtdSalesSummary.total.transaction_count /
                             mtdSalesSummary.total.ly_data.transaction_count) *
                             100 -
                           100
-                        : null
+                        : mtdSalesSummary?.total.transaction_count &&
+                            mtdSalesSummary?.total.ly_data &&
+                            mtdSalesSummary.total.ly_data.transaction_count ===
+                              0 &&
+                            mtdSalesSummary.total.transaction_count > 0
+                          ? 100
+                          : null
                     }
                     isPercentage={true}
                     size="lg"
                     className="text-3xl font-bold"
+                    defaultValue="New"
                   />
                 </div>
               )}

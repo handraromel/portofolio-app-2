@@ -136,7 +136,7 @@ const Submission: React.FC<SubmissionProps> = ({ visible, onHide, group }) => {
               />
               <Button
                 type="submit"
-                label="Submit"
+                label={group ? "Update" : "Submit"}
                 size="small"
                 loading={isSubmitting || isLoading}
                 disabled={!isValid || !isDirty || isSubmitting || isLoading}

@@ -8,8 +8,10 @@ import {
   useDailySales,
   useDeleteMultipleSales,
   useMtdSales,
+  saleKeys,
 } from "@/services/SaleService";
 import { SaleSubmission, SaleQueryFilters } from "@/types/sale";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const useSale = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -72,6 +74,7 @@ export const useSale = () => {
   const updateSaleMutation = useUpdateSale();
   const deleteSaleMutation = useDeleteSale();
   const deleteMultipleSalesMutation = useDeleteMultipleSales();
+  const queryClient = useQueryClient();
 
   const fetchSales = async (newFilters?: Partial<SaleQueryFilters>) => {
     if (newFilters) {
@@ -84,16 +87,38 @@ export const useSale = () => {
     params?: Partial<typeof dailyReportParams>,
   ) => {
     if (params) {
-      setDailyReportParams((prev) => ({ ...prev, ...params }));
+      setDailyReportParams((prevParams) => {
+        const newParams = { ...prevParams, ...params };
+
+        queryClient.invalidateQueries({
+          queryKey: [...saleKeys.reports(), "daily"],
+        });
+
+        return newParams;
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      return dailySalesQuery.refetch();
     }
-    return await dailySalesQuery.refetch();
+    return dailySalesQuery.refetch();
   };
 
   const fetchMtdSales = async (params?: Partial<typeof mtdReportParams>) => {
     if (params) {
-      setMtdReportParams((prev) => ({ ...prev, ...params }));
+      setMtdReportParams((prevParams) => {
+        const newParams = { ...prevParams, ...params };
+
+        queryClient.invalidateQueries({
+          queryKey: [...saleKeys.reports(), "mtd"],
+        });
+
+        return newParams;
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      return mtdSalesQuery.refetch();
     }
-    return await mtdSalesQuery.refetch();
+    return mtdSalesQuery.refetch();
   };
 
   const handleCreateSale = async (data: SaleSubmission) => {

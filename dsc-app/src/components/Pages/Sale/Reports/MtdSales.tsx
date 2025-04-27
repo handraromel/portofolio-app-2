@@ -96,7 +96,11 @@ const MtdSales: React.FC<MtdSalesProps> = ({ onRefresh }) => {
   const indexTemplate = (rowData: BrandMtdSalesData) => {
     const index =
       mtdSalesSummary?.brands.findIndex((item) => item === rowData) ?? -1;
-    return index + 1;
+
+    const itemsPerPage = mtdReportParams.per_page;
+    const currentPage = mtdSalesSummary?.current_page || 1;
+
+    return (currentPage - 1) * itemsPerPage + index + 1;
   };
 
   const getStandardColumns = (): ColumnDef<BrandMtdSalesData>[] => {
