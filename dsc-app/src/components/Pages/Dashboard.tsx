@@ -38,7 +38,7 @@ const Dashboard: React.FC = () => {
     refreshData,
     topPerformingBrands,
     yearlyGrowth,
-    fetchMtdSales, // Make sure this is included in your hook return
+    fetchMtdSales,
   } = useDashboardData();
 
   // Handle month selection change
@@ -116,14 +116,14 @@ const Dashboard: React.FC = () => {
             icon="pi pi-calendar"
             onClick={() => navigate("/sales")}
           />
-          <Button
+          {/* <Button
             icon="pi pi-refresh"
             label="Refresh"
             severity="info"
             outlined
             onClick={() => refreshData()}
             loading={isLoading}
-          />
+          /> */}
         </div>
       </div>
 
