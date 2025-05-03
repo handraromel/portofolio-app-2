@@ -431,6 +431,7 @@ const SaleList: React.FC = () => {
                       ? "warning"
                       : "secondary",
                   onClick: handleSelectAll,
+                  visible: canEdit(),
                   disabled: isLoading || sales.length === 0,
                 },
                 {
@@ -511,7 +512,7 @@ const SaleList: React.FC = () => {
                   severity: "danger",
                   onClick: handleBulkDelete,
                   visible: () =>
-                    !!canDelete() &&
+                    canEdit() &&
                     !!selection.selectedItems &&
                     selection.selectedItems.length > 0,
                 },
