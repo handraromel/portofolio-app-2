@@ -102,7 +102,6 @@ export const useDailySales = (
   queryParams.append("per_page", per_page.toString());
 
   const queryString = queryParams.toString();
-  // Update the endpoint to use the by-brand endpoint
   const endpoint = `${salePrefix}/daily/by-brand${queryString ? `?${queryString}` : ""}`;
 
   const params = {
@@ -114,6 +113,8 @@ export const useDailySales = (
     group_id,
     division_id,
     category_id,
+    page,
+    per_page,
   };
 
   return useQuery<DailySalesSummary | null, Error>({
@@ -121,7 +122,6 @@ export const useDailySales = (
     queryFn: async (): Promise<DailySalesSummary | null> => {
       try {
         const response = await apiClient<DailySalesSummary>(endpoint);
-
         return response.data || null;
       } catch (error) {
         if (error instanceof Error) {

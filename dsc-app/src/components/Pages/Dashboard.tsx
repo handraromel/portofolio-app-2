@@ -2,10 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useAppSelector } from "@/hooks/useStore";
 import { useUser } from "@/services/UserService";
 import { useDashboardData } from "@/hooks/useDashboardData";
-import { formatNumberToIDR } from "@/utils/formatCurrency";
 import { Button } from "primereact/button";
 import { Calendar } from "primereact/calendar";
-import SummaryCard from "@/components/Common/SummaryCard";
 import BrandPerformanceChart from "@/components/Charts/BrandPerformanceChart";
 import RecentActivities from "../Common/Activities";
 import GrowthIndicator from "@/components/Pages/Sale/Components/GrowthIndicator";
@@ -22,17 +20,17 @@ const Dashboard: React.FC = () => {
   // Add global state for selected month
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
 
-  const [topDailyBrands, setTopDailyBrands] = useState<
-    {
-      brandId: string;
-      brandName: string;
-      saleAmount: number;
-      growthPercentage: number | null;
-    }[]
-  >([]);
+  // const [topDailyBrands, setTopDailyBrands] = useState<
+  //   {
+  //     brandId: string;
+  //     brandName: string;
+  //     saleAmount: number;
+  //     growthPercentage: number | null;
+  //   }[]
+  // >([]);
 
   const {
-    dailySalesSummary,
+    // dailySalesSummary,
     mtdSalesSummary,
     isLoading,
     refreshData,
@@ -66,22 +64,22 @@ const Dashboard: React.FC = () => {
   }, []);
 
   // Process daily brands data
-  useEffect(() => {
-    if (dailySalesSummary?.brands) {
-      // Sort brands by sale amount descending and take top 5
-      const sortedBrands = [...dailySalesSummary.brands]
-        .sort((a, b) => b.sale_amt - a.sale_amt)
-        .slice(0, 5)
-        .map((brand) => ({
-          brandId: brand.brand_id,
-          brandName: brand.brand_name,
-          saleAmount: brand.sale_amt,
-          growthPercentage: brand.growth_pct ?? null,
-        }));
+  // useEffect(() => {
+  //   if (dailySalesSummary?.brands) {
+  //     // Sort brands by sale amount descending and take top 5
+  //     const sortedBrands = [...dailySalesSummary.brands]
+  //       .sort((a, b) => b.sale_amt - a.sale_amt)
+  //       .slice(0, 5)
+  //       .map((brand) => ({
+  //         brandId: brand.brand_id,
+  //         brandName: brand.brand_name,
+  //         saleAmount: brand.sale_amt,
+  //         growthPercentage: brand.growth_pct ?? null,
+  //       }));
 
-      setTopDailyBrands(sortedBrands);
-    }
-  }, [dailySalesSummary]);
+  //     setTopDailyBrands(sortedBrands);
+  //   }
+  // }, [dailySalesSummary]);
 
   if (!currentUser) return null;
 
@@ -128,13 +126,13 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-4">
+      {/* <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-4">
         <SummaryCard
           title="Today's Sales"
           value={formatNumberToIDR(dailySalesSummary?.total.sale_amt || 0)}
           growth={dailySalesSummary?.total.growth_pct || null}
           icon="pi pi-shopping-bag"
-          color="blue"
+          color="indigo"
           isLoading={isLoading}
         />
         <SummaryCard
@@ -142,7 +140,7 @@ const Dashboard: React.FC = () => {
           value={formatNumberToIDR(mtdSalesSummary?.total.sale_amt || 0)}
           growth={mtdSalesSummary?.total.growth_pct || null}
           icon="pi pi-calendar"
-          color="green"
+          color="red"
           isLoading={isLoading}
         />
         <SummaryCard
@@ -161,11 +159,11 @@ const Dashboard: React.FC = () => {
                   mtdSalesSummary.total.sale_qty
                 : 0),
           )}
-          icon="pi pi-dollar"
-          color="purple"
+          icon="pi pi-money-bill"
+          color="green"
           isLoading={isLoading}
         />
-      </div>
+      </div> */}
 
       {/* Charts Row 1 */}
       <div className="mb-8 grid grid-cols-1 gap-6 2xl:grid-cols-2">
@@ -177,14 +175,14 @@ const Dashboard: React.FC = () => {
         />
         <BrandPerformanceChart
           mtdData={topPerformingBrands}
-          dailyData={topDailyBrands}
-          title={`Top Performing Brands (${selectedMonth.toLocaleDateString(
+          // dailyData={topDailyBrands}
+          title={`Top Performing Brands - ${selectedMonth.toLocaleDateString(
             undefined,
             {
               month: "long",
               year: "numeric",
             },
-          )})`}
+          )}`}
         />
       </div>
 
@@ -199,7 +197,7 @@ const Dashboard: React.FC = () => {
             <div className="text-sm font-medium text-gray-500">
               Sales Growth
             </div>
-            <div className="mt-3 flex items-center">
+            <div className="flex items-center">
               {isLoading ? (
                 <div className="h-8 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
               ) : (
@@ -229,23 +227,21 @@ const Dashboard: React.FC = () => {
                 <GrowthIndicator
                   growthValue={
                     mtdSalesSummary?.total.sale_qty &&
-                    mtdSalesSummary?.total.ly_data &&
-                    mtdSalesSummary.total.ly_data.sale_qty > 0
-                      ? (mtdSalesSummary.total.sale_qty /
-                          mtdSalesSummary.total.ly_data.sale_qty) *
-                          100 -
-                        100
-                      : mtdSalesSummary?.total.sale_qty &&
-                          mtdSalesSummary?.total.ly_data &&
-                          mtdSalesSummary.total.ly_data.sale_qty === 0 &&
-                          mtdSalesSummary.total.sale_qty > 0
-                        ? 100
-                        : null
+                    mtdSalesSummary?.total.ly_data
+                      ? mtdSalesSummary.total.ly_data.sale_qty > 0
+                        ? (mtdSalesSummary.total.sale_qty /
+                            mtdSalesSummary.total.ly_data.sale_qty) *
+                            100 -
+                          100
+                        : mtdSalesSummary.total.sale_qty > 0
+                          ? 100
+                          : 0
+                      : null
                   }
                   isPercentage={true}
                   size="lg"
                   className="text-3xl font-bold"
-                  defaultValue="New"
+                  defaultValue="-"
                 />
               )}
             </div>
@@ -273,24 +269,21 @@ const Dashboard: React.FC = () => {
                   <GrowthIndicator
                     growthValue={
                       mtdSalesSummary?.total.transaction_count &&
-                      mtdSalesSummary?.total.ly_data &&
-                      mtdSalesSummary.total.ly_data.transaction_count > 0
-                        ? (mtdSalesSummary.total.transaction_count /
-                            mtdSalesSummary.total.ly_data.transaction_count) *
-                            100 -
-                          100
-                        : mtdSalesSummary?.total.transaction_count &&
-                            mtdSalesSummary?.total.ly_data &&
-                            mtdSalesSummary.total.ly_data.transaction_count ===
-                              0 &&
-                            mtdSalesSummary.total.transaction_count > 0
-                          ? 100
-                          : null
+                      mtdSalesSummary?.total.ly_data
+                        ? mtdSalesSummary.total.ly_data.transaction_count > 0
+                          ? (mtdSalesSummary.total.transaction_count /
+                              mtdSalesSummary.total.ly_data.transaction_count) *
+                              100 -
+                            100
+                          : mtdSalesSummary.total.transaction_count > 0
+                            ? 100
+                            : 0
+                        : null
                     }
                     isPercentage={true}
                     size="lg"
                     className="text-3xl font-bold"
-                    defaultValue="New"
+                    defaultValue="-"
                   />
                 </div>
               )}

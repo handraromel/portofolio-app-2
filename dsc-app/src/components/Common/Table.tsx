@@ -35,13 +35,23 @@ export interface ActionButton<T> {
   icon: string | ((rowData: T) => string);
   tooltip?: string | ((rowData: T) => string);
   severity?:
-    | "secondary"
     | "success"
+    | "secondary"
     | "info"
     | "warning"
     | "danger"
     | "help"
-    | "contrast";
+    | "contrast"
+    | ((
+        rowData: T,
+      ) =>
+        | "success"
+        | "secondary"
+        | "info"
+        | "warning"
+        | "danger"
+        | "help"
+        | "contrast");
   onClick: (rowData: T) => void;
   disabled?: (rowData: T) => boolean;
   visible?: (rowData: T) => boolean;
@@ -213,6 +223,10 @@ const Table = <T extends { [key: string]: unknown }>({
               typeof button.tooltip === "function"
                 ? button.tooltip(rowData)
                 : button.tooltip;
+            const buttonSeverity =
+              typeof button.severity === "function"
+                ? button.severity(rowData)
+                : button.severity;
 
             return (
               <Button
@@ -221,7 +235,7 @@ const Table = <T extends { [key: string]: unknown }>({
                 rounded
                 icon={getIconName}
                 tooltip={tooltipText}
-                severity={button.severity}
+                severity={buttonSeverity}
                 tooltipOptions={
                   button.tooltipOptions || {
                     position: "top",
@@ -297,10 +311,10 @@ const Table = <T extends { [key: string]: unknown }>({
 
   const renderHeader = () => {
     return (
-      <div className="mb-5 flex flex-col flex-wrap justify-between md:flex-row">
+      <div className="mb-5 flex flex-col flex-wrap items-center justify-between md:flex-row">
         <div className="flex flex-col">
           <h2 className="text-xl font-bold">
-            {title}
+            <span className="text-slate-600 dark:text-slate-100">{title}</span>
             {totalRecords !== undefined && totalRecords > 0 && (
               <p className="text-sm text-gray-500">
                 {totalRecords} Record{`${totalRecords === 1 ? "" : "s"}`} found
@@ -309,7 +323,7 @@ const Table = <T extends { [key: string]: unknown }>({
           </h2>
         </div>
 
-        <div className="mt-1.5 flex flex-col flex-wrap gap-2 md:flex-row">
+        <div className="flex flex-col flex-wrap gap-2 md:flex-row">
           {!hideSearch && (
             <span className="p-input-icon-left">
               <i className="pi pi-search text-gray-500" />
@@ -318,6 +332,7 @@ const Table = <T extends { [key: string]: unknown }>({
                 onChange={onGlobalFilterChange}
                 placeholder="Search..."
                 className="h-[2.35rem] w-full pl-8"
+                style={{ fontSize: "13px" }}
               />
             </span>
           )}

@@ -281,6 +281,8 @@ const UserList: React.FC = () => {
                 rowData.is_active ? "pi pi-ban" : "pi pi-check",
               tooltip: (rowData) =>
                 rowData.is_active ? "Deactivate" : "Activate",
+              severity: (rowData) =>
+                rowData.is_active ? "warning" : "contrast",
               onClick: (rowData) => {
                 setSelectedUser(rowData);
                 setTriggerActivate(true);

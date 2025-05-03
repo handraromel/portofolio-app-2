@@ -259,7 +259,7 @@ const MtdSales: React.FC<MtdSalesProps> = ({ onRefresh }) => {
       return <span className="flex h-full items-center">Select View</span>;
     }
     return (
-      <div className="flex h-full items-center gap-2">
+      <div className="flex h-full items-center gap-2 text-sm">
         <i className={`${option.icon} flex items-center`}></i>
         <span className="flex items-center">{option.label}</span>
       </div>
@@ -268,8 +268,7 @@ const MtdSales: React.FC<MtdSalesProps> = ({ onRefresh }) => {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold">Month-to-Date Sales by Brand</h2>
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-4">
         <div className="flex flex-wrap gap-2">
           <Dropdown
             id="view-selector"
@@ -306,7 +305,7 @@ const MtdSales: React.FC<MtdSalesProps> = ({ onRefresh }) => {
       </div>
 
       <Table
-        title=""
+        title="Month-to-Date Sales by Brand"
         data={mtdSalesSummary?.brands || []}
         columns={columns}
         loading={isMtdReportLoading}

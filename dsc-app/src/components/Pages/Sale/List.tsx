@@ -436,7 +436,7 @@ const SaleList: React.FC = () => {
                 {
                   icon: "pi pi-refresh",
                   tooltip: "Refresh list",
-                  severity: "info",
+                  severity: "contrast",
                   onClick: handleRefresh,
                 },
                 {
@@ -457,7 +457,7 @@ const SaleList: React.FC = () => {
                     ? "pi pi-spin pi-spinner"
                     : "pi pi-file-excel",
                   tooltip: isExporting ? "Exporting..." : "Export to Excel",
-                  severity: "success",
+                  severity: "info",
                   onClick: handleExportToExcel,
                   disabled: isExporting || isImporting,
                 },

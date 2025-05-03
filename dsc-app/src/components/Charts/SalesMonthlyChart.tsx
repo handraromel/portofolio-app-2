@@ -142,12 +142,12 @@ const SalesMonthlyChart: React.FC<SalesMonthlyChartProps> = ({
     if (active && payload && payload.length) {
       const data = payload[0].payload as { date: string; sales: number };
       return (
-        <div className="rounded-md border border-gray-200 bg-white p-3 shadow-md dark:border-gray-700 dark:bg-gray-800">
+        <div className="max-w-[200px] rounded-md border border-gray-200 bg-white p-2 shadow-md sm:max-w-none sm:p-3 dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
+            <p className="text-xs font-semibold text-gray-600 sm:text-sm dark:text-gray-300">
               Date:
             </p>
-            <p className="text-sm font-bold text-gray-800 dark:text-gray-100">
+            <p className="text-xs font-bold text-gray-800 sm:text-sm dark:text-gray-100">
               {new Date(label).toLocaleDateString(undefined, {
                 year: "numeric",
                 month: "short",
@@ -157,15 +157,15 @@ const SalesMonthlyChart: React.FC<SalesMonthlyChartProps> = ({
           </div>
           <div className="my-1 h-0.5 w-full bg-gray-100 dark:bg-gray-700"></div>
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
+            <p className="text-xs font-semibold text-gray-600 sm:text-sm dark:text-gray-300">
               Sales:&nbsp;
             </p>
-            <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+            <p className="text-xs font-bold text-indigo-600 sm:text-sm dark:text-indigo-400">
               {formatNumberToIDR(data.sales)}
             </p>
           </div>
 
-          {averageSales > 0 && (
+          {averageSales > 0 && data.sales !== 0 && (
             <div className="flex items-center justify-between">
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 vs Average:
@@ -187,7 +187,7 @@ const SalesMonthlyChart: React.FC<SalesMonthlyChartProps> = ({
   return (
     <div className="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
       <div className="mb-4 flex flex-col items-start justify-between space-y-2 sm:flex-row sm:items-center sm:space-y-0">
-        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+        <h3 className="w-full truncate text-lg font-semibold text-gray-700 dark:text-gray-200">
           {title} -{" "}
           {(selectedDate || internalSelectedDate).toLocaleDateString(
             undefined,
@@ -198,7 +198,7 @@ const SalesMonthlyChart: React.FC<SalesMonthlyChartProps> = ({
           )}
         </h3>
 
-        <div className="flex flex-row items-center gap-2">
+        <div className="flex flex-row items-center gap-2 self-end sm:self-auto">
           {!selectedDate && (
             <Calendar
               value={internalSelectedDate}
@@ -224,16 +224,20 @@ const SalesMonthlyChart: React.FC<SalesMonthlyChartProps> = ({
       </div>
 
       {isLoading ? (
-        <div className="flex h-[300px] items-center justify-center">
-          <i className="pi pi-spin pi-spinner text-primary text-2xl"></i>
+        <div className="flex h-[200px] items-center justify-center sm:h-[300px]">
+          <i className="pi pi-spin pi-spinner text-primary text-xl sm:text-2xl"></i>
         </div>
       ) : error ? (
-        <div className="flex h-[300px] items-center justify-center text-red-500">
-          Error loading data: {error.message}
+        <div className="flex h-[200px] items-center justify-center p-4 text-center text-red-500 sm:h-[300px]">
+          <span className="text-sm sm:text-base">
+            Error loading data: {error.message}
+          </span>
         </div>
       ) : isChartDataHasNoSale ? (
-        <div className="flex h-[300px] items-center justify-center text-gray-500 dark:text-gray-400">
-          No data available for the selected month
+        <div className="flex h-[200px] items-center justify-center p-4 text-center text-gray-500 sm:h-[300px] dark:text-gray-400">
+          <span className="text-sm sm:text-base">
+            No data available for the selected month
+          </span>
         </div>
       ) : (
         <div className="h-[300px] w-full">
@@ -243,7 +247,7 @@ const SalesMonthlyChart: React.FC<SalesMonthlyChartProps> = ({
               margin={{
                 top: 5,
                 right: 30,
-                left: 20,
+                left: 10,
                 bottom: 5,
               }}
             >
@@ -251,7 +255,8 @@ const SalesMonthlyChart: React.FC<SalesMonthlyChartProps> = ({
               <XAxis
                 dataKey="date"
                 tickFormatter={formatXAxis}
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 10 }}
+                interval="preserveStartEnd"
               />
               <YAxis
                 tickFormatter={(value) => {
@@ -260,7 +265,8 @@ const SalesMonthlyChart: React.FC<SalesMonthlyChartProps> = ({
                   if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
                   return value.toString();
                 }}
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 10 }}
+                width={40}
               />
               <Tooltip content={<CustomTooltip />} />
 
@@ -296,18 +302,18 @@ const SalesMonthlyChart: React.FC<SalesMonthlyChartProps> = ({
 
       {/* Performance Metrics Cards */}
       {metrics && !isLoading && !isChartDataHasNoSale && (
-        <div className="mt-6">
-          <h4 className="mb-3 text-sm font-semibold text-gray-600 dark:text-gray-300">
+        <div className="mt-4 sm:mt-6">
+          <h4 className="mb-2 text-sm font-semibold text-gray-600 sm:mb-3 dark:text-gray-300">
             Monthly Performance Summary
           </h4>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Total Sales Card */}
-            <div className="group relative overflow-hidden rounded-lg border border-gray-100 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600">
-              <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-indigo-500"></div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
+            {/* Total Sales Card - simplified for mobile */}
+            <div className="group relative overflow-hidden rounded-lg border border-gray-100 bg-white p-3 shadow-sm transition-all duration-200 hover:shadow-md sm:p-4 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600">
+              <div className="absolute top-0 bottom-0 left-0 w-1 bg-indigo-500 sm:w-1.5"></div>
               <div className="flex flex-col pl-2">
-                <div className="mb-2 flex items-center justify-between">
-                  <h5 className="truncate text-sm font-semibold text-gray-700 dark:text-gray-200">
+                <div className="mb-1 flex items-center justify-between sm:mb-2">
+                  <h5 className="truncate text-xs font-semibold text-gray-700 sm:text-sm dark:text-gray-200">
                     Total Sales
                   </h5>
                 </div>
@@ -315,13 +321,13 @@ const SalesMonthlyChart: React.FC<SalesMonthlyChartProps> = ({
                   <div className="text-xs text-gray-500 dark:text-gray-400">
                     This Month
                   </div>
-                  <div className="text-base font-bold text-gray-800 dark:text-gray-200">
+                  <div className="text-sm font-bold text-gray-800 sm:text-base dark:text-gray-200">
                     {formatNumberToIDR(metrics.totalSales)}
                   </div>
                 </div>
 
-                {/* Visual indicator bar - always 100% for total */}
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
+                {/* Visual indicator bar */}
+                <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-gray-100 sm:h-1.5 dark:bg-gray-700">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{

@@ -47,7 +47,6 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
                       <GrowthIndicator
                         growthValue={growth}
                         isPercentage={true}
-                        showZero={true}
                         size="sm"
                       />
                     </div>

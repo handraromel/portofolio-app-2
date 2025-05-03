@@ -1,79 +1,86 @@
 import React from "react";
+import { formatNumberToIDR } from "@/utils/formatCurrency";
 
 interface GrowthIndicatorProps {
   growthValue: number | null;
   isPercentage?: boolean;
-  showZero?: boolean;
-  className?: string;
-  size?: "sm" | "md" | "lg";
   colorOnly?: boolean;
+  size?: "xs" | "sm" | "md" | "lg";
+  className?: string;
   defaultValue?: string;
 }
 
 const GrowthIndicator: React.FC<GrowthIndicatorProps> = ({
   growthValue,
   isPercentage = false,
-  showZero = false,
-  className = "",
-  size = "md",
   colorOnly = false,
-  defaultValue = "-",
+  size = "md",
+  className = "",
+  defaultValue = "0",
 }) => {
-  if (growthValue === null) {
-    return <span className={`text-gray-400 ${className}`}>{defaultValue}</span>;
-  }
+  // Function to determine the appropriate color based on the growth value
+  const getColorClass = (value: number | null): string => {
+    if (value === null) return "text-gray-500";
+    if (value > 0) return "text-green-500";
+    if (value < 0) return "text-red-500";
+    return "text-gray-500";
+  };
 
-  if (growthValue === 0 && !showZero) return null;
+  // Function to format growth values, handling large percentages better
+  const formatGrowthValue = (value: number, isPercentage: boolean): string => {
+    // For very large growth (over 1000%), use multiplier format
+    if (isPercentage && value > 1000) {
+      const multiplier = (value + 100) / 100;
+      return `${multiplier.toFixed(1)}x`;
+    }
 
-  const isPositive = growthValue > 0;
-  const isNeutral = growthValue === 0;
+    // Normal percentage formatting
+    return isPercentage
+      ? `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`
+      : formatNumberToIDR(value);
+  };
 
-  // Size classes
-  const sizeClass = {
-    sm: "text-xs",
-    md: "text-sm",
-    lg: "text-base",
-  }[size];
+  // Function to determine font size based on the size prop
+  const getSizeClass = (): string => {
+    switch (size) {
+      case "xs":
+        return "text-xs";
+      case "sm":
+        return "text-sm";
+      case "lg":
+        return "text-lg";
+      case "md":
+      default:
+        return "text-base";
+    }
+  };
 
-  let formattedValue = "";
-  if (isPercentage) {
-    formattedValue = `${Math.abs(growthValue).toFixed(1)}%`;
-  } else {
-    formattedValue = new Intl.NumberFormat("en-US").format(
-      Math.abs(growthValue),
-    );
-  }
-
-  if (isPositive) formattedValue = "+" + formattedValue;
-  else if (!isNeutral) formattedValue = "-" + formattedValue;
-
-  const colorClass = isPositive
-    ? "text-green-600"
-    : isNeutral
-      ? "text-gray-500"
-      : "text-red-600";
-
-  if (colorOnly) {
+  // If we only want to show the color, return an icon
+  if (colorOnly && growthValue !== null) {
+    const iconClass =
+      growthValue > 0
+        ? "pi-arrow-up"
+        : growthValue < 0
+          ? "pi-arrow-down"
+          : "pi-minus";
     return (
-      <span className={`${colorClass} ${className}`}>{formattedValue}</span>
+      <i
+        className={`pi ${iconClass} ${getColorClass(
+          growthValue,
+        )} ${getSizeClass()} ${className}`}
+      ></i>
     );
   }
 
+  // Otherwise, return the formatted value with color
   return (
-    <div
-      className={`flex items-center ${sizeClass} ${colorClass} ${className}`}
+    <span
+      className={`${getColorClass(growthValue)} ${getSizeClass()} ${className}`}
     >
-      {!isNeutral && (
-        <span className="mr-1">
-          {isPositive ? (
-            <i className="pi pi-arrow-up" />
-          ) : (
-            <i className="pi pi-arrow-down" />
-          )}
-        </span>
-      )}
-      <span>{formattedValue}</span>
-    </div>
+      {growthValue !== null && growthValue !== undefined
+        ? formatGrowthValue(growthValue, isPercentage)
+        : defaultValue}
+    </span>
   );
 };
 

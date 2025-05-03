@@ -247,7 +247,7 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
       return <span className="flex h-full items-center">Select View</span>;
     }
     return (
-      <div className="flex h-full items-center gap-2">
+      <div className="flex h-full items-center gap-2 text-sm">
         <i className={`${option.icon} flex items-center`}></i>
         <span className="flex items-center">{option.label}</span>
       </div>
@@ -255,89 +255,90 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-xl font-bold">Daily Sales by Brand</h2>
-        <div className="flex flex-wrap gap-2">
-          <Dropdown
-            id="view-selector"
-            value={activeComparisonTab}
-            options={viewOptions}
-            onChange={(e) => setActiveComparisonTab(e.value)}
-            optionLabel="label"
-            placeholder="Select View"
-            className="h-[2.3rem] w-72"
-            valueTemplate={viewOptionTemplate}
-            itemTemplate={viewOptionTemplate}
-          />
-          <Button
-            icon="pi pi-chart-bar"
-            label="Summary"
-            className="p-button-info p-button-outlined"
-            onClick={summaryModal.open}
-            disabled={!dailySalesSummary}
-          />
-          <Button
-            icon="pi pi-filter"
-            label="Filter"
-            className="p-button-outlined"
-            onClick={filterModal.open}
-          />
-          <Button
-            icon="pi pi-refresh"
-            className="p-button-outlined"
-            onClick={() => onRefresh()}
-            tooltip="Refresh Data"
-            tooltipOptions={{ position: "top" }}
-          />
+    <div className="px-2">
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-end gap-4">
+          <div className="flex flex-wrap gap-2">
+            <Dropdown
+              id="view-selector"
+              value={activeComparisonTab}
+              options={viewOptions}
+              onChange={(e) => setActiveComparisonTab(e.value)}
+              optionLabel="label"
+              placeholder="Select View"
+              className="h-[2.3rem] w-72"
+              valueTemplate={viewOptionTemplate}
+              itemTemplate={viewOptionTemplate}
+            />
+            <Button
+              icon="pi pi-chart-bar"
+              label="Summary"
+              className="p-button-info p-button-outlined"
+              onClick={summaryModal.open}
+              disabled={!dailySalesSummary}
+            />
+            <Button
+              icon="pi pi-filter"
+              label="Filter"
+              className="p-button-outlined"
+              onClick={filterModal.open}
+            />
+            <Button
+              icon="pi pi-refresh"
+              className="p-button-outlined"
+              onClick={() => onRefresh()}
+              tooltip="Refresh Data"
+              tooltipOptions={{ position: "top" }}
+            />
+          </div>
         </div>
+
+        <Table
+          title="Daily Sales by Brand"
+          data={dailySalesSummary?.brands || []}
+          columns={columns}
+          loading={isDailyReportLoading}
+          dataKey="brand_id"
+          hideSearch
+          paginator={{
+            currentPage: dailySalesSummary?.current_page || 1,
+            totalPages: dailySalesSummary?.pages || 1,
+            onPageChange: (page) => {
+              fetchDailySales({
+                ...dailyReportParams,
+                page,
+              });
+            },
+            rows: dailyReportParams.per_page,
+            onRowsPerPageChange: (rows) => {
+              fetchDailySales({
+                ...dailyReportParams,
+                per_page: rows,
+                page: 1,
+              });
+            },
+          }}
+          totalRecords={dailySalesSummary?.total_records}
+        />
+
+        <Filter
+          visible={filterModal.isOpen}
+          onHide={filterModal.close}
+          onApply={handleFilterApply}
+          currentFilters={{
+            ...dailyReportParams,
+            date: dailyReportParams.date || undefined,
+          }}
+          filterType="daily"
+        />
+
+        <DailySummary
+          visible={summaryModal.isOpen}
+          onHide={summaryModal.close}
+          summaryData={dailySalesSummary || null}
+          showYoY={activeComparisonTab === 1}
+        />
       </div>
-
-      <Table
-        title=""
-        data={dailySalesSummary?.brands || []}
-        columns={columns}
-        loading={isDailyReportLoading}
-        dataKey="brand_id"
-        hideSearch
-        paginator={{
-          currentPage: dailySalesSummary?.current_page || 1,
-          totalPages: dailySalesSummary?.pages || 1,
-          onPageChange: (page) => {
-            fetchDailySales({
-              ...dailyReportParams,
-              page,
-            });
-          },
-          rows: dailyReportParams.per_page,
-          onRowsPerPageChange: (rows) => {
-            fetchDailySales({
-              ...dailyReportParams,
-              per_page: rows,
-              page: 1,
-            });
-          },
-        }}
-        totalRecords={dailySalesSummary?.total_records}
-      />
-
-      <Filter
-        visible={filterModal.isOpen}
-        onHide={filterModal.close}
-        onApply={handleFilterApply}
-        currentFilters={{
-          ...dailyReportParams,
-          date: dailyReportParams.date || undefined,
-        }}
-        filterType="daily"
-      />
-
-      <DailySummary
-        visible={summaryModal.isOpen}
-        onHide={summaryModal.close}
-        summaryData={dailySalesSummary || null}
-        showYoY={activeComparisonTab === 1}
-      />
     </div>
   );
 };

@@ -507,6 +507,22 @@ class SaleImportExportService:
                 'user_id': user_id  # Store the user ID in the import data
             }
 
+            try:
+                old_imports = TempImport.query.filter_by(
+                    user_id=user_id,
+                    import_type='sale'
+                ).all()
+
+                for old_import in old_imports:
+                    db.session.delete(old_import)
+
+                db.session.commit()
+                logger.info(
+                    f"Cleaned up {len(old_imports)} old temporary import records for user {user_id}")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to clean up old temp imports: {str(e)}")
+
             temp_import = TempImport.create_import(
                 user_id=user_id,
                 import_type='sale',
@@ -522,8 +538,8 @@ class SaleImportExportService:
                 'success_count': len(valid_records),
                 'error_count': error_count,
                 'total_count': len(df),
-                'errors': errors[:10],  # Limit the number of errors returned
-                'has_more_errors': len(errors) > 10
+                'errors': errors[:100],
+                'has_more_errors': len(errors) > 100
             }
 
         except Exception as e:

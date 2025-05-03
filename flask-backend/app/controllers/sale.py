@@ -374,12 +374,15 @@ def get_daily_sales_by_brand():
         group_id = request.args.get('group_id')
         division_id = request.args.get('division_id')
         category_id = request.args.get('category_id')
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
 
         # Get daily sales data grouped by brand
         sales_data = SaleService.get_daily_sales_by_brand(
             date_value=date_str, year=year, month=month, day=day,
             brand_id=brand_id, group_id=group_id,
-            division_id=division_id, category_id=category_id
+            division_id=division_id, category_id=category_id,
+            page=page, per_page=per_page
         )
 
         # Add metadata about the comparison method
