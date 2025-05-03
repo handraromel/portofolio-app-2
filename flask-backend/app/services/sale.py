@@ -1113,3 +1113,59 @@ class SaleService:
             db.session.rollback()
             logger.exception(f"Error during bulk deletion: {str(e)}")
             return 0, len(sale_ids), [str(e)]
+
+    @staticmethod
+    def get_monthly_trend(year, month):
+        """
+        Get daily sales data for a given month, aggregated by day
+        """
+        try:
+            # Calculate the start and end dates for the month
+            first_day = date(year, month, 1)
+
+            # Calculate the last day of the month
+            if month == 12:
+                next_month = date(year + 1, 1, 1)
+            else:
+                next_month = date(year, month + 1, 1)
+
+            last_day = next_month - timedelta(days=1)
+
+            # Query to aggregate sales by day
+            daily_sales = db.session.query(
+                Sale.input_date.label('date'),
+                func.sum(Sale.sale_amt).label('sales')
+            ).filter(
+                Sale.input_date.between(first_day, last_day)
+            ).group_by(
+                Sale.input_date
+            ).order_by(
+                Sale.input_date
+            ).all()
+
+            # Format results
+            results = []
+
+            # First, create a dictionary with all days in the month
+            all_days = {}
+            current_date = first_day
+            while current_date <= last_day:
+                all_days[current_date.isoformat()] = 0
+                current_date += timedelta(days=1)
+
+            # Fill in the actual sales data
+            for day_data in daily_sales:
+                all_days[day_data.date.isoformat()] = float(day_data.sales)
+
+            # Convert to the expected format
+            for day, sales in all_days.items():
+                results.append({
+                    "date": day,
+                    "sales": sales
+                })
+
+            return results
+
+        except Exception as e:
+            logger.exception(f"Error in get_monthly_trend: {str(e)}")
+            raise

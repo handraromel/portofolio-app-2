@@ -8,6 +8,8 @@ import {
   SaleQueryFilters,
   DailySalesSummary,
   MtdSalesSummary,
+  MonthlyTrendResponse,
+  MonthlyTrendData,
 } from "@/types/sale";
 
 export const saleKeys = {
@@ -22,6 +24,8 @@ export const saleKeys = {
     [...saleKeys.reports(), "daily", { params }] as const,
   mtdSales: (params: object) =>
     [...saleKeys.reports(), "mtd", { params }] as const,
+  monthlyTrend: (params: object) =>
+    [...saleKeys.reports(), "monthly-trend", { params }] as const,
 } as const;
 
 const salePrefix = "/manage/sales";
@@ -257,6 +261,37 @@ export const useDeleteMultipleSales = () => {
       // Invalidate and refetch related queries
       queryClient.invalidateQueries({ queryKey: saleKeys.lists() });
       queryClient.invalidateQueries({ queryKey: saleKeys.reports() });
+    },
+  });
+};
+
+export const useMonthlyTrendSales = (year?: number, month?: number) => {
+  const queryParams = new URLSearchParams();
+
+  if (year) queryParams.append("year", year.toString());
+  if (month) queryParams.append("month", month.toString());
+
+  const queryString = queryParams.toString();
+  const endpoint = `${salePrefix}/monthly-trend${queryString ? `?${queryString}` : ""}`;
+
+  return useQuery<MonthlyTrendResponse, Error>({
+    queryKey: [...saleKeys.reports(), "monthly-trend", { year, month }],
+    queryFn: async (): Promise<MonthlyTrendResponse> => {
+      try {
+        const response = await apiClient<{
+          success: boolean;
+          data: MonthlyTrendData[];
+        }>(endpoint);
+        return {
+          success: Boolean(response.success),
+          data: Array.isArray(response.data) ? response.data : [],
+        };
+      } catch (error) {
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error("Failed to fetch monthly trend data");
+      }
     },
   });
 };

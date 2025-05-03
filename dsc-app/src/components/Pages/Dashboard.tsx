@@ -4,18 +4,24 @@ import { useUser } from "@/services/UserService";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { formatNumberToIDR } from "@/utils/formatCurrency";
 import { Button } from "primereact/button";
+import { Calendar } from "primereact/calendar";
 import SummaryCard from "@/components/Common/SummaryCard";
-import SalesLineChart from "@/components/Charts/SalesLineChart";
 import BrandPerformanceChart from "@/components/Charts/BrandPerformanceChart";
 import RecentActivities from "../Common/Activities";
 import GrowthIndicator from "@/components/Pages/Sale/Components/GrowthIndicator";
 import { useNavigate } from "react-router-dom";
+import SalesMonthlyChart from "@/components/Charts/SalesMonthlyChart";
+import { formatDateForAPI } from "@/utils/formatDate";
 
 const Dashboard: React.FC = () => {
   const currentUser = useAppSelector((state) => state.auth.user);
   const { data: userData } = useUser(currentUser?.id || "");
   const user = userData || currentUser;
   const navigate = useNavigate();
+
+  // Add global state for selected month
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+
   const [topDailyBrands, setTopDailyBrands] = useState<
     {
       brandId: string;
@@ -31,18 +37,35 @@ const Dashboard: React.FC = () => {
     isLoading,
     refreshData,
     topPerformingBrands,
-    performanceOverPeriod,
     yearlyGrowth,
-    performanceOverToday,
-    performanceOverMonth,
-    performanceOverYear,
+    fetchMtdSales, // Make sure this is included in your hook return
   } = useDashboardData();
+
+  // Handle month selection change
+  const handleMonthChange = (event: {
+    value: Date | null | undefined | Date[];
+  }) => {
+    if (event.value instanceof Date) {
+      setSelectedMonth(event.value);
+
+      const formattedDate = formatDateForAPI(event.value);
+
+      fetchMtdSales({
+        date: formattedDate || undefined,
+        page: 1,
+        per_page: 10,
+      });
+    }
+  };
 
   // Fetch data on component mount
   useEffect(() => {
+    const today = new Date();
+    setSelectedMonth(today);
     refreshData();
   }, []);
 
+  // Process daily brands data
   useEffect(() => {
     if (dailySalesSummary?.brands) {
       // Sort brands by sale amount descending and take top 5
@@ -78,7 +101,16 @@ const Dashboard: React.FC = () => {
             . Here&apos;s your sales overview.
           </p>
         </div>
-        <div className="mt-4 flex gap-2 sm:mt-0">
+        <div className="mt-4 flex items-center gap-2 sm:mt-0">
+          {/* Global month selector */}
+          <Calendar
+            value={selectedMonth}
+            onChange={handleMonthChange}
+            view="month"
+            dateFormat="MM/yy"
+            showIcon
+            className="h-[2.3rem] w-48"
+          />
           <Button
             label="View Sales"
             icon="pi pi-calendar"
@@ -86,7 +118,7 @@ const Dashboard: React.FC = () => {
           />
           <Button
             icon="pi pi-refresh"
-            label="Refresh Data"
+            label="Refresh"
             severity="info"
             outlined
             onClick={() => refreshData()}
@@ -137,18 +169,22 @@ const Dashboard: React.FC = () => {
 
       {/* Charts Row 1 */}
       <div className="mb-8 grid grid-cols-1 gap-6 2xl:grid-cols-2">
-        <SalesLineChart
-          tenDayData={performanceOverPeriod}
-          todayData={performanceOverToday}
-          monthData={performanceOverMonth}
-          yearData={performanceOverYear}
-          title="Sales Performance"
+        <SalesMonthlyChart
+          title="Monthly Sales Performance"
           color="#4f46e5"
+          selectedDate={selectedMonth} // Pass selected date
+          onMonthChange={handleMonthChange} // Allow chart to update the global date
         />
         <BrandPerformanceChart
           mtdData={topPerformingBrands}
           dailyData={topDailyBrands}
-          title="Top Performing Brands (Month-to-Date)"
+          title={`Top Performing Brands (${selectedMonth.toLocaleDateString(
+            undefined,
+            {
+              month: "long",
+              year: "numeric",
+            },
+          )})`}
         />
       </div>
 

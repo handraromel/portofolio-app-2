@@ -812,3 +812,32 @@ def get_import_status():
             "msg": f"An error occurred while checking import status: {str(e)}",
             "success": False
         }), 500
+
+
+@jwt_required()
+def get_monthly_trend():
+    current_user_id = get_jwt_identity()
+
+    try:
+        year = request.args.get('year', type=int)
+        month = request.args.get('month', type=int)
+
+        # Default to current month if not specified
+        if not year or not month:
+            today = date.today()
+            year = year or today.year
+            month = month or today.month
+
+        # Get daily sales for the month
+        sales_trend = SaleService.get_monthly_trend(year, month)
+
+        return jsonify({
+            "success": True,
+            "data": sales_trend
+        })
+    except Exception as e:
+        logger.exception(f"Error retrieving monthly sales trend: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500

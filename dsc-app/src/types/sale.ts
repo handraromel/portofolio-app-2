@@ -270,3 +270,20 @@ export interface DailyFilterData extends FilterData {
 export interface MtdFilterData extends FilterData {
   date?: string;
 }
+
+export interface MonthlyTrendResponse {
+  success: boolean;
+  data: MonthlyTrendData[];
+}
+
+export interface MonthlyTrendData {
+  date: string;
+  sales: number;
+}
+
+export interface BrandPerformanceData {
+  brandId: string;
+  brandName: string;
+  saleAmount: number;
+  growthPercentage: number | null;
+}

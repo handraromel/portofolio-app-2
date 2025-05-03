@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -12,71 +12,85 @@ import {
   TooltipProps,
 } from "recharts";
 import { formatNumberToIDR } from "@/utils/formatCurrency";
-import { Dropdown } from "primereact/dropdown";
+import { Calendar } from "primereact/calendar";
 import GrowthIndicator from "@/components/Pages/Sale/Components/GrowthIndicator";
 import {
   NameType,
   ValueType,
 } from "recharts/types/component/DefaultTooltipContent";
+import { useMonthlyTrendSales } from "@/services/SaleService";
+import { Button } from "primereact/button";
 
-interface SalesData {
-  date: string;
-  sales: number;
+interface SalesMonthlyChartProps {
+  title?: string;
+  color?: string;
+  selectedDate?: Date;
+  onMonthChange?: (e: { value: Date | Date[] | undefined }) => void;
 }
 
-interface SalesLineChartProps {
-  todayData?: SalesData[];
-  tenDayData: SalesData[];
-  monthData?: SalesData[];
-  yearData?: SalesData[];
-  title: string;
-  color: string;
-}
-
-type TimePeriod = "today" | "10days" | "month" | "year";
-
-interface TimePeriodOption {
-  label: string;
-  value: TimePeriod;
-  icon: string;
-}
-
-const SalesLineChart: React.FC<SalesLineChartProps> = ({
-  todayData = [],
-  tenDayData,
-  monthData = [],
-  yearData = [],
-  title,
-  color,
+const SalesMonthlyChart: React.FC<SalesMonthlyChartProps> = ({
+  title = "Monthly Sales Performance",
+  color = "#4f46e5",
+  selectedDate,
+  onMonthChange,
 }) => {
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>("10days");
+  // Use internal state for date if not controlled externally
+  const today = new Date();
+  const [internalSelectedDate, setInternalSelectedDate] = useState<Date>(today);
 
-  const timePeriodOptions: TimePeriodOption[] = [
-    { label: "Today", value: "today", icon: "pi pi-clock" },
-    { label: "10 Days", value: "10days", icon: "pi pi-calendar-minus" },
-    { label: "Month", value: "month", icon: "pi pi-calendar" },
-    { label: "Year", value: "year", icon: "pi pi-calendar-plus" },
-  ];
+  // Extract year and month from selected date
+  const year = (selectedDate || internalSelectedDate).getFullYear();
+  const month = (selectedDate || internalSelectedDate).getMonth() + 1; // JavaScript months are 0-indexed
 
-  // Determine which dataset to use based on time period
-  const getActiveData = () => {
-    switch (timePeriod) {
-      case "today":
-        return todayData.length > 0 ? todayData : tenDayData;
-      case "10days":
-        return tenDayData;
-      case "month":
-        return monthData.length > 0 ? monthData : tenDayData;
-      case "year":
-        return yearData.length > 0 ? yearData : tenDayData;
-      default:
-        return tenDayData;
+  // Fetch monthly sales data
+  const {
+    data: salesTrendResponse,
+    isLoading,
+    error,
+    refetch,
+  } = useMonthlyTrendSales(year, month);
+
+  // Sync internal state with external state when provided
+  useEffect(() => {
+    if (selectedDate) {
+      setInternalSelectedDate(selectedDate);
+    }
+  }, [selectedDate]);
+
+  // Format the sales data for the chart
+  const chartData = useMemo(() => {
+    if (!salesTrendResponse?.data || salesTrendResponse.data.length === 0) {
+      return [];
+    }
+
+    return salesTrendResponse.data.map((item) => ({
+      date: item.date,
+      sales: item.sales,
+    }));
+  }, [salesTrendResponse]);
+
+  const isChartDataHasNoSale = useMemo(() => {
+    if (chartData.length === 0) return true;
+
+    return chartData.every((item) => item.sales === 0);
+  }, [chartData]);
+
+  const handleDateChange = (event: {
+    value: Date | Date[] | null | undefined;
+  }) => {
+    const value = event.value;
+    if (value instanceof Date) {
+      // Update internal state
+      setInternalSelectedDate(value);
+
+      // Callback to parent if provided
+      if (onMonthChange) {
+        onMonthChange({ value });
+      }
     }
   };
 
-  const chartData = getActiveData();
-
-  // Calculate statistics and metrics for the current time period
+  // Calculate statistics and metrics for the current month
   const metrics = useMemo(() => {
     if (chartData.length === 0) return null;
 
@@ -85,7 +99,7 @@ const SalesLineChart: React.FC<SalesLineChartProps> = ({
     const maxSales = Math.max(...chartData.map((item) => item.sales));
     const minSales = Math.min(...chartData.map((item) => item.sales));
 
-    // Find peak and dip days/times
+    // Find peak and dip days
     const peakPoint = chartData.find((item) => item.sales === maxSales);
     const dipPoint = chartData.find((item) => item.sales === minSales);
 
@@ -106,66 +120,14 @@ const SalesLineChart: React.FC<SalesLineChartProps> = ({
     };
   }, [chartData]);
 
-  // Get title based on time period
-  const getTitle = () => {
-    switch (timePeriod) {
-      case "today":
-        return "Today's Sales Performance (Hourly)";
-      case "10days":
-        return "Sales Performance (Last 10 Days)";
-      case "month":
-        return "Sales Performance (This Month)";
-      case "year":
-        return "Sales Performance (This Year)";
-      default:
-        return title;
-    }
-  };
-
-  // Format X-axis ticks based on time period
+  // Format X-axis ticks to show day of month
   const formatXAxis = (value: string) => {
-    if (timePeriod === "today") {
-      // Format as hour for today's data
-      return value.includes(":") ? value.split(":")[0] + "h" : value;
-    } else if (timePeriod === "year") {
-      // Format as month name for yearly data
-      try {
-        const date = new Date(value);
-        return date.toLocaleString("default", { month: "short" });
-      } catch {
-        return value;
-      }
-    } else {
-      // Format as day/month for 10days and month
-      try {
-        const date = new Date(value);
-        return `${date.getDate()}/${date.getMonth() + 1}`;
-      } catch {
-        return value;
-      }
+    try {
+      const date = new Date(value);
+      return date.getDate().toString(); // Just show the day number
+    } catch {
+      return value;
     }
-  };
-
-  // Custom template for dropdown items
-  const timePeriodOptionTemplate = (option: TimePeriodOption) => {
-    return (
-      <div className="flex items-center gap-2">
-        <i className={option.icon}></i>
-        <span>{option.label}</span>
-      </div>
-    );
-  };
-
-  const selectedTimePeriodTemplate = (option: TimePeriodOption | null) => {
-    if (option) {
-      return (
-        <div className="flex items-center gap-2">
-          <i className={option.icon}></i>
-          <span>{option.label}</span>
-        </div>
-      );
-    }
-    return <span>Select Time Period</span>;
   };
 
   // Get average line value for reference
@@ -178,21 +140,19 @@ const SalesLineChart: React.FC<SalesLineChartProps> = ({
     label,
   }: TooltipProps<ValueType, NameType>) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload as SalesData;
+      const data = payload[0].payload as { date: string; sales: number };
       return (
         <div className="rounded-md border border-gray-200 bg-white p-3 shadow-md dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
-              {timePeriod === "today" ? "Time" : "Date"}:
+              Date:
             </p>
             <p className="text-sm font-bold text-gray-800 dark:text-gray-100">
-              {timePeriod === "today"
-                ? label
-                : new Date(label).toLocaleDateString(undefined, {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
+              {new Date(label).toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
             </p>
           </div>
           <div className="my-1 h-0.5 w-full bg-gray-100 dark:bg-gray-700"></div>
@@ -228,25 +188,52 @@ const SalesLineChart: React.FC<SalesLineChartProps> = ({
     <div className="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
       <div className="mb-4 flex flex-col items-start justify-between space-y-2 sm:flex-row sm:items-center sm:space-y-0">
         <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-          {getTitle()}
+          {title} -{" "}
+          {(selectedDate || internalSelectedDate).toLocaleDateString(
+            undefined,
+            {
+              month: "long",
+              year: "numeric",
+            },
+          )}
         </h3>
 
-        {/* Time period dropdown */}
-        <Dropdown
-          value={timePeriod}
-          options={timePeriodOptions}
-          onChange={(e) => setTimePeriod(e.value)}
-          optionLabel="label"
-          placeholder="Select Time Period"
-          className="w-full sm:w-48"
-          itemTemplate={timePeriodOptionTemplate}
-          valueTemplate={selectedTimePeriodTemplate}
-        />
+        <div className="flex flex-row items-center gap-2">
+          {!selectedDate && (
+            <Calendar
+              value={internalSelectedDate}
+              onChange={(e) => {
+                if (e.value instanceof Date || e.value === null) {
+                  handleDateChange({ value: e.value });
+                }
+              }}
+              view="month"
+              dateFormat="MM/yy"
+              showIcon
+              className="w-32"
+            />
+          )}
+          <Button
+            icon="pi pi-refresh"
+            outlined
+            severity="info"
+            onClick={() => refetch()}
+            loading={isLoading}
+          />
+        </div>
       </div>
 
-      {chartData.length === 0 ? (
+      {isLoading ? (
+        <div className="flex h-[300px] items-center justify-center">
+          <i className="pi pi-spin pi-spinner text-primary text-2xl"></i>
+        </div>
+      ) : error ? (
+        <div className="flex h-[300px] items-center justify-center text-red-500">
+          Error loading data: {error.message}
+        </div>
+      ) : isChartDataHasNoSale ? (
         <div className="flex h-[300px] items-center justify-center text-gray-500 dark:text-gray-400">
-          No data available for the selected period
+          No data available for the selected month
         </div>
       ) : (
         <div className="h-[300px] w-full">
@@ -307,18 +294,11 @@ const SalesLineChart: React.FC<SalesLineChartProps> = ({
         </div>
       )}
 
-      {/* Performance Metrics Cards - More responsive like BrandPerformance */}
-      {metrics && (
+      {/* Performance Metrics Cards */}
+      {metrics && !isLoading && !isChartDataHasNoSale && (
         <div className="mt-6">
           <h4 className="mb-3 text-sm font-semibold text-gray-600 dark:text-gray-300">
-            {timePeriod === "today"
-              ? "Today's"
-              : timePeriod === "10days"
-                ? "10-Day"
-                : timePeriod === "month"
-                  ? "Monthly"
-                  : "Yearly"}{" "}
-            Performance Summary
+            Monthly Performance Summary
           </h4>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -331,15 +311,9 @@ const SalesLineChart: React.FC<SalesLineChartProps> = ({
                     Total Sales
                   </h5>
                 </div>
-                <div className="flex items-end justify-between">
+                <div className="flex flex-col items-end justify-between">
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {timePeriod === "today"
-                      ? "Today"
-                      : timePeriod === "10days"
-                        ? "Last 10 Days"
-                        : timePeriod === "month"
-                          ? "This Month"
-                          : "This Year"}
+                    This Month
                   </div>
                   <div className="text-base font-bold text-gray-800 dark:text-gray-200">
                     {formatNumberToIDR(metrics.totalSales)}
@@ -365,12 +339,12 @@ const SalesLineChart: React.FC<SalesLineChartProps> = ({
               <div className="flex flex-col pl-2">
                 <div className="mb-2 flex items-center justify-between">
                   <h5 className="truncate text-sm font-semibold text-gray-700 dark:text-gray-200">
-                    Average {timePeriod === "today" ? "Hourly" : "Daily"} Sales
+                    Average Daily Sales
                   </h5>
                 </div>
-                <div className="flex items-end justify-between">
+                <div className="flex flex-col items-end justify-between">
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {timePeriod === "today" ? "Per Hour" : "Per Day"}
+                    Per Day
                   </div>
                   <div className="text-base font-bold text-gray-800 dark:text-gray-200">
                     {formatNumberToIDR(metrics.avgSales)}
@@ -396,19 +370,19 @@ const SalesLineChart: React.FC<SalesLineChartProps> = ({
               <div className="flex flex-col pl-2">
                 <div className="mb-2 flex items-center justify-between">
                   <h5 className="truncate text-sm font-semibold text-gray-700 dark:text-gray-200">
-                    Peak Sales {timePeriod === "today" ? "(Hour)" : "(Day)"}
+                    Peak Sales (Day)
                   </h5>
                 </div>
-                <div className="flex items-end justify-between">
+                <div className="flex flex-col items-end justify-between">
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {timePeriod === "today"
-                      ? `at ${metrics.peakPoint?.date}`
-                      : `on ${new Date(
-                          metrics.peakPoint?.date || "",
+                    {metrics.peakPoint
+                      ? `on ${new Date(
+                          metrics.peakPoint.date || "",
                         ).toLocaleDateString(undefined, {
                           month: "short",
                           day: "numeric",
-                        })}`}
+                        })}`
+                      : "N/A"}
                   </div>
                   <div className="text-base font-bold text-gray-800 dark:text-gray-200">
                     {formatNumberToIDR(metrics.maxSales)}
@@ -434,7 +408,7 @@ const SalesLineChart: React.FC<SalesLineChartProps> = ({
               <div className="flex flex-col pl-2">
                 <div className="mb-2 flex items-center justify-between">
                   <h5 className="truncate text-sm font-semibold text-gray-700 dark:text-gray-200">
-                    {timePeriod === "today" ? "Today's" : "Period"} Trend
+                    Month Trend
                   </h5>
                   <GrowthIndicator
                     growthValue={metrics.growthPercentage}
@@ -449,9 +423,7 @@ const SalesLineChart: React.FC<SalesLineChartProps> = ({
                       : metrics.growthPercentage < 0
                         ? "Downward trend showing decline compared to the"
                         : "Stable performance compared to the"}{" "}
-                    {timePeriod === "today"
-                      ? "start of day"
-                      : "beginning of this period"}
+                    beginning of this month
                   </div>
                 </div>
 
@@ -477,4 +449,4 @@ const SalesLineChart: React.FC<SalesLineChartProps> = ({
   );
 };
 
-export default SalesLineChart;
+export default SalesMonthlyChart;

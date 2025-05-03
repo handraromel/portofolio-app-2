@@ -239,7 +239,7 @@ const BrandPerformanceChart: React.FC<BrandPerformanceChartProps> = ({
                   </div>
 
                   {/* Sales amount with improved visualization */}
-                  <div className="flex items-end justify-between">
+                  <div className="flex flex-col items-end justify-between">
                     <div className="text-xs text-gray-500 dark:text-gray-400">
                       {viewMode === "mtd" ? "MTD Sales" : "Today's Sales"}
                     </div>

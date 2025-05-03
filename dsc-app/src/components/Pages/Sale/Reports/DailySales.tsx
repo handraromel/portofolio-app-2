@@ -244,12 +244,12 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
 
   const viewOptionTemplate = (option: ViewOption) => {
     if (!option) {
-      return <span>Select View</span>;
+      return <span className="flex h-full items-center">Select View</span>;
     }
     return (
-      <div className="flex items-center gap-2">
-        <i className={option.icon}></i>
-        <span>{option.label}</span>
+      <div className="flex h-full items-center gap-2">
+        <i className={`${option.icon} flex items-center`}></i>
+        <span className="flex items-center">{option.label}</span>
       </div>
     );
   };
@@ -266,7 +266,7 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
             onChange={(e) => setActiveComparisonTab(e.value)}
             optionLabel="label"
             placeholder="Select View"
-            className="w-72"
+            className="h-[2.3rem] w-72"
             valueTemplate={viewOptionTemplate}
             itemTemplate={viewOptionTemplate}
           />
