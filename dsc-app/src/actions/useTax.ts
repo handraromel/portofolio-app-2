@@ -11,7 +11,7 @@ import { TaxConfigurationSubmission, TaxQueryFilters } from "@/types/tax";
 export const useTax = () => {
   const [filters, setFilters] = useState<TaxQueryFilters>({
     page: 1,
-    per_page: 10,
+    per_page: 50,
     search: "",
   });
 
@@ -75,7 +75,7 @@ export const useTax = () => {
   const clearFilters = () => {
     setFilters({
       page: 1,
-      per_page: 10,
+      per_page: 50,
       search: "",
     });
   };

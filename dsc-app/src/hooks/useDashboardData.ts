@@ -48,14 +48,14 @@ export const useDashboardData = (): DashboardSummary => {
     await fetchDailySales({
       date: formatDateForAPI(today) || undefined,
       page: 1,
-      per_page: 10,
+      per_page: 50,
     });
 
     // Fetch MTD data for current month
     await fetchMtdSales({
       date: formatDateForAPI(today) || undefined,
       page: 1,
-      per_page: 10,
+      per_page: 50,
     });
   };
 

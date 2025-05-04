@@ -14,7 +14,7 @@ import {
 export const useCategory = () => {
   const [filters, setFilters] = useState<ProductQueryFilters>({
     page: 1,
-    per_page: 10,
+    per_page: 50,
     search: "",
   });
 
@@ -82,7 +82,7 @@ export const useCategory = () => {
   const clearFilters = () => {
     setFilters({
       page: 1,
-      per_page: 10,
+      per_page: 50,
       search: "",
     });
   };

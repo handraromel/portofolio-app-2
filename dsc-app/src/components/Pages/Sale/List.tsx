@@ -483,6 +483,9 @@ const SaleList: React.FC = () => {
                   outlined: true,
                   onClick: handleBulkDelete,
                   visible: () => canEdit(),
+                  disabled:
+                    selection.selectedItems?.length === 0 ||
+                    !selection.selectedItems,
                 },
                 // {
                 //   icon: isExporting ? "pi pi-spin pi-spinner" : "pi pi-file",

@@ -42,7 +42,7 @@ const Dashboard: React.FC = () => {
       fetchMtdSales({
         date: formattedDate || undefined,
         page: 1,
-        per_page: 10,
+        per_page: 50,
       });
     }
   };
@@ -59,8 +59,8 @@ const Dashboard: React.FC = () => {
   return (
     <div className="flex flex-col px-4 sm:px-6 lg:px-8">
       {/* Welcome Section */}
-      <div className="mb-8 flex flex-col items-start justify-between sm:flex-row sm:items-center">
-        <div>
+      <div className="mb-8 grid grid-cols-1 gap-2 md:grid-cols-2">
+        <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl dark:text-white">
             Sales Overview
           </h1>
@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
             . Here&apos;s your sales overview.
           </p>
         </div>
-        <div className="mt-4 flex items-center gap-2 sm:mt-0">
+        <div className="mt-2 flex items-start justify-end gap-2">
           {/* Global month selector */}
           <Calendar
             value={selectedMonth}

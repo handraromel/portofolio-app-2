@@ -140,7 +140,7 @@ const Table = <T extends { [key: string]: unknown }>({
     },
   });
   const [globalFilterValue, setGlobalFilterValue] = useState("");
-  const [currentRows, setCurrentRows] = useState(paginator?.rows || 10);
+  const [currentRows, setCurrentRows] = useState(paginator?.rows || 50);
 
   const debouncedSearch = useCallback(
     debounce((value: string) => {
@@ -310,7 +310,7 @@ const Table = <T extends { [key: string]: unknown }>({
 
   const renderHeader = () => {
     return (
-      <div className="mb-5 flex flex-col flex-wrap items-center justify-between md:flex-row">
+      <div className="mb-5 flex flex-col flex-wrap justify-between md:flex-row md:items-center">
         <div className="flex flex-col">
           <h2 className="text-xl font-bold">
             <span className="text-slate-600 dark:text-slate-100">{title}</span>
@@ -336,7 +336,7 @@ const Table = <T extends { [key: string]: unknown }>({
             </span>
           )}
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap justify-end gap-3">
             {mainActions
               .filter((action) => {
                 if (typeof action.visible === "function") {

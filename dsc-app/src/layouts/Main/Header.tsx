@@ -9,7 +9,8 @@ import { Avatar } from "primereact/avatar";
 
 interface HeaderProps {
   isMenuOpen: boolean;
-  toggleMenu: () => void;
+  openMenu: () => void;
+  closeMenu: () => void;
 }
 
 interface MenuItem {
@@ -19,7 +20,7 @@ interface MenuItem {
   onClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
+const Header: React.FC<HeaderProps> = ({ isMenuOpen, openMenu, closeMenu }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
@@ -62,7 +63,15 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-4">
           <button
-            onClick={toggleMenu}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (isMenuOpen) {
+                closeMenu();
+              } else {
+                openMenu();
+              }
+            }}
             className="text-primary hover:text-primary-600 focus:outline-none lg:hidden"
             aria-label={isMenuOpen ? "Close Menu" : "Open Menu"}
           >
@@ -89,7 +98,7 @@ const Header: React.FC<HeaderProps> = ({ isMenuOpen, toggleMenu }) => {
                   style: {
                     height: "2rem",
                     width: "2rem",
-                    backgroundColor: "#b3bcf5", // light indigo
+                    backgroundColor: "#b3bcf5",
                   },
                 },
               }}

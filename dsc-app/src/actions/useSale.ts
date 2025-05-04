@@ -17,7 +17,7 @@ export const useSale = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [filters, setFilters] = useState<SaleQueryFilters>({
     page: 1,
-    per_page: 10,
+    per_page: 50,
     search: "",
   });
 
@@ -28,7 +28,7 @@ export const useSale = () => {
     division_id: undefined as string | undefined,
     category_id: undefined as string | undefined,
     page: 1,
-    per_page: 10,
+    per_page: 50,
   });
 
   const [mtdReportParams, setMtdReportParams] = useState({
@@ -38,7 +38,7 @@ export const useSale = () => {
     division_id: undefined as string | undefined,
     category_id: undefined as string | undefined,
     page: 1,
-    per_page: 10,
+    per_page: 50,
   });
 
   // Queries
@@ -185,7 +185,7 @@ export const useSale = () => {
   const clearFilters = () => {
     setFilters({
       page: 1,
-      per_page: 10,
+      per_page: 50,
       search: "",
     });
   };

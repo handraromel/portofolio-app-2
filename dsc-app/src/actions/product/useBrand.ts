@@ -11,7 +11,7 @@ import { ProductBrandSubmission, ProductQueryFilters } from "@/types/product";
 export const useBrand = () => {
   const [filters, setFilters] = useState<ProductQueryFilters>({
     page: 1,
-    per_page: 10,
+    per_page: 50,
     search: "",
   });
 
@@ -76,7 +76,7 @@ export const useBrand = () => {
   const clearFilters = () => {
     setFilters({
       page: 1,
-      per_page: 10,
+      per_page: 50,
       search: "",
     });
   };
