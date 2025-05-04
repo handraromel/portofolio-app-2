@@ -27,22 +27,15 @@ interface BrandData {
 
 interface BrandPerformanceChartProps {
   mtdData: BrandData[];
-  // dailyData: BrandData[];
   title: string;
 }
-
-// type ViewMode = "daily" | "mtd";
 
 const BrandPerformanceChart: React.FC<BrandPerformanceChartProps> = ({
   mtdData,
   // dailyData,
   title,
 }) => {
-  // const [viewMode, setViewMode] = useState<ViewMode>("mtd");
   const colors = ["#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444"];
-
-  // Determine which data to show based on viewMode
-  // const data = viewMode === "mtd" ? mtdData : dailyData;
 
   // Calculate average sales for comparison in tooltip
   const avgSales = useMemo(() => {
@@ -82,7 +75,6 @@ const BrandPerformanceChart: React.FC<BrandPerformanceChartProps> = ({
 
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold text-gray-600 sm:text-sm dark:text-gray-300">
-              {/* {viewMode === "mtd" ? "MTD:" : "Sales:"} */}
               MTD:
             </p>
             <p
@@ -133,39 +125,11 @@ const BrandPerformanceChart: React.FC<BrandPerformanceChartProps> = ({
         <h3 className="truncate text-base font-semibold text-gray-700 sm:text-lg dark:text-gray-200">
           {title}
         </h3>
-
-        {/* Toggle buttons */}
-        {/* <div className="flex self-start overflow-hidden rounded-lg border border-gray-200 sm:self-auto dark:border-gray-700">
-          <button
-            onClick={() => setViewMode("daily")}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors duration-200 sm:px-4 sm:text-sm ${
-              viewMode === "daily"
-                ? "bg-indigo-500 text-white"
-                : "bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-            }`}
-          >
-            <i className="pi pi-calendar-day mr-1"></i> Daily
-          </button>
-          <button
-            onClick={() => setViewMode("mtd")}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors duration-200 sm:px-4 sm:text-sm ${
-              viewMode === "mtd"
-                ? "bg-indigo-500 text-white"
-                : "bg-white text-gray-600 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-            }`}
-          >
-            <i className="pi pi-calendar mr-1"></i> MTD
-          </button>
-        </div> */}
       </div>
 
       {mtdData.length === 0 ? (
         <div className="flex h-[200px] items-center justify-center p-2 text-center text-gray-500 sm:h-[300px] sm:p-4 dark:text-gray-400">
-          <span className="text-sm">
-            No data available for{" "}
-            {/* {viewMode === "mtd" ? "month-to-date" : "today"} */}
-            month-to-date
-          </span>
+          <span className="text-sm">No data available for month-to-date</span>
         </div>
       ) : (
         <div className="h-[250px] w-full sm:h-[300px]">
@@ -207,7 +171,6 @@ const BrandPerformanceChart: React.FC<BrandPerformanceChartProps> = ({
               {/* Smaller for mobile */}
               <Bar
                 dataKey="saleAmount"
-                // name={`${viewMode === "mtd" ? "MTD" : "Daily"} Sales`}
                 name="MTD Sales"
                 radius={[0, 4, 4, 0]}
                 barSize={20}
@@ -228,7 +191,6 @@ const BrandPerformanceChart: React.FC<BrandPerformanceChartProps> = ({
       {mtdData.length > 0 && (
         <div className="mt-5 sm:mt-7">
           <h4 className="mb-2 text-xs font-semibold text-gray-600 sm:mb-3 sm:text-sm dark:text-gray-300">
-            {/* {viewMode === "mtd" ? "Month to Date" : "Daily"} Brand Performance */}
             Month to Date Brand Performance
           </h4>
 
@@ -254,13 +216,13 @@ const BrandPerformanceChart: React.FC<BrandPerformanceChartProps> = ({
                       growthValue={brand.growthPercentage}
                       isPercentage={true}
                       size="sm"
+                      defaultValue={null}
                     />
                   </div>
 
                   {/* Sales amount with improved visualization */}
                   <div className="flex flex-col items-end justify-between">
                     <div className="text-[10px] text-gray-500 sm:text-xs dark:text-gray-400">
-                      {/* {viewMode === "mtd" ? "MTD Sales" : "Today's Sales"} */}
                       MTD Sales
                     </div>
                     <div className="text-sm font-bold text-gray-800 sm:text-base dark:text-gray-200">

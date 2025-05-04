@@ -7,7 +7,7 @@ interface GrowthIndicatorProps {
   colorOnly?: boolean;
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
-  defaultValue?: string;
+  defaultValue?: string | null;
 }
 
 const GrowthIndicator: React.FC<GrowthIndicatorProps> = ({
@@ -16,7 +16,7 @@ const GrowthIndicator: React.FC<GrowthIndicatorProps> = ({
   colorOnly = false,
   size = "md",
   className = "",
-  defaultValue = "0",
+  defaultValue = "-",
 }) => {
   // Function to determine the appropriate color based on the growth value
   const getColorClass = (value: number | null): string => {

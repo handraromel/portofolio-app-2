@@ -20,15 +20,6 @@ const Dashboard: React.FC = () => {
   // Add global state for selected month
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
 
-  // const [topDailyBrands, setTopDailyBrands] = useState<
-  //   {
-  //     brandId: string;
-  //     brandName: string;
-  //     saleAmount: number;
-  //     growthPercentage: number | null;
-  //   }[]
-  // >([]);
-
   const {
     // dailySalesSummary,
     mtdSalesSummary,
@@ -63,24 +54,6 @@ const Dashboard: React.FC = () => {
     refreshData();
   }, []);
 
-  // Process daily brands data
-  // useEffect(() => {
-  //   if (dailySalesSummary?.brands) {
-  //     // Sort brands by sale amount descending and take top 5
-  //     const sortedBrands = [...dailySalesSummary.brands]
-  //       .sort((a, b) => b.sale_amt - a.sale_amt)
-  //       .slice(0, 5)
-  //       .map((brand) => ({
-  //         brandId: brand.brand_id,
-  //         brandName: brand.brand_name,
-  //         saleAmount: brand.sale_amt,
-  //         growthPercentage: brand.growth_pct ?? null,
-  //       }));
-
-  //     setTopDailyBrands(sortedBrands);
-  //   }
-  // }, [dailySalesSummary]);
-
   if (!currentUser) return null;
 
   return (
@@ -114,68 +87,18 @@ const Dashboard: React.FC = () => {
             icon="pi pi-calendar"
             onClick={() => navigate("/sales")}
           />
-          {/* <Button
-            icon="pi pi-refresh"
-            label="Refresh"
-            severity="info"
-            outlined
-            onClick={() => refreshData()}
-            loading={isLoading}
-          /> */}
         </div>
       </div>
 
-      {/* Summary Cards */}
-      {/* <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-4">
-        <SummaryCard
-          title="Today's Sales"
-          value={formatNumberToIDR(dailySalesSummary?.total.sale_amt || 0)}
-          growth={dailySalesSummary?.total.growth_pct || null}
-          icon="pi pi-shopping-bag"
-          color="indigo"
-          isLoading={isLoading}
-        />
-        <SummaryCard
-          title="Month-to-Date Sales"
-          value={formatNumberToIDR(mtdSalesSummary?.total.sale_amt || 0)}
-          growth={mtdSalesSummary?.total.growth_pct || null}
-          icon="pi pi-calendar"
-          color="red"
-          isLoading={isLoading}
-        />
-        <SummaryCard
-          title="Total Items Sold Today"
-          value={dailySalesSummary?.total.sale_qty || 0}
-          icon="pi pi-box"
-          color="yellow"
-          isLoading={isLoading}
-        />
-        <SummaryCard
-          title="AUR (Average Unit Retail)"
-          value={formatNumberToIDR(
-            mtdSalesSummary?.total.aur ||
-              (mtdSalesSummary?.total.sale_qty
-                ? mtdSalesSummary.total.sale_amt /
-                  mtdSalesSummary.total.sale_qty
-                : 0),
-          )}
-          icon="pi pi-money-bill"
-          color="green"
-          isLoading={isLoading}
-        />
-      </div> */}
-
-      {/* Charts Row 1 */}
       <div className="mb-8 grid grid-cols-1 gap-6 2xl:grid-cols-2">
         <SalesMonthlyChart
           title="Monthly Sales Performance"
           color="#4f46e5"
-          selectedDate={selectedMonth} // Pass selected date
-          onMonthChange={handleMonthChange} // Allow chart to update the global date
+          selectedDate={selectedMonth}
+          onMonthChange={handleMonthChange}
         />
         <BrandPerformanceChart
           mtdData={topPerformingBrands}
-          // dailyData={topDailyBrands}
           title={`Top Performing Brands - ${selectedMonth.toLocaleDateString(
             undefined,
             {
