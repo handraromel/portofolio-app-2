@@ -511,10 +511,7 @@ const SaleList: React.FC = () => {
                   icon: "pi pi-trash",
                   severity: "danger",
                   onClick: handleBulkDelete,
-                  visible: () =>
-                    canEdit() &&
-                    !!selection.selectedItems &&
-                    selection.selectedItems.length > 0,
+                  visible: () => canEdit(),
                 },
               ]}
               selectionMode="multiple"
