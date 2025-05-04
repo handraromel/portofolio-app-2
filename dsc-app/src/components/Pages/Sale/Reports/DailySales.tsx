@@ -258,7 +258,7 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
     <div className="px-2">
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-end gap-4">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 max-sm:justify-end">
             <Dropdown
               id="view-selector"
               value={activeComparisonTab}
@@ -266,7 +266,7 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
               onChange={(e) => setActiveComparisonTab(e.value)}
               optionLabel="label"
               placeholder="Select View"
-              className="h-[2.3rem] w-72"
+              className="h-[2.3rem] w-72 max-sm:w-full"
               valueTemplate={viewOptionTemplate}
               itemTemplate={viewOptionTemplate}
             />
