@@ -180,12 +180,7 @@ const GroupList: React.FC = () => {
         title="Manage Product Groups"
         loading={isLoading}
         globalSearchFields={["id", "name"]}
-        actionButton={{
-          label: "Add Group",
-          onClick: () => handleSubmission(),
-          visible: canEdit(),
-        }}
-        otherActions={[
+        mainActions={[
           // {
           //   icon: "pi pi-refresh",
           //   tooltip: "Refresh list",
@@ -193,10 +188,21 @@ const GroupList: React.FC = () => {
           //   onClick: handleRefresh,
           // },
           {
+            label: "Add Group",
+            onClick: () => handleSubmission(),
+            icon: "pi pi-plus",
+            severity: "success",
+            rounded: true,
+            outlined: true,
+            visible: canEdit(),
+          },
+          {
             icon: "pi pi-upload",
             tooltip: "Import groups",
-            severity: "success",
+            severity: "info",
             onClick: importModal.open,
+            rounded: true,
+            outlined: true,
             disabled: isImporting || isLoading,
             visible: canEdit(),
           },
@@ -217,7 +223,7 @@ const GroupList: React.FC = () => {
             {
               icon: "pi pi-pencil",
               tooltip: "Edit",
-              severity: "success",
+              severity: "contrast",
               onClick: (rowData) => handleSubmission(rowData),
               visible: () => canEdit(),
             },

@@ -8,7 +8,7 @@ import {
 } from "primereact/datatable";
 import { Column, ColumnProps } from "primereact/column";
 import { InputText } from "primereact/inputtext";
-import { Button, ButtonProps } from "primereact/button";
+import { Button } from "primereact/button";
 import { FilterMatchMode } from "primereact/api";
 import { debounce } from "lodash";
 import { useRef, useLayoutEffect } from "react";
@@ -60,7 +60,18 @@ export interface ActionButton<T> {
 }
 
 export interface TableAction {
-  icon: string;
+  label: string;
+  onClick: () => void;
+  visible?: boolean;
+  raised?: boolean;
+  outlined?: boolean;
+  rounded?: boolean;
+  text?: boolean;
+}
+
+export interface TableMainAction {
+  icon?: string;
+  label?: string;
   tooltip?: string;
   severity?:
     | "secondary"
@@ -74,6 +85,10 @@ export interface TableAction {
   tooltipOptions?: object;
   className?: string;
   disabled?: boolean;
+  raised?: boolean;
+  outlined?: boolean;
+  rounded?: boolean;
+  text?: boolean;
   visible?: boolean | (() => boolean);
 }
 
@@ -85,21 +100,7 @@ export interface TableProps<T> {
   title: string;
   loading?: boolean;
   globalSearchFields?: Array<keyof T>;
-  actionButton?: {
-    label: string;
-    onClick: () => void;
-    visible?: boolean;
-  };
-  otherActions?: TableAction[];
-  bulkActions?: Array<{
-    label: string;
-    icon?: string;
-    severity?: ButtonProps["severity"];
-    onClick: () => void;
-    visible?: () => boolean;
-    disabled?: boolean;
-    className?: string;
-  }>;
+  mainActions?: TableMainAction[];
   totalRecords?: number;
   paginator?: PaginatorProps;
   onSearch?: (search: string) => void;
@@ -121,9 +122,7 @@ const Table = <T extends { [key: string]: unknown }>({
   title,
   loading = false,
   globalSearchFields = [],
-  actionButton,
-  otherActions = [],
-  bulkActions = [],
+  mainActions = [],
   totalRecords,
   paginator,
   onSearch,
@@ -323,7 +322,7 @@ const Table = <T extends { [key: string]: unknown }>({
           </h2>
         </div>
 
-        <div className="flex flex-col flex-wrap gap-2 md:flex-row">
+        <div className="mt-2 flex flex-col flex-wrap gap-2 md:flex-row">
           {!hideSearch && (
             <span className="p-input-icon-left">
               <i className="pi pi-search text-gray-500" />
@@ -338,50 +337,36 @@ const Table = <T extends { [key: string]: unknown }>({
           )}
 
           <div className="flex flex-wrap items-center gap-3">
-            {actionButton?.visible && (
-              <Button
-                label={actionButton.label}
-                size="small"
-                className="h-11"
-                onClick={actionButton.onClick}
-              />
-            )}
-
-            {otherActions
+            {mainActions
               .filter((action) => {
                 if (typeof action.visible === "function") {
                   return action.visible();
                 }
                 return action.visible !== false;
               })
-              .map((action, index) => (
-                <Button
-                  key={index}
-                  icon={action.icon}
-                  rounded
-                  size="small"
-                  severity={action.severity || "info"}
-                  aria-label={action.tooltip || action.icon}
-                  tooltip={action.tooltip}
-                  tooltipOptions={action.tooltipOptions || { position: "top" }}
-                  onClick={action.onClick}
-                  className={`h-11 p-1 ${action.className || ""}`}
-                  disabled={action.disabled}
-                />
-              ))}
-
-            {bulkActions.map((action, index) => (
-              <Button
-                key={`bulk-action-${index}`}
-                icon={action.icon}
-                label={`${action.label} (${selectedItem?.length || 0})`}
-                severity={action.severity || "secondary"}
-                size="small"
-                onClick={action.onClick}
-                disabled={action.disabled || !selectedItem}
-                className={`whitespace-nowrap ${action.className || ""}`}
-              />
-            ))}
+              .map((action, index) => {
+                return (
+                  <Button
+                    key={index}
+                    label={action.label}
+                    icon={action.icon}
+                    rounded={action.rounded}
+                    raised={action.raised}
+                    outlined={action.outlined}
+                    text={action.text}
+                    size="small"
+                    severity={action.severity || "info"}
+                    aria-label={action.tooltip || action.icon}
+                    tooltip={action.tooltip}
+                    tooltipOptions={
+                      action.tooltipOptions || { position: "top" }
+                    }
+                    onClick={action.onClick}
+                    className={`h-11 p-1 ${action.className || ""}`}
+                    disabled={action.disabled}
+                  />
+                );
+              })}
           </div>
         </div>
       </div>

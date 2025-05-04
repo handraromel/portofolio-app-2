@@ -267,88 +267,93 @@ const MtdSales: React.FC<MtdSalesProps> = ({ onRefresh }) => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="mb-4 flex flex-wrap items-center justify-end gap-4">
-        <div className="flex flex-wrap gap-2">
-          <Dropdown
-            id="view-selector"
-            value={activeComparisonTab}
-            options={viewOptions}
-            onChange={(e) => setActiveComparisonTab(e.value)}
-            optionLabel="label"
-            placeholder="Select View"
-            className="h-[2.3rem] w-72"
-            valueTemplate={viewOptionTemplate}
-            itemTemplate={viewOptionTemplate}
-          />
-          <Button
-            icon="pi pi-chart-bar"
-            label="Summary"
-            className="p-button-info p-button-outlined"
-            onClick={summaryModal.open}
-            disabled={!mtdSalesSummary}
-          />
-          <Button
-            icon="pi pi-filter"
-            label="Filter"
-            className="p-button-outlined"
-            onClick={filterModal.open}
-          />
-          <Button
-            icon="pi pi-refresh"
-            className="p-button-outlined"
-            onClick={() => onRefresh()}
-            tooltip="Refresh Data"
-            tooltipOptions={{ position: "top" }}
-          />
+    <div className="px-2">
+      <div className="space-y-4">
+        <div className="mb-4 flex flex-wrap items-center justify-end gap-4">
+          <div className="flex flex-wrap gap-2">
+            <Dropdown
+              id="view-selector"
+              value={activeComparisonTab}
+              options={viewOptions}
+              onChange={(e) => setActiveComparisonTab(e.value)}
+              optionLabel="label"
+              placeholder="Select View"
+              className="h-[2.3rem] w-72"
+              valueTemplate={viewOptionTemplate}
+              itemTemplate={viewOptionTemplate}
+            />
+            <Button
+              icon="pi pi-chart-bar"
+              label="Summary"
+              rounded
+              className="p-button-info p-button-outlined"
+              onClick={summaryModal.open}
+              disabled={!mtdSalesSummary}
+            />
+            <Button
+              icon="pi pi-filter"
+              label="Filter"
+              rounded
+              className="p-button-outlined"
+              onClick={filterModal.open}
+            />
+            <Button
+              icon="pi pi-refresh"
+              className="p-button-outlined"
+              onClick={() => onRefresh()}
+              tooltip="Refresh Data"
+              rounded
+              tooltipOptions={{ position: "top" }}
+            />
+          </div>
         </div>
+
+        <Table
+          title="Month-to-Date Sales by Brand"
+          data={mtdSalesSummary?.brands || []}
+          columns={columns}
+          loading={isMtdReportLoading}
+          hideSearch
+          dataKey="brand_id"
+          paginator={{
+            currentPage: mtdSalesSummary?.current_page || 1,
+            totalPages: mtdSalesSummary?.pages || 1,
+            onPageChange: (page) => {
+              fetchMtdSales({
+                ...mtdReportParams,
+                page,
+              });
+            },
+            rows: mtdReportParams.per_page,
+            onRowsPerPageChange: (rows) => {
+              fetchMtdSales({
+                ...mtdReportParams,
+                per_page: rows,
+                page: 1,
+              });
+            },
+          }}
+          totalRecords={mtdSalesSummary?.total_records}
+        />
+
+        <Filter
+          visible={filterModal.isOpen}
+          onHide={filterModal.close}
+          onApply={handleFilterApply}
+          currentFilters={{
+            ...mtdReportParams,
+            date: mtdReportParams.date || undefined,
+          }}
+          filterType="mtd"
+        />
+
+        <MtdSummary
+          visible={summaryModal.isOpen}
+          onHide={summaryModal.close}
+          summaryData={mtdSalesSummary || null}
+          showYoY={activeComparisonTab === 1}
+        />
       </div>
-
-      <Table
-        title="Month-to-Date Sales by Brand"
-        data={mtdSalesSummary?.brands || []}
-        columns={columns}
-        loading={isMtdReportLoading}
-        hideSearch
-        dataKey="brand_id"
-        paginator={{
-          currentPage: mtdSalesSummary?.current_page || 1,
-          totalPages: mtdSalesSummary?.pages || 1,
-          onPageChange: (page) => {
-            fetchMtdSales({
-              ...mtdReportParams,
-              page,
-            });
-          },
-          rows: mtdReportParams.per_page,
-          onRowsPerPageChange: (rows) => {
-            fetchMtdSales({
-              ...mtdReportParams,
-              per_page: rows,
-              page: 1,
-            });
-          },
-        }}
-        totalRecords={mtdSalesSummary?.total_records}
-      />
-
-      <Filter
-        visible={filterModal.isOpen}
-        onHide={filterModal.close}
-        onApply={handleFilterApply}
-        currentFilters={{
-          ...mtdReportParams,
-          date: mtdReportParams.date || undefined,
-        }}
-        filterType="mtd"
-      />
-
-      <MtdSummary
-        visible={summaryModal.isOpen}
-        onHide={summaryModal.close}
-        summaryData={mtdSalesSummary || null}
-        showYoY={activeComparisonTab === 1}
-      />
     </div>
   );
 };

@@ -144,19 +144,17 @@ const DivisionList: React.FC = () => {
         title="Manage Product Divisions"
         loading={isLoading}
         globalSearchFields={["name", "alias"]}
-        actionButton={{
-          label: "Add Division",
-          onClick: () => handleSubmission(),
-          visible: canEdit(),
-        }}
-        // otherActions={[
-        //   {
-        //     icon: "pi pi-refresh",
-        //     tooltip: "Refresh list",
-        //     severity: "info",
-        //     onClick: handleRefresh,
-        //   },
-        // ]}
+        mainActions={[
+          {
+            label: "Add Division",
+            onClick: () => handleSubmission(),
+            icon: "pi pi-plus",
+            severity: "success",
+            rounded: true,
+            outlined: true,
+            visible: canEdit(),
+          },
+        ]}
         totalRecords={pagination.totalRecords}
         paginator={{
           currentPage: pagination.currentPage || 1,
@@ -173,9 +171,15 @@ const DivisionList: React.FC = () => {
             {
               icon: "pi pi-pencil",
               tooltip: "Edit",
-              severity: "success",
+              severity: "contrast",
               onClick: (rowData) => handleSubmission(rowData),
               visible: () => canEdit(),
+            },
+            {
+              icon: "pi pi-eye",
+              tooltip: "View",
+              severity: "info",
+              onClick: (rowData) => handleView(rowData),
             },
             {
               icon: "pi pi-trash",
@@ -183,12 +187,6 @@ const DivisionList: React.FC = () => {
               severity: "danger",
               onClick: (rowData) => handleDelete(rowData),
               visible: () => canDelete(),
-            },
-            {
-              icon: "pi pi-eye",
-              tooltip: "View",
-              severity: "info",
-              onClick: (rowData) => handleView(rowData),
             },
           ],
         }}

@@ -274,6 +274,7 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
               icon="pi pi-chart-bar"
               label="Summary"
               className="p-button-info p-button-outlined"
+              rounded
               onClick={summaryModal.open}
               disabled={!dailySalesSummary}
             />
@@ -281,11 +282,13 @@ const DailySales: React.FC<DailySalesProps> = ({ onRefresh }) => {
               icon="pi pi-filter"
               label="Filter"
               className="p-button-outlined"
+              rounded
               onClick={filterModal.open}
             />
             <Button
               icon="pi pi-refresh"
               className="p-button-outlined"
+              rounded
               onClick={() => onRefresh()}
               tooltip="Refresh Data"
               tooltipOptions={{ position: "top" }}

@@ -180,12 +180,16 @@ const BrandList: React.FC = () => {
         title="Manage Product Brands"
         loading={isLoading}
         globalSearchFields={["id", "name"]}
-        actionButton={{
-          label: "Add Brand",
-          onClick: () => handleSubmission(),
-          visible: canEdit(),
-        }}
-        otherActions={[
+        mainActions={[
+          {
+            label: "Add Brand",
+            onClick: () => handleSubmission(),
+            severity: "success",
+            icon: "pi pi-plus",
+            rounded: true,
+            outlined: true,
+            visible: canEdit(),
+          },
           // {
           //   icon: "pi pi-refresh",
           //   tooltip: "Refresh list",
@@ -195,7 +199,9 @@ const BrandList: React.FC = () => {
           {
             icon: "pi pi-upload",
             tooltip: "Import brands",
-            severity: "success",
+            severity: "info",
+            rounded: true,
+            outlined: true,
             onClick: importModal.open,
             disabled: isImporting || isLoading,
             visible: canEdit(),
@@ -217,9 +223,15 @@ const BrandList: React.FC = () => {
             {
               icon: "pi pi-pencil",
               tooltip: "Edit",
-              severity: "success",
+              severity: "contrast",
               onClick: (rowData) => handleSubmission(rowData),
               visible: () => canEdit(),
+            },
+            {
+              icon: "pi pi-eye",
+              tooltip: "View",
+              severity: "info",
+              onClick: (rowData) => handleView(rowData),
             },
             {
               icon: "pi pi-trash",
@@ -227,12 +239,6 @@ const BrandList: React.FC = () => {
               severity: "danger",
               onClick: (rowData) => handleDelete(rowData),
               visible: () => canDelete(),
-            },
-            {
-              icon: "pi pi-eye",
-              tooltip: "View",
-              severity: "info",
-              onClick: (rowData) => handleView(rowData),
             },
           ],
         }}

@@ -164,16 +164,22 @@ const TaxConfigurationList: React.FC = () => {
         title="Manage Tax Configurations"
         loading={isLoading}
         globalSearchFields={["name", "description"]}
-        actionButton={{
-          label: "Add Tax Configuration",
-          onClick: () => handleSubmission(),
-          visible: canEdit(),
-        }}
-        otherActions={[
+        mainActions={[
+          {
+            label: "Add Tax Configuration",
+            onClick: () => handleSubmission(),
+            severity: "success",
+            icon: "pi pi-plus",
+            rounded: true,
+            outlined: true,
+            visible: canEdit(),
+          },
           {
             icon: "pi pi-refresh",
             tooltip: "Refresh list",
             severity: "info",
+            rounded: true,
+            outlined: true,
             onClick: handleRefresh,
           },
         ]}
@@ -193,7 +199,7 @@ const TaxConfigurationList: React.FC = () => {
             {
               icon: "pi pi-pencil",
               tooltip: "Edit",
-              severity: "success",
+              severity: "contrast",
               onClick: (rowData) => handleSubmission(rowData),
               visible: () => canEdit(),
             },

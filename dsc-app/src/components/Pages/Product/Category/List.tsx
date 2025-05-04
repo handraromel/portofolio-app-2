@@ -136,19 +136,23 @@ const CategoryList: React.FC = () => {
         title="Manage Product Categories"
         loading={isLoading}
         globalSearchFields={["name"]}
-        actionButton={{
-          label: "Add Category",
-          onClick: () => handleSubmission(),
-          visible: canEdit(),
-        }}
-        // otherActions={[
-        //   {
-        //     icon: "pi pi-refresh",
-        //     tooltip: "Refresh list",
-        //     severity: "info",
-        //     onClick: handleRefresh,
-        //   },
-        // ]}
+        mainActions={[
+          // {
+          //   icon: "pi pi-refresh",
+          //   tooltip: "Refresh list",
+          //   severity: "info",
+          //   onClick: handleRefresh,
+          // },
+          {
+            label: "Add Category",
+            onClick: () => handleSubmission(),
+            visible: canEdit(),
+            icon: "pi pi-plus",
+            severity: "success",
+            rounded: true,
+            outlined: true,
+          },
+        ]}
         totalRecords={pagination.totalRecords}
         paginator={{
           currentPage: pagination.currentPage || 1,
@@ -165,9 +169,15 @@ const CategoryList: React.FC = () => {
             {
               icon: "pi pi-pencil",
               tooltip: "Edit",
-              severity: "success",
+              severity: "contrast",
               onClick: (rowData) => handleSubmission(rowData),
               visible: () => canEdit(),
+            },
+            {
+              icon: "pi pi-eye",
+              tooltip: "View",
+              severity: "info",
+              onClick: (rowData) => handleView(rowData),
             },
             {
               icon: "pi pi-trash",
@@ -175,12 +185,6 @@ const CategoryList: React.FC = () => {
               severity: "danger",
               onClick: (rowData) => handleDelete(rowData),
               visible: () => canDelete(),
-            },
-            {
-              icon: "pi pi-eye",
-              tooltip: "View",
-              severity: "info",
-              onClick: (rowData) => handleView(rowData),
             },
           ],
         }}

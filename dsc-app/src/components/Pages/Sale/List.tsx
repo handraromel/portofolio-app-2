@@ -411,12 +411,16 @@ const SaleList: React.FC = () => {
               loading={isLoading}
               key="uuid"
               globalSearchFields={["sku", "item_no", "description"]}
-              actionButton={{
-                label: "Add Sale",
-                onClick: handleAdd,
-                visible: canEdit(),
-              }}
-              otherActions={[
+              mainActions={[
+                {
+                  label: "Add Sale",
+                  onClick: handleAdd,
+                  severity: "success",
+                  icon: "pi pi-plus",
+                  rounded: true,
+                  outlined: true,
+                  visible: canEdit(),
+                },
                 {
                   icon:
                     selection.selectedItems?.length === sales.length
@@ -431,6 +435,8 @@ const SaleList: React.FC = () => {
                       ? "warning"
                       : "secondary",
                   onClick: handleSelectAll,
+                  rounded: true,
+                  outlined: true,
                   visible: canEdit(),
                   disabled: isLoading || sales.length === 0,
                 },
@@ -438,18 +444,23 @@ const SaleList: React.FC = () => {
                   icon: "pi pi-refresh",
                   tooltip: "Refresh list",
                   severity: "contrast",
+                  rounded: true,
+                  outlined: true,
                   onClick: handleRefresh,
                 },
                 {
                   icon: "pi pi-filter",
                   tooltip: "Advanced filters",
                   severity: "help",
+                  rounded: true,
+                  outlined: true,
                   onClick: filterModal.open,
                 },
                 {
                   icon: "pi pi-upload",
                   tooltip: "Import sales",
-                  severity: "success",
+                  rounded: true,
+                  outlined: true,
                   onClick: importModal.open,
                   disabled: isImporting || isExporting,
                 },
@@ -459,8 +470,19 @@ const SaleList: React.FC = () => {
                     : "pi pi-file-excel",
                   tooltip: isExporting ? "Exporting..." : "Export to Excel",
                   severity: "info",
+                  rounded: true,
+                  outlined: true,
                   onClick: handleExportToExcel,
                   disabled: isExporting || isImporting,
+                },
+                {
+                  label: `Delete Selected Items (${selection.selectedItems?.length || 0})`,
+                  icon: "pi pi-trash",
+                  severity: "danger",
+                  rounded: true,
+                  outlined: true,
+                  onClick: handleBulkDelete,
+                  visible: () => canEdit(),
                 },
                 // {
                 //   icon: isExporting ? "pi pi-spin pi-spinner" : "pi pi-file",
@@ -491,29 +513,20 @@ const SaleList: React.FC = () => {
                     visible: () => !!canEdit(),
                   },
                   {
+                    icon: "pi pi-eye",
+                    tooltip: "View",
+                    severity: "info",
+                    onClick: handleView,
+                  },
+                  {
                     icon: "pi pi-trash",
                     tooltip: "Delete",
                     severity: "danger",
                     onClick: handleDelete,
                     visible: () => !!canDelete(),
                   },
-                  {
-                    icon: "pi pi-eye",
-                    tooltip: "View",
-                    severity: "info",
-                    onClick: handleView,
-                  },
                 ],
               }}
-              bulkActions={[
-                {
-                  label: "Delete Selected Items",
-                  icon: "pi pi-trash",
-                  severity: "danger",
-                  onClick: handleBulkDelete,
-                  visible: () => canEdit(),
-                },
-              ]}
               selectionMode="multiple"
               selectedItem={selection.selectedItems}
               onSelectionChange={selection.handleSelectionChange}

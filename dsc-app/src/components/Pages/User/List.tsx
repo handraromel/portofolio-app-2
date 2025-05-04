@@ -224,19 +224,23 @@ const UserList: React.FC = () => {
         title="Manage Users"
         loading={isLoading}
         globalSearchFields={["email", "username", "first_name", "last_name"]}
-        actionButton={{
-          label: "Add User",
-          onClick: () => handleSubmission(),
-          visible: canEdit(),
-        }}
-        // otherActions={[
-        //   {
-        //     icon: "pi pi-refresh",
-        //     tooltip: "Refresh list",
-        //     severity: "info",
-        //     onClick: handleRefresh,
-        //   },
-        // ]}
+        mainActions={[
+          {
+            label: "Add User",
+            onClick: () => handleSubmission(),
+            visible: canEdit(),
+            severity: "success",
+            icon: "pi pi-plus",
+            rounded: true,
+            outlined: true,
+          },
+          // {
+          //   icon: "pi pi-refresh",
+          //   tooltip: "Refresh list",
+          //   severity: "info",
+          //   onClick: handleRefresh,
+          // },
+        ]}
         totalRecords={pagination.totalRecords}
         paginator={{
           currentPage: pagination.currentPage,
@@ -253,22 +257,12 @@ const UserList: React.FC = () => {
             {
               icon: "pi pi-pencil",
               tooltip: "Edit",
-              severity: "success",
+              severity: "contrast",
               onClick: (rowData) => handleSubmission(rowData),
               disabled: (rowData) => isEditDisabled(rowData),
               visible: () => canEdit(),
             },
-            {
-              icon: "pi pi-trash",
-              tooltip: "Delete",
-              severity: "danger",
-              onClick: (rowData) => {
-                setSelectedUser(rowData);
-                setTriggerDelete(true);
-              },
-              disabled: (rowData) => isDeleteDisabled(rowData),
-              visible: () => canDelete(),
-            },
+
             {
               icon: "pi pi-eye",
               tooltip: "View",
@@ -282,13 +276,24 @@ const UserList: React.FC = () => {
               tooltip: (rowData) =>
                 rowData.is_active ? "Deactivate" : "Activate",
               severity: (rowData) =>
-                rowData.is_active ? "warning" : "contrast",
+                rowData.is_active ? "warning" : "success",
               onClick: (rowData) => {
                 setSelectedUser(rowData);
                 setTriggerActivate(true);
               },
               disabled: (rowData) => isActivateDisabled(rowData),
               visible: () => isAdmin || isSuperAdmin,
+            },
+            {
+              icon: "pi pi-trash",
+              tooltip: "Delete",
+              severity: "danger",
+              onClick: (rowData) => {
+                setSelectedUser(rowData);
+                setTriggerDelete(true);
+              },
+              disabled: (rowData) => isDeleteDisabled(rowData),
+              visible: () => canDelete(),
             },
           ],
         }}
