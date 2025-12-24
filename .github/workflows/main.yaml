@@ -148,7 +148,7 @@ jobs:
             echo "Running database migrations..."
             docker compose exec -T backend flask db current || true
             if ! docker compose exec -T backend flask db upgrade; then
-              echo "Migration failed, attempting recovery..."
+              echo "Migration failed, attempting to recover..."
               docker compose logs backend
             fi
 
