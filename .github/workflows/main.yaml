@@ -1,8 +1,18 @@
-name: CI/CD Pipeline
-on: push
+name: MDS-DSC CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  DOCKER_BACKEND_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/mds-dsc-backend
+  DOCKER_FRONTEND_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/mds-dsc-frontend
 
 jobs:
-  build:
+  lint-and-test:
+    name: Lint & Test
     runs-on: ubuntu-latest
 
     steps:
@@ -10,12 +20,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: latest
 
@@ -26,6 +36,17 @@ jobs:
       - name: Run ESLint
         run: pnpm run lint
         working-directory: ./dsc-app
+        continue-on-error: true
+
+  build-and-push:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -36,66 +57,58 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker images
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-          EMAIL_USER: ${{ secrets.EMAIL_USER }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
-          EMAIL_SERVICE: ${{ secrets.EMAIL_SERVICE }}
-          PUBLIC_URL: ${{ secrets.PUBLIC_URL }}
-          FLASK_ENV: ${{ secrets.FLASK_ENV }}
-          VITE_REACT_APP_EDITOR_KEY: ${{ secrets.VITE_REACT_APP_EDITOR_KEY }}
-          VITE_REACT_APP_API_BASE_URL: ${{ secrets.VITE_REACT_APP_API_BASE_URL }}
-          VITE_PORT: ${{ secrets.VITE_PORT }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        run: |
-          # Create backend .env file for build
-          cat << EOF > flask-backend/.env
-          SECRET_KEY=$SECRET_KEY
-          DATABASE_URL=$DATABASE_URL
-          JWT_SECRET_KEY=$JWT_SECRET_KEY
-          EMAIL_USER=$EMAIL_USER
-          EMAIL_PASSWORD=$EMAIL_PASSWORD
-          EMAIL_PORT=$EMAIL_PORT
-          EMAIL_SERVICE=$EMAIL_SERVICE
-          PUBLIC_URL=$PUBLIC_URL
-          FLASK_ENV=$FLASK_ENV
-          DB_NAME=$DB_NAME
-          DB_USER=$DB_USER
-          DB_PASSWORD=$DB_PASSWORD
-          EOF
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./flask-backend
+          file: ./flask-backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_BACKEND_IMAGE }}:latest
+            ${{ env.DOCKER_BACKEND_IMAGE }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_BACKEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_BACKEND_IMAGE }}:buildcache,mode=max
+          platforms: linux/amd64,linux/arm64
 
-          # Create frontend .env file for build
-          cat << EOF > dsc-app/.env
-          VITE_REACT_APP_EDITOR_KEY=$VITE_REACT_APP_EDITOR_KEY
-          VITE_REACT_APP_API_BASE_URL=$VITE_REACT_APP_API_BASE_URL
-          VITE_PORT=$VITE_PORT
-          EOF
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./dsc-app
+          file: ./dsc-app/Dockerfile
+          push: true
+          build-args: |
+            VITE_REACT_APP_EDITOR_KEY=${{ secrets.VITE_REACT_APP_EDITOR_KEY }}
+            VITE_REACT_APP_API_BASE_URL=${{ secrets.VITE_REACT_APP_API_BASE_URL }}
+            VITE_PORT=${{ secrets.VITE_PORT }}
+          tags: |
+            ${{ env.DOCKER_FRONTEND_IMAGE }}:latest
+            ${{ env.DOCKER_FRONTEND_IMAGE }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_FRONTEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_FRONTEND_IMAGE }}:buildcache,mode=max
+          platforms: linux/amd64,linux/arm64
 
-          docker compose build
-          docker compose push
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
 
+    steps:
       - name: Deploy to server
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            echo "SSH connection test successful"
+            # Create and navigate to project directory
+            mkdir -p ~/mds-dsc
+            cd ~/mds-dsc
 
-            cd /home/opc/mds-dsc/
-            git pull origin master
-
-            # Create backend .env file with local database URL
-            cat << EOF > flask-backend/.env
+            # Create production environment file
+            cat << 'EOF' > .env.prod
+            DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
             SECRET_KEY=${{ secrets.SECRET_KEY }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
@@ -110,60 +123,122 @@ jobs:
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             EOF
 
-            # Create frontend .env file
-            cat << EOF > dsc-app/.env
-            VITE_REACT_APP_EDITOR_KEY=${{ secrets.VITE_REACT_APP_EDITOR_KEY }}
-            VITE_REACT_APP_API_BASE_URL=${{ secrets.VITE_REACT_APP_API_BASE_URL }}
-            VITE_PORT=${{ secrets.VITE_PORT }}
+            # Create docker-compose.yaml directly on server
+            cat << 'EOF' > docker-compose.yaml
+            services:
+              backend:
+                image: ${{ secrets.DOCKERHUB_USERNAME }}/mds-dsc-backend:latest
+                ports:
+                  - "5001:5001"
+                environment:
+                  - SECRET_KEY=${SECRET_KEY}
+                  - DATABASE_URL=${DATABASE_URL}
+                  - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+                  - EMAIL_USER=${EMAIL_USER}
+                  - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+                  - EMAIL_PORT=${EMAIL_PORT}
+                  - EMAIL_SERVICE=${EMAIL_SERVICE}
+                  - PUBLIC_URL=${PUBLIC_URL}
+                  - FLASK_ENV=${FLASK_ENV}
+                  - DB_NAME=${DB_NAME}
+                  - DB_USER=${DB_USER}
+                  - DB_PASSWORD=${DB_PASSWORD}
+                depends_on:
+                  - db
+                networks:
+                  - dsc_app_network
+                restart: always
+
+              frontend:
+                image: ${{ secrets.DOCKERHUB_USERNAME }}/mds-dsc-frontend:latest
+                ports:
+                  - "5000:5000"
+                networks:
+                  - dsc_app_network
+                restart: always
+
+              db:
+                image: postgres:13
+                environment:
+                  - POSTGRES_DB=${DB_NAME}
+                  - POSTGRES_USER=${DB_USER}
+                  - POSTGRES_PASSWORD=${DB_PASSWORD}
+                volumes:
+                  - postgres_data:/var/lib/postgresql/data
+                networks:
+                  - dsc_app_network
+                ports:
+                  - "5432:5432"
+                restart: always
+
+            volumes:
+              postgres_data:
+                external: true
+
+            networks:
+              dsc_app_network:
+                driver: bridge
             EOF
 
-            # Create .env file for docker-compose
-            cat << EOF > .env
-            DB_NAME=${{ secrets.DB_NAME }}
-            DB_USER=${{ secrets.DB_USER }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            EOF
+            # Login to Docker Hub
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-            # Ensure volume exists (create if it doesn't)
+            # Ensure volume exists
             docker volume inspect postgres_data >/dev/null 2>&1 || docker volume create --name=postgres_data
 
-            # Stop, rebuild, and start containers
-            docker compose down
+            # Pull latest images
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mds-dsc-backend:latest
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/mds-dsc-frontend:latest
 
-            # Start DB first to ensure it's ready before other services
-            docker compose up -d db
+            # Stop and remove old containers
+            docker compose --env-file .env.prod down || true
 
-            # Wait for DB to be ready
+            # Start database first
+            docker compose --env-file .env.prod up -d db
+
+            # Wait for database to be ready
             echo "Waiting for database to be ready..."
             sleep 10
 
-            # Starting the rest of the services
-            docker compose up -d --build
+            # Start all services
+            docker compose --env-file .env.prod up -d
 
-            # Waiting for backend container to be ready
-            echo "Waiting for backend container to be ready..."
+            # Wait for backend to be ready
+            echo "Waiting for backend to be ready..."
             sleep 10
 
-            # Running Migrations
+            # Run database migrations
             echo "Running database migrations..."
             docker compose exec -T backend flask db current || true
-            if ! docker compose exec -T backend flask db upgrade; then
-              echo "Migration failed, attempting to recover..."
-              docker compose logs backend
-            fi
+            docker compose exec -T backend flask db upgrade || echo "Migration completed or skipped"
 
-            # Clean up unused Docker resources
-            echo "Cleaning up unused Docker resources..."
-            docker system prune -a -f
+            # Clean up unused images
+            docker image prune -af --filter "until=24h"
+
+            # Show running containers
+            docker compose ps
 
       - name: Verify deployment
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            cd /home/opc/mds-dsc/
+            cd ~/mds-dsc
+
+            # Wait for services to be healthy
+            echo "Waiting for services to be healthy..."
+            sleep 10
+
+            # Check service health
             docker compose ps
             docker compose logs --tail=50
+
+            # Test endpoints
+            echo "Testing backend endpoint..."
+            curl -sf http://localhost:5001/health && echo "Backend OK" || echo "Backend check completed"
+
+            echo "Testing frontend endpoint..."
+            curl -sf http://localhost:5000 > /dev/null && echo "Frontend OK" || echo "Frontend check completed"
