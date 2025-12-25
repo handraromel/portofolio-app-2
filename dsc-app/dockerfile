@@ -1,8 +1,7 @@
 FROM node:20-alpine AS builder
 
-RUN curl -fsSL https://get.pnpm.io/install.sh | SHELL="$(which bash)" bash -
-
-ENV PATH="/root/.local/share/pnpm:$PATH"
+# Install pnpm via corepack (built into Node 20)
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
@@ -12,19 +11,24 @@ RUN pnpm install
 
 COPY . .
 
-# Declare build arguments (these are NOT secrets - they get baked into public JS bundle)
+# Write build-time env vars to .env file (avoids ARG/ENV warnings)
+# These are NOT secrets - they get baked into the public JS bundle
 ARG VITE_REACT_APP_API_BASE_URL
 ARG VITE_REACT_APP_EDITOR_KEY
 ARG VITE_PORT
-
-# Set as environment variables so Vite can read them during build
-ENV VITE_REACT_APP_API_BASE_URL=$VITE_REACT_APP_API_BASE_URL
-ENV VITE_REACT_APP_EDITOR_KEY=$VITE_REACT_APP_EDITOR_KEY
-ENV VITE_PORT=$VITE_PORT
+RUN printf "VITE_REACT_APP_API_BASE_URL=%s\nVITE_REACT_APP_EDITOR_KEY=%s\nVITE_PORT=%s\n" \
+    "$VITE_REACT_APP_API_BASE_URL" "$VITE_REACT_APP_EDITOR_KEY" "$VITE_PORT" > .env
 
 RUN pnpm run build
 
+# Production stage - use smaller image
+FROM node:20-alpine
+
 RUN npm install -g serve
+
+WORKDIR /app
+
+COPY --from=builder /app/dist ./dist
 
 EXPOSE 5000
 
