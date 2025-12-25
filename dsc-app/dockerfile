@@ -1,4 +1,4 @@
-FROM node:20
+FROM node:20-alpine AS builder
 
 RUN curl -fsSL https://get.pnpm.io/install.sh | SHELL="$(which bash)" bash -
 
@@ -11,6 +11,16 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install
 
 COPY . .
+
+# Declare build arguments (these are NOT secrets - they get baked into public JS bundle)
+ARG VITE_REACT_APP_API_BASE_URL
+ARG VITE_REACT_APP_EDITOR_KEY
+ARG VITE_PORT
+
+# Set as environment variables so Vite can read them during build
+ENV VITE_REACT_APP_API_BASE_URL=$VITE_REACT_APP_API_BASE_URL
+ENV VITE_REACT_APP_EDITOR_KEY=$VITE_REACT_APP_EDITOR_KEY
+ENV VITE_PORT=$VITE_PORT
 
 RUN pnpm run build
 
