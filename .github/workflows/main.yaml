@@ -153,6 +153,10 @@ jobs:
                 image: ${{ secrets.DOCKERHUB_USERNAME }}/mds-dsc-frontend:latest
                 ports:
                   - "5000:5000"
+                environment:
+                  - VITE_REACT_APP_API_BASE_URL=${{ secrets.VITE_REACT_APP_API_BASE_URL }}
+                  - VITE_REACT_APP_EDITOR_KEY=${{ secrets.VITE_REACT_APP_EDITOR_KEY }}
+                  - VITE_PORT=${{ secrets.VITE_PORT }}
                 networks:
                   - dsc_app_network
                 restart: always
